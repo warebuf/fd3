@@ -14,8 +14,13 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 
 		origin := r.Header.Get("Origin")
+		fmt.Println("origin", origin)
+
+		fmt.Println(r)
 
 		switch origin {
+		case "file:///Users/jeremy/fd3_fe/game.html":
+			return true
 		case "http://localhost" + port:
 			return true
 		case "https://fidemons.com":
