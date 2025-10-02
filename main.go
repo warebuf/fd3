@@ -46,10 +46,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	})
-
 	http.HandleFunc("/ws", wsHandler)
 
 	log.Fatal(http.ListenAndServe(port, nil))
