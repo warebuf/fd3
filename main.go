@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -40,7 +41,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Read error:", err)
 			break
 		}
-		fmt.Printf("Received: %s\n", msg)
+		fmt.Printf("[%s] Received: %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+
 	}
 }
 
