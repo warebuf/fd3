@@ -29,6 +29,8 @@ func (c *Client) Read() {
 
 		if err != nil { // Read error or peer closed
 			fmt.Println("closing Read client, ID", c.ID)
+			fmt.Printf("error: %v\n", err)
+
 			break
 		}
 
@@ -48,9 +50,10 @@ func (c *Client) Write() {
 
 	for {
 		select { // select is blocking btw
-		case <-pingTicker.C: // browser auto-responds with pong
+		case <-pingTicker.C: // note: the browser auto-pongs
 			_ = c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				fmt.Println("error on ping", err)
 				return
 			}
 		}
