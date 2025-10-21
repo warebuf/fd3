@@ -1,15 +1,17 @@
 package main
 
 import (
+	// std lib
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
+	// 3rd party imports
 	"github.com/gorilla/websocket"
-)
 
-const port = ":3000"
+	// our imports
+	"github.com/warebuf/fd3/matchmaking"
+)
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -28,27 +30,27 @@ var upgrader = websocket.Upgrader{
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+
+	// upgrade HTTPS to WSS, create the websocket object
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Upgrade error:", err)
 		return
 	}
-	defer conn.Close()
+	conn.EnableWriteCompression(true)
 
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Read error:", err)
-			break
-		}
-		fmt.Printf("[%s] Received: %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
-
+	c := &matchmaking.Client{
+		ID:   "a",
+		Conn: conn,
 	}
+
+	go c.Write()
+	c.Read() // note this is not a goroutine because every request spawns a goroutine
 }
 
 func main() {
 
 	http.HandleFunc("/ws", wsHandler)
 
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
