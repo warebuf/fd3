@@ -58,4 +58,5 @@ func (c *Client) Write() {
 			}
 		}
 	}
+
 }
