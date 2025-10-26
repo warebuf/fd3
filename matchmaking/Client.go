@@ -3,6 +3,7 @@ package matchmaking
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -11,6 +12,9 @@ import (
 type Client struct {
 	ID   string
 	Conn *websocket.Conn
+
+	HighPrio chan []byte // dynamically created as a buffered channel
+	LowPrio  chan []byte // dynamically created as a buffered channel
 }
 
 func (c *Client) Read() {
@@ -30,7 +34,10 @@ func (c *Client) Read() {
 			break
 		}
 
-		// get event type
+		// detect receive time immediately
+		t2 := time.Now().UnixMilli()
+
+		// parse message type
 		var msg struct {
 			Type string `json:"type"`
 		}
@@ -42,7 +49,12 @@ func (c *Client) Read() {
 		//
 		switch msg.Type {
 		case "p":
-			fmt.Printf("[%s] ping received %s\n", time.Now().Format("15:04:05.000"), data)
+			// append the t2 timestamp to the []byte message
+			newMsg := data[:len(data)-1] // drop trailing '}'
+			newMsg = append(newMsg, []byte(`,"t2":`)...)
+			newMsg = strconv.AppendInt(newMsg, t2, 10)
+			newMsg = append(newMsg, '}')
+			c.HighPrio <- newMsg // can make this non-blocking, but whatever for now
 		}
 
 		_ = c.Conn.SetReadDeadline(time.Now().Add(65 * time.Second)) // reset the idle timer because we got a message
@@ -54,8 +66,34 @@ func (c *Client) Read() {
 func (c *Client) Write() {
 
 	for {
-		select { // select is blocking btw
+		select {
+		// high prio first
+		case data := <-c.HighPrio:
+			if err := sendData(c, data); err == false {
+				return
+			}
+		default:
+			// if no high prio, take first available
+			select {
+			case data := <-c.HighPrio:
+				if err := sendData(c, data); err == false {
+					return
+				}
+			case data := <-c.LowPrio:
+				if err := sendData(c, data); err == false {
+					return
+				}
+			}
 		}
 	}
 
+}
+
+func sendData(c *Client, data []byte) bool {
+	c.Conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+	if err := c.Conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		fmt.Println("write error:", err)
+		return false
+	}
+	return true
 }

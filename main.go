@@ -40,8 +40,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn.EnableWriteCompression(true)
 
 	c := &matchmaking.Client{
-		ID:   "a",
-		Conn: conn,
+		ID:       "a",
+		Conn:     conn,
+		HighPrio: make(chan []byte, 32),
+		LowPrio:  make(chan []byte, 32),
 	}
 
 	go c.Write()
