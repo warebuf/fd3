@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	// 3rd party imports
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
 	// our imports
@@ -27,6 +29,28 @@ var upgrader = websocket.Upgrader{
 
 		return false
 	},
+}
+
+func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
+
+	if c, err := r.Cookie("guest_id"); err == nil && c.Value != "" {
+		fmt.Println("c", c)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	id := uuid.NewString()
+	http.SetCookie(w, &http.Cookie{
+		Name:     "guest_id",
+		Value:    id,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,                 // true in prod (HTTPS)
+		SameSite: http.SameSiteLaxMode, // same-site app; use None for cross-site embeds
+		Expires:  time.Now().Add(365 * 24 * time.Hour),
+	})
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
