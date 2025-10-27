@@ -35,12 +35,14 @@ type Scheduler struct {
 	startTime   time.Time
 	currentTime time.Time
 	increment   time.Time
+
+	// should add an end game channel
 }
 
 func CreateScheduler() {
 	scheduler := &Scheduler{}
 	heap.Init(&scheduler.pq)
-	//heap.Push(pq, &Event{time.Now().Add(2 * time.Second), "A"})
+	go scheduler.loop()
 }
 
 func (scheduler *Scheduler) AddEvent(t time.Time) {
@@ -50,9 +52,38 @@ func (scheduler *Scheduler) AddEvent(t time.Time) {
 
 }
 
-func (scheduler *Scheduler) Loop() {
+func (scheduler *Scheduler) loop() {
 
 	for {
+
+		scheduler.mutex.Lock()
+		if scheduler.pq.Len() > 0 {
+			next := scheduler.pq[0]
+			timeUntilNext := time.Until(next.Time)
+
+			if scheduler.timer == nil {
+				scheduler.timer = time.NewTimer(timeUntilNext)
+			} else {
+				// drain timer and reset
+				if !scheduler.timer.Stop() {
+					select {
+					case <-scheduler.timer.C:
+					default:
+					}
+				}
+				scheduler.timer.Reset(timeUntilNext)
+			}
+		}
+		scheduler.mutex.Unlock()
+
+		select {
+		case <-scheduler.timer.C:
+			// timer fired; loop will handle due items
+		case <-scheduler.reinit:
+			// earlier job inserted; loop recalculates
+		case <-scheduler.kill:
+			return
+		}
 
 	}
 
