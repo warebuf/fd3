@@ -31,9 +31,12 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// TODO: this is not encrypted, the user can just edit it if they want
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
-	if c, err := r.Cookie("guest_id"); err == nil && c.Value != "" {
+	fmt.Println("madeit")
+
+	if c, err := r.Cookie("guestID"); err == nil && c.Value != "" {
 		fmt.Println("c", c)
 		w.WriteHeader(http.StatusNoContent)
 		return
@@ -41,7 +44,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := uuid.NewString()
 	http.SetCookie(w, &http.Cookie{
-		Name:     "guest_id",
+		Name:     "guestID",
 		Value:    id,
 		Path:     "/",
 		HttpOnly: true,
@@ -79,6 +82,7 @@ func main() {
 	fmt.Println("server started")
 
 	http.HandleFunc("/ws", wsHandler)
+	http.HandleFunc("/getGuestID", getGuestIDHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
