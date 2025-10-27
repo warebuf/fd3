@@ -32,10 +32,10 @@ var upgrader = websocket.Upgrader{
 }
 
 // TODO: this is not encrypted, the user can just edit it if they want
+// TODO: figure out what happens when the cookie expires
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("madeit")
-
+	// basically every game, give the user a new guest cookie
 	if c, err := r.Cookie("guestID"); err == nil && c.Value != "" {
 		fmt.Println("c", c)
 		w.WriteHeader(http.StatusNoContent)

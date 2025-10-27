@@ -1,6 +1,9 @@
 package matchmaking
 
+import "sync"
+
 type Room struct {
-	id      string
-	members map[*Client]struct{}
+	ID     string
+	byUser map[string]*Client
+	mutex  sync.RWMutex
 }
