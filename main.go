@@ -56,6 +56,44 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("matchmakingSSE")
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		fmt.Println("Cannot Flush! Please hard investigate.")
+		return
+	}
+
+	ctx := r.Context() // close when client disconnects
+
+	matchCh := make(chan struct{}, 1)
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-matchCh:
+			w.Write([]byte("match"))
+			flusher.Flush()
+			return
+		case <-ticker.C:
+			fmt.Println("matchmaking ping")
+			w.Write([]byte("ping"))
+			flusher.Flush()
+		}
+	}
+
+}
+
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// upgrade HTTPS to WSS, create the websocket object
@@ -82,6 +120,7 @@ func main() {
 	fmt.Println("server started")
 
 	http.HandleFunc("/ws", wsHandler)
+	http.HandleFunc("/matchmakingSSE", matchmakingSSE)
 	http.HandleFunc("/getGuestID", getGuestIDHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
