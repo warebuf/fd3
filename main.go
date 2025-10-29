@@ -13,6 +13,7 @@ import (
 
 	// our imports
 	"github.com/warebuf/fd3/matchmaking"
+	"github.com/warebuf/fd3/networking"
 )
 
 var upgrader = websocket.Upgrader{
@@ -31,18 +32,14 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// TODO: this is not encrypted, the user can just edit it if they want
-// TODO: figure out what happens when the cookie expires
+// TODO: this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
-	// basically every game, give the user a new guest cookie
-	if c, err := r.Cookie("guestID"); err == nil && c.Value != "" {
-		fmt.Println("c", c)
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-
 	id := uuid.NewString()
+	expiry := time.Now().Add(2 * time.Hour)
+
+	guestMap.Add(id, expiry)
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "guestID",
 		Value:    id,
@@ -50,7 +47,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   true,                 // true in prod (HTTPS)
 		SameSite: http.SameSiteLaxMode, // same-site app; use None for cross-site embeds
-		Expires:  time.Now().Add(365 * 24 * time.Hour),
+		Expires:  expiry,
 	})
 	w.WriteHeader(http.StatusNoContent)
 
@@ -58,12 +55,19 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("matchmakingSSE")
+	fmt.Println("matchmakingSSE: IP", networking.GetIP(r))
 
+	for _, c := range r.Cookies() {
+        val := c.Value
+        fmt.Printf("cookie: %s=%s\n", c.Name, val)
+    }
+
+	// header set up
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
+	// check if the server will allow us the force the SSE output
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		fmt.Println("Cannot Flush! Please hard investigate.")
@@ -72,22 +76,25 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context() // close when client disconnects
 
-	matchCh := make(chan struct{}, 1)
+	match := make(chan struct{}, 1)
 
-	ticker := time.NewTicker(5 * time.Second)
+	// TODO: add the cookie to the goroutine to find a match
+
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-matchCh:
-			w.Write([]byte("match"))
+		case <-match:
+			w.Write([]byte("data: match\n\n")) // must end with a blank line
 			flusher.Flush()
 			return
 		case <-ticker.C:
-			fmt.Println("matchmaking ping")
-			w.Write([]byte("ping"))
+			if _, err := w.Write([]byte("data: ping\n\n")); err != nil { // must end with a blank line
+				return
+			}
 			flusher.Flush()
 		}
 	}
@@ -113,15 +120,26 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	go c.Write()
 	c.Read() // note this is not a goroutine because every request spawns a goroutine
+
+}
+
+// global variables
+var guestMap *matchmaking.GuestStore
+
+func init() {
+	fmt.Println("server started")
+	guestMap = matchmaking.NewGuestStore()
 }
 
 func main() {
 
-	fmt.Println("server started")
-
-	http.HandleFunc("/ws", wsHandler)
-	http.HandleFunc("/matchmakingSSE", matchmakingSSE)
+	// matchmaking routes	
 	http.HandleFunc("/getGuestID", getGuestIDHandler)
+	http.HandleFunc("/matchmakingSSE", matchmakingSSE)
+	
+	// websocket routes
+	http.HandleFunc("/ws", wsHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
+
 }

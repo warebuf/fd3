@@ -2,7 +2,7 @@ package matchmaking
 
 import "sync"
 
-type Room struct {
+type Match struct {
 	ID     string
 	byUser map[string]*Client
 	mutex  sync.RWMutex
