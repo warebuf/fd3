@@ -37,6 +37,12 @@ func (guestMap *GuestStore) Add(id string, expiry time.Time) {
 	}
 }
 
+func (guestMap *GuestStore) Remove(id string) {
+	guestMap.mutex.Lock()
+	defer guestMap.mutex.Unlock()
+	delete(guestMap.store, id)
+}
+
 func (guestMap *GuestStore) Get(id string) (bool) {
 	guestMap.mutex.Lock()
 	defer guestMap.mutex.Unlock()

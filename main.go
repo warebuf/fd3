@@ -57,10 +57,25 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("matchmakingSSE: IP", networking.GetIP(r))
 
+	guestID := ""
 	for _, c := range r.Cookies() {
-        val := c.Value
-        fmt.Printf("cookie: %s=%s\n", c.Name, val)
+		if(c.Name == "guestID") {
+			guestID = c.Value
+		} 
     }
+	
+	// check for cookie
+	if guestID == "" {
+		http.Error(w, "Invalid guestID", http.StatusUnauthorized)
+		return
+	}
+	
+	// check for expired cookie
+	ok := guestMap.Get(guestID)
+	if !ok {
+		http.Error(w, "Expired guestID", http.StatusUnauthorized)
+		return
+	}
 
 	// header set up
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -86,6 +101,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-ctx.Done():
+			guestMap.Remove(guestID)
 			return
 		case <-match:
 			w.Write([]byte("data: match\n\n")) // must end with a blank line
