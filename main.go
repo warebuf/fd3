@@ -59,17 +59,17 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	guestID := ""
 	for _, c := range r.Cookies() {
-		if(c.Name == "guestID") {
+		if c.Name == "guestID" {
 			guestID = c.Value
-		} 
-    }
-	
+		}
+	}
+
 	// check for cookie
 	if guestID == "" {
 		http.Error(w, "Invalid guestID", http.StatusUnauthorized)
 		return
 	}
-	
+
 	// check for expired cookie
 	ok := guestMap.Get(guestID)
 	if !ok {
@@ -100,7 +100,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Done(): // NOTE: reading .Done twice, have to remove this
 			guestMap.Remove(guestID)
 			return
 		case <-match:
@@ -149,10 +149,10 @@ func init() {
 
 func main() {
 
-	// matchmaking routes	
+	// matchmaking routes
 	http.HandleFunc("/getGuestID", getGuestIDHandler)
 	http.HandleFunc("/matchmakingSSE", matchmakingSSE)
-	
+
 	// websocket routes
 	http.HandleFunc("/ws", wsHandler)
 
