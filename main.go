@@ -100,7 +100,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case <-ctx.Done(): // NOTE: reading .Done twice, have to remove this
+		case <-ctx.Done(): // is a close signal, will indicate to all listeners that it is closed
 			guestMap.Remove(guestID)
 			return
 		case <-match:

@@ -23,6 +23,7 @@ func CreateMatchMaking() {
 
 }
 
+// maybe get rid of this and probably put it into SSE or something
 func (mm *Matchmaker) Join(ctx context.Context, ticketID string) (out chan string) {
 	out = make(chan string, 1)
 	w := Waiting{
