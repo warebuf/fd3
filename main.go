@@ -32,6 +32,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// maybe over the long-term, when I add users, it should be a ticketID, not a guestID
 // TODO: this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -91,9 +92,8 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context() // close when client disconnects
 
-	match := make(chan struct{}, 1)
-
-	// TODO: add the cookie to the goroutine to find a match
+	// add the guest/ticket to the matchmaking queue
+	match := matchmaking.Join(ctx, guestID)
 
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()

@@ -12,22 +12,28 @@ type Waiting struct {
 }
 
 type Matchmaker struct {
-	mu     sync.Mutex
-	q      []Waiting           // FIFO queue of waiting users
+	mutex     sync.Mutex
+	q      []*Waiting           // FIFO queue of waiting users
 	inGame map[string]struct{} // list of users in game
-	join   chan Waiting        // new waiter arrives
+	join   chan *Waiting        // new waiter arrives
 	quit   chan string         // userID leaves/cancels
 }
 
 func CreateMatchMaking() {
-
+	m := &Matchmaker{
+		q: make([]string,0,1024),
+		inGame: make(map[string]struct{}),
+		join: make(chan *Waiting, 1024),
+		quit: make(chan string, 1024)
+	}
+	go m.loop()
+	return m
 }
 
-// maybe get rid of this and probably put it into SSE or something
-func (mm *Matchmaker) Join(ctx context.Context, ticketID string) (out chan string) {
+func (mm *Matchmaker) Join(ctx context.Context, UserID string) (out chan string) {
 	out = make(chan string, 1)
 	w := Waiting{
-		UserID: ticketID,
+		UserID: UserID,
 		Found:  out,
 		Leave:  ctx.Done(),
 	}
