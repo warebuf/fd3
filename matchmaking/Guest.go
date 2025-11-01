@@ -1,16 +1,17 @@
 package matchmaking
 
-import "sync"
-import "time"
-import "fmt"
-
+import (
+	"fmt"
+	"sync"
+	"time"
+)
 
 type Guest struct {
 	Expiry time.Time
 }
 
 type GuestStore struct {
-	mutex    sync.Mutex
+	mutex sync.Mutex
 	store map[string]Guest
 }
 
@@ -18,7 +19,7 @@ func NewGuestStore() *GuestStore {
 	gs := &GuestStore{
 		store: make(map[string]Guest),
 	}
-	
+
 	// background cleaner
 	go func() {
 		for range time.Tick(time.Minute * 15) {
@@ -43,7 +44,7 @@ func (guestMap *GuestStore) Remove(id string) {
 	delete(guestMap.store, id)
 }
 
-func (guestMap *GuestStore) Get(id string) (bool) {
+func (guestMap *GuestStore) Get(id string) bool {
 	guestMap.mutex.Lock()
 	defer guestMap.mutex.Unlock()
 	guest, ok := guestMap.store[id]
@@ -64,8 +65,6 @@ func (guestMap *GuestStore) cleanup() {
 	}
 }
 
-
-// other
 func (guestMap *GuestStore) Print() {
 	fmt.Println("Printing guestMap")
 	guestMap.mutex.Lock()

@@ -93,7 +93,10 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context() // close when client disconnects
 
 	// add the guest/ticket to the matchmaking queue
-	match := matchmaking.Join(ctx, guestID)
+	match, exists := matchmaker.Join(ctx, guestID)
+	if exists {
+		return
+	}
 
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
@@ -141,10 +144,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 // global variables
 var guestMap *matchmaking.GuestStore
+var matchmaker *matchmaking.Matchmaker
 
 func init() {
 	fmt.Println("server started")
 	guestMap = matchmaking.NewGuestStore()
+	matchmaker = matchmaking.CreateMatchMaking()
 }
 
 func main() {
