@@ -93,9 +93,11 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context() // close when client disconnects
 
 	// add the guest/ticket to the matchmaking queue
-	match, exists := matchmaker.Join(ctx, guestID)
-	if exists {
-		return
+	match := make(chan string, 1)
+	matchmaker.Join <- &matchmaking.Waiting{
+		UserID: guestID,
+		Found:  match,
+		Leave:  ctx.Done(),
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
