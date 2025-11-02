@@ -13,7 +13,6 @@ import (
 
 	// our imports
 	"github.com/warebuf/fd3/matchmaking"
-	"github.com/warebuf/fd3/networking"
 )
 
 var upgrader = websocket.Upgrader{
@@ -56,7 +55,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("matchmakingSSE: IP", networking.GetIP(r))
+	// fmt.Println("matchmakingSSE: IP", networking.GetIP(r))
 
 	guestID := ""
 	for _, c := range r.Cookies() {
@@ -99,7 +98,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 		TicketID: guestID,
 		ClosedConnection:    ctx.Done(),
 		Found:    match,
-		Reject:   reject,
+		RejectedTicket:   reject,
 	}
 
 	ticker := time.NewTicker(30 * time.Second)

@@ -13,7 +13,7 @@ type Ticket struct {
 	TicketID string
 	ClosedConnection    <-chan struct{}
 	Found    chan string   // receives matchID
-	Reject   chan struct{} // if UserID is in the system, reject
+	RejectedTicket   chan struct{} // if UserID is in the system, reject
 }
 
 type Matchmaker struct {
@@ -43,13 +43,13 @@ func (m *Matchmaker) loop() {
 
 			// if ticketID is in game, return the SSE connection
 			if _, exists := m.inGame[ticket.TicketID]; exists {
-				select { case ticket.Reject <- struct{}{}: default: } // non-blocking reject
+				select { case ticket.RejectedTicket <- struct{}{}: default: } // non-blocking reject
 				continue
 			}
 
 			// if ticketID is in queue, return the SSE connection
 			if _, exists := m.queue.Get(ticket.TicketID); exists {
-				select { case ticket.Reject <- struct{}{}: default: } // non-blocking reject
+				select { case ticket.RejectedTicket <- struct{}{}: default: } // non-blocking reject
 				continue
 			}
 
@@ -57,7 +57,7 @@ func (m *Matchmaker) loop() {
 			m.queue.Set(ticket.TicketID, ticket)
 
 			// iterate from newest to oldest, take the two latest that are in the system
-			var first, second *Ticket
+			var first, second *Ticket // TODO: change this to an array 
 			for current := m.queue.Newest(); current != nil || (first == nil && second == nil); {
 
 				// non-blocking
@@ -65,7 +65,7 @@ func (m *Matchmaker) loop() {
 				case <-current.Value.ClosedConnection: // user is not connected, invalidate ticket
 					prev := current.Prev()
 					m.queue.Delete(current.Key)
-					select { case current.Value.Reject <- struct{}{}: default: } // make sure the ticket is closed
+					select { case current.Value.RejectedTicket <- struct{}{}: default: } // make sure the ticket is closed
 					current = prev
 				default: // save the ticket
 					if first == nil {
