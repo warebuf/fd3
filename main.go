@@ -108,12 +108,14 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-ctx.Done(): // is a close signal, will indicate to all listeners that it is closed
+			fmt.Println("Close Signal")
 			guestMap.Remove(guestID)
 			return
 		case <-reject:
 			fmt.Println("reject")
 			return
 		case <-match:
+			fmt.Println("match")
 			w.Write([]byte("data: match\n\n")) // must end with a blank line
 			flusher.Flush()
 			return

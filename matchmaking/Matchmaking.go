@@ -2,6 +2,7 @@ package matchmaking
 
 import (
 	"sync"
+	"fmt"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
@@ -34,6 +35,15 @@ func CreateMatchMaking() *Matchmaker {
 	return m
 }
 
+func (m *Matchmaker) Print() {
+	fmt.Println("Printing Queue")
+	m.mutex.Lock()
+	for current := m.queue.Newest(); current != nil; current = current.Prev() {
+		fmt.Println("test123", current.Value)
+	}
+	m.mutex.Unlock()
+}
+
 func (m *Matchmaker) loop() {
 	for {
 		select {
@@ -55,19 +65,15 @@ func (m *Matchmaker) loop() {
 
 			// terate from newest to oldest, take the two latest that are in the system
 			var first, second *Ticket
-			for current := m.queue.Newest(); current != nil && (first == nil || second == nil); {
+			for current := m.queue.Newest(); current != nil || (first == nil && second == nil); {
 
 				// non-blocking
 				select {
 				case <-current.Value.Leave: // user is not connected, invalidate ticket
 					prev := current.Prev()
 					m.queue.Delete(current.Key)
+					select { case current.Value.Reject <- struct{}{}: default: } // make sure the ticket is closed
 					current = prev
-					// best-effort notify reject without blocking
-					select {
-					case current.Value.Reject <- struct{}{}:
-					default:
-					}
 				default: // save the ticket
 					if first == nil {
 						first = current.Value
@@ -90,6 +96,8 @@ func (m *Matchmaker) loop() {
 			}
 
 			m.mutex.Unlock()
+
+			m.Print()
 		}
 	}
 
