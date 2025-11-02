@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
+	"github.com/google/uuid"
 )
 
 // tbh not even sure if this is a well thought out production ready system
@@ -84,6 +85,10 @@ func (m *Matchmaker) loop() {
 
 			// matchmake
 			if first != nil && second != nil {
+
+				id := uuid.New()
+				fmt.Println("id", id)
+
 				select { case first.Found <- "test" : default: }
 				select { case second.Found <- "test" : default: }
 				m.queue.Delete(first.TicketID)
