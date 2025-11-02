@@ -107,7 +107,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case <-ctx.Done(): // is a close signal, will indicate to all listeners that it is closed
+		case <-ctx.Done(): // is a closed channel, anyone who checks it will see it is closed
 			fmt.Println("Close Signal")
 			guestMap.Remove(guestID)
 			return

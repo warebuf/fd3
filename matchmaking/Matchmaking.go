@@ -53,11 +53,13 @@ func (m *Matchmaker) loop() {
 			// if ticketID is in game, return the SSE connection
 			if _, exists := m.inGame[ticket.TicketID]; exists {
 				ticket.Reject <- struct{}{}
+				continue
 			}
 
 			// if ticketID is in queue, return the SSE connection
 			if _, exists := m.queue.Get(ticket.TicketID); exists {
 				ticket.Reject <- struct{}{}
+				continue
 			}
 
 			// add the ticket to the queue
