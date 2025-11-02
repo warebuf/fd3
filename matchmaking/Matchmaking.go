@@ -35,15 +35,6 @@ func CreateMatchMaking() *Matchmaker {
 	return m
 }
 
-func (m *Matchmaker) Print() {
-	fmt.Println("Printing Queue")
-	m.mutex.Lock()
-	for current := m.queue.Newest(); current != nil; current = current.Prev() {
-		fmt.Println("test123", current.Value)
-	}
-	m.mutex.Unlock()
-}
-
 func (m *Matchmaker) loop() {
 	for {
 		select {
@@ -98,7 +89,8 @@ func (m *Matchmaker) loop() {
 			}
 
 			m.mutex.Unlock()
-			
+
+			fmt.Println("m.queue.Len()", m.queue.Len())
 		}
 	}
 
