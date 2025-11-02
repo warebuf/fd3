@@ -127,6 +127,42 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func wsPreflight(w http.ResponseWriter, r *http.Request) {
+
+	guestID := ""
+	for _, c := range r.Cookies() {
+		if c.Name == "guestID" {
+			guestID = c.Value
+		}
+	}
+
+	// check for cookie
+	if guestID == "" {
+		http.Error(w, "Invalid guestID", http.StatusUnauthorized)
+		return
+	}
+
+	// check for expired cookie
+	ok := guestMap.Get(guestID)
+	if !ok {
+		http.Error(w, "Expired guestID", http.StatusUnauthorized)
+		return
+	}
+
+	// check if guestID is whitelisted
+	matchID := r.URL.Query().Get("matchID")
+	match, exists := matchMap[matchID]
+	if !exists {
+		http.Error(w, "Match ID does not exist", http.StatusUnauthorized)
+		return
+	}
+	if _, exists = match.Whitelist[guestID]; !exists {
+		http.Error(w, "guestID not whitelisted", http.StatusUnauthorized)
+		return
+	}
+
+}
+
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	guestID := ""
@@ -153,9 +189,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	matchID := r.URL.Query().Get("matchID")
 	match, exists := matchMap[matchID]
 	if !exists {
+		http.Error(w, "Match ID does not exist", http.StatusUnauthorized)
 		return
 	}
 	if _, exists = match.Whitelist[guestID]; !exists {
+		http.Error(w, "guestID not whitelisted", http.StatusUnauthorized)
 		return
 	}
 
@@ -169,6 +207,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Upgrade error:", err)
+		http.Error(w, "error creating websocket connection", http.StatusUnauthorized)
 		return
 	}
 	conn.EnableWriteCompression(true)
@@ -198,7 +237,6 @@ func init() {
 	matchMap = make(map[string]*matchmaking.Match)
 	guestMap = matchmaking.NewGuestStore()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap)
-
 }
 
 func main() {
@@ -208,6 +246,7 @@ func main() {
 	http.HandleFunc("/matchmakingSSE", matchmakingSSE)
 
 	// websocket routes
+	http.HandleFunc("/ws/check", wsPreflight)
 	http.HandleFunc("/ws", wsHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
