@@ -7,8 +7,6 @@ import (
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
-// tbh not even sure if this is a well thought out production ready system
-
 type Ticket struct {
 	TicketID         string
 	ClosedConnection <-chan struct{}
