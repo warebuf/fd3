@@ -132,6 +132,9 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*Match) 
 		byUser:    make(map[string]*Client),
 		Whitelist: userIDs,
 	}
+
+	MatchMap[id] = match
+
 	return match
 
 }
