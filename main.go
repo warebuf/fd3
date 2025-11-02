@@ -97,7 +97,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	reject := make(chan struct{}, 1)
 	matchmaker.Join <- &matchmaking.Ticket{
 		TicketID: guestID,
-		Leave:    ctx.Done(),
+		ClosedConnection:    ctx.Done(),
 		Found:    match,
 		Reject:   reject,
 	}
