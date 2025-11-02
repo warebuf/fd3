@@ -7,7 +7,7 @@ import (
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
-// tbh not even sure if this is a well thought out system
+// tbh not even sure if this is a well thought out production ready system
 
 type Ticket struct {
 	TicketID string
@@ -19,9 +19,12 @@ type Ticket struct {
 type Matchmaker struct {
 	mutex  sync.Mutex
 	queue  *orderedmap.OrderedMap[string, *Ticket] // users waiting for a game, need to use a linked list
-	inGame map[string]struct{}                     // list of users in game
 	Join   chan *Ticket                            // new waiter arrives
 	Leave  chan string
+
+	inGame map[string]struct{}                     // list of users in game
+	MatchMap map[string]*Match
+
 }
 
 func CreateMatchMaking() *Matchmaker {
@@ -30,6 +33,7 @@ func CreateMatchMaking() *Matchmaker {
 		inGame: make(map[string]struct{}),
 		Join:   make(chan *Ticket, 1024),
 		Leave:  make(chan string, 1024),
+		MatchMap: make(map[string]*Match),
 	}
 	go m.loop()
 	return m
