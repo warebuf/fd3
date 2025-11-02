@@ -115,7 +115,6 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("reject")
 			return
 		case <-match:
-			fmt.Println("match")
 			w.Write([]byte("data: match\n\n")) // must end with a blank line
 			flusher.Flush()
 			return

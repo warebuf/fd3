@@ -98,8 +98,7 @@ func (m *Matchmaker) loop() {
 			}
 
 			m.mutex.Unlock()
-
-			m.Print()
+			
 		}
 	}
 
