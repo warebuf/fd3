@@ -1,39 +1,38 @@
 package matchmaking
 
 import (
-	"sync"
 	"fmt"
+	"sync"
 
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"github.com/google/uuid"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 // tbh not even sure if this is a well thought out production ready system
 
 type Ticket struct {
-	TicketID string
-	ClosedConnection    <-chan struct{}
-	Found    chan string   // receives matchID
+	TicketID         string
+	ClosedConnection <-chan struct{}
+	Found            chan string   // receives matchID
 	RejectedTicket   chan struct{} // if UserID is in the system, reject
 }
 
 type Matchmaker struct {
-	mutex  sync.Mutex
-	queue  *orderedmap.OrderedMap[string, *Ticket] // users waiting for a game, need to use a linked list
-	Join   chan *Ticket                            // new waiter arrives
-	Leave  chan string
+	mutex sync.Mutex
+	queue *orderedmap.OrderedMap[string, *Ticket] // users waiting for a game, need to use a linked list
+	Join  chan *Ticket                            // new waiter arrives
+	Leave chan string
 
-	inGame map[string]struct{}                     // list of users in game
+	inGame   map[string]struct{} // list of users in game
 	MatchMap map[string]*Match
-
 }
 
 func CreateMatchMaking() *Matchmaker {
 	m := &Matchmaker{
-		queue:  orderedmap.New[string, *Ticket](),
-		inGame: make(map[string]struct{}),
-		Join:   make(chan *Ticket, 1024),
-		Leave:  make(chan string, 1024),
+		queue:    orderedmap.New[string, *Ticket](),
+		inGame:   make(map[string]struct{}),
+		Join:     make(chan *Ticket, 1024),
+		Leave:    make(chan string, 1024),
 		MatchMap: make(map[string]*Match),
 	}
 	go m.loop()
@@ -48,13 +47,19 @@ func (m *Matchmaker) loop() {
 
 			// if ticketID is in game, return the SSE connection
 			if _, exists := m.inGame[ticket.TicketID]; exists {
-				select { case ticket.RejectedTicket <- struct{}{}: default: } // non-blocking reject
+				select {
+				case ticket.RejectedTicket <- struct{}{}:
+				default:
+				} // non-blocking reject
 				continue
 			}
 
 			// if ticketID is in queue, return the SSE connection
 			if _, exists := m.queue.Get(ticket.TicketID); exists {
-				select { case ticket.RejectedTicket <- struct{}{}: default: } // non-blocking reject
+				select {
+				case ticket.RejectedTicket <- struct{}{}:
+				default:
+				} // non-blocking reject
 				continue
 			}
 
@@ -62,7 +67,7 @@ func (m *Matchmaker) loop() {
 			m.queue.Set(ticket.TicketID, ticket)
 
 			// iterate from newest to oldest, take the two latest that are in the system
-			var first, second *Ticket // TODO: change this to an array 
+			var first, second *Ticket // TODO: change this to an array
 			for current := m.queue.Newest(); current != nil || (first == nil && second == nil); {
 
 				// non-blocking
@@ -70,7 +75,10 @@ func (m *Matchmaker) loop() {
 				case <-current.Value.ClosedConnection: // user is not connected, invalidate ticket
 					prev := current.Prev()
 					m.queue.Delete(current.Key)
-					select { case current.Value.RejectedTicket <- struct{}{}: default: } // make sure the ticket is closed
+					select {
+					case current.Value.RejectedTicket <- struct{}{}:
+					default:
+					} // make sure the ticket is closed
 					current = prev
 				default: // save the ticket
 					if first == nil {
@@ -86,11 +94,16 @@ func (m *Matchmaker) loop() {
 			// matchmake
 			if first != nil && second != nil {
 
-				id := uuid.New()
-				fmt.Println("id", id)
+				match := m.createMatch()
 
-				select { case first.Found <- "test" : default: }
-				select { case second.Found <- "test" : default: }
+				select {
+				case first.Found <- match.ID:
+				default:
+				}
+				select {
+				case second.Found <- match.ID:
+				default:
+				}
 				m.queue.Delete(first.TicketID)
 				m.queue.Delete(second.TicketID)
 				m.inGame[first.TicketID] = struct{}{}
@@ -103,4 +116,22 @@ func (m *Matchmaker) loop() {
 		}
 	}
 
+}
+
+func (m *Matchmaker) createMatch() *Match {
+
+	id := uuid.NewString()
+	for {
+		if _, exists := m.MatchMap[id]; !exists {
+			break
+		}
+		id = uuid.NewString()
+	}
+
+	match := &Match{
+		ID:     id,
+		byUser: make(map[string]*Client),
+	}
+
+	return match
 }

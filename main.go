@@ -92,12 +92,12 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context() // close when client disconnects
 
 	// add the guest/ticket to the matchmaking queue
-	match := make(chan string, 1)
+	matchID := make(chan string, 1)
 	reject := make(chan struct{}, 1)
 	matchmaker.Join <- &matchmaking.Ticket{
-		TicketID: guestID,
-		ClosedConnection:    ctx.Done(),
-		Found:    match,
+		TicketID:         guestID,
+		ClosedConnection: ctx.Done(),
+		Found:            matchID,
 		RejectedTicket:   reject,
 	}
 
@@ -113,8 +113,8 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 		case <-reject:
 			fmt.Println("reject")
 			return
-		case <-match:
-			w.Write([]byte("data: match\n\n")) // must end with a blank line
+		case id := <-matchID:
+			w.Write([]byte("data: match " + id + "\n\n")) // must end with a blank line
 			flusher.Flush()
 			return
 		case <-ticker.C:
