@@ -20,23 +20,21 @@ type Matchmaker struct {
 	Join  chan *Ticket                            // new waiter arrives
 	Leave chan string
 
-	inGame   map[string]struct{} // list of users in game
-	MatchMap map[string]*Match
+	inGame map[string]struct{} // list of users in game
 }
 
-func CreateMatchMaking() *Matchmaker {
+func CreateMatchMaking(MatchMap map[string]*Match) *Matchmaker {
 	m := &Matchmaker{
-		queue:    orderedmap.New[string, *Ticket](),
-		inGame:   make(map[string]struct{}),
-		Join:     make(chan *Ticket, 1024),
-		Leave:    make(chan string, 1024),
-		MatchMap: make(map[string]*Match),
+		queue:  orderedmap.New[string, *Ticket](),
+		inGame: make(map[string]struct{}),
+		Join:   make(chan *Ticket, 1024),
+		Leave:  make(chan string, 1024),
 	}
-	go m.loop()
+	go m.loop(MatchMap)
 	return m
 }
 
-func (m *Matchmaker) loop() {
+func (m *Matchmaker) loop(MatchMap map[string]*Match) {
 	for {
 		select {
 		case ticket := <-m.Join:
@@ -86,7 +84,7 @@ func (m *Matchmaker) loop() {
 
 			// matchmake
 			if len(selected) >= 2 {
-				match := m.createMatch(selected)
+				match := m.createMatch(selected, MatchMap)
 				for i := 0; i < len(selected); i++ {
 					select {
 					case selected[i].Found <- match.ID:
@@ -111,12 +109,12 @@ func (m *Matchmaker) loop() {
 
 }
 
-func (m *Matchmaker) createMatch(tickets []*Ticket) *Match {
+func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*Match) *Match {
 
 	// create matchID
 	id := uuid.NewString()
 	for {
-		if _, exists := m.MatchMap[id]; !exists {
+		if _, exists := MatchMap[id]; !exists {
 			break
 		}
 		id = uuid.NewString()

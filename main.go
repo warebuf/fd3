@@ -32,7 +32,7 @@ var upgrader = websocket.Upgrader{
 }
 
 // maybe over the long-term, when I add users, it should be a ticketID, not a guestID
-// TODO: this is not encrypted, the user can just edit it if they want, pretend they are someone else
+// this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := uuid.NewString()
@@ -129,6 +129,30 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 
+	guestID := ""
+	for _, c := range r.Cookies() {
+		if c.Name == "guestID" {
+			guestID = c.Value
+		}
+	}
+
+	// check for cookie
+	if guestID == "" {
+		http.Error(w, "Invalid guestID", http.StatusUnauthorized)
+		return
+	}
+
+	// check for expired cookie
+	ok := guestMap.Get(guestID)
+	if !ok {
+		http.Error(w, "Expired guestID", http.StatusUnauthorized)
+		return
+	}
+
+	// check if guestID is in whitelist
+	fmt.Printf("w: %#v\n", w)
+	fmt.Printf("r: %#v\n", r)
+
 	// upgrade HTTPS to WSS, create the websocket object
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -150,13 +174,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // global variables
+var matchMap map[string]*matchmaking.Match
 var guestMap *matchmaking.GuestStore
 var matchmaker *matchmaking.Matchmaker
 
 func init() {
 	fmt.Println("server started")
+	matchMap = make(map[string]*matchmaking.Match)
 	guestMap = matchmaking.NewGuestStore()
-	matchmaker = matchmaking.CreateMatchMaking()
+	matchmaker = matchmaking.CreateMatchMaking(matchMap)
+
 }
 
 func main() {
