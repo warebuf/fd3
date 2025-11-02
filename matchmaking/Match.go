@@ -3,7 +3,8 @@ package matchmaking
 import "sync"
 
 type Match struct {
-	ID     string
-	byUser map[string]*Client
-	mutex  sync.RWMutex
+	mutex     sync.RWMutex
+	ID        string
+	Whitelist map[string]struct{}
+	byUser    map[string]*Client
 }

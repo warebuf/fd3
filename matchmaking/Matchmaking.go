@@ -1,7 +1,6 @@
 package matchmaking
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -67,8 +66,8 @@ func (m *Matchmaker) loop() {
 			m.queue.Set(ticket.TicketID, ticket)
 
 			// iterate from newest to oldest, take the two latest that are in the system
-			var first, second *Ticket // TODO: change this to an array
-			for current := m.queue.Newest(); current != nil || (first == nil && second == nil); {
+			var selected []*Ticket
+			for current := m.queue.Newest(); current != nil && len(selected) < 2; {
 
 				// non-blocking
 				select {
@@ -81,45 +80,42 @@ func (m *Matchmaker) loop() {
 					} // make sure the ticket is closed
 					current = prev
 				default: // save the ticket
-					if first == nil {
-						first = current.Value
-					} else if second == nil {
-						second = current.Value
-					}
+					selected = append(selected, current.Value)
 					current = current.Prev()
 				}
 
 			}
 
 			// matchmake
-			if first != nil && second != nil {
-
-				match := m.createMatch()
-
-				select {
-				case first.Found <- match.ID:
-				default:
+			if len(selected) >= 2 {
+				match := m.createMatch(selected)
+				for i := 0; i < len(selected); i++ {
+					select {
+					case selected[i].Found <- match.ID:
+					default:
+					}
+					select {
+					case selected[i].Found <- match.ID:
+					default:
+					}
+					m.queue.Delete(selected[i].TicketID)
+					m.queue.Delete(selected[i].TicketID)
+					m.inGame[selected[i].TicketID] = struct{}{}
+					m.inGame[selected[i].TicketID] = struct{}{}
 				}
-				select {
-				case second.Found <- match.ID:
-				default:
-				}
-				m.queue.Delete(first.TicketID)
-				m.queue.Delete(second.TicketID)
-				m.inGame[first.TicketID] = struct{}{}
-				m.inGame[second.TicketID] = struct{}{}
 			}
 
 			m.mutex.Unlock()
 
-			fmt.Println("m.queue.Len()", m.queue.Len())
+			// fmt.Println("m.queue.Len()", m.queue.Len())
 		}
 	}
 
 }
 
-func (m *Matchmaker) createMatch() *Match {
+func (m *Matchmaker) createMatch(tickets []*Ticket) *Match {
 
+	// create matchID
 	id := uuid.NewString()
 	for {
 		if _, exists := m.MatchMap[id]; !exists {
@@ -128,10 +124,18 @@ func (m *Matchmaker) createMatch() *Match {
 		id = uuid.NewString()
 	}
 
-	match := &Match{
-		ID:     id,
-		byUser: make(map[string]*Client),
+	// create whitelist userIDs
+	userIDs := make(map[string]struct{})
+	for i := 0; i < len(tickets); i++ {
+		userIDs[tickets[i].TicketID] = struct{}{}
 	}
 
+	// create match object
+	match := &Match{
+		ID:        id,
+		byUser:    make(map[string]*Client),
+		Whitelist: userIDs,
+	}
 	return match
+
 }
