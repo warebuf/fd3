@@ -11,7 +11,7 @@ import (
 
 type Ticket struct {
 	TicketID string
-	Leave    <-chan struct{}
+	ClosedConnection    <-chan struct{}
 	Found    chan string   // receives matchID
 	Reject   chan struct{} // if UserID is in the system, reject
 }
@@ -52,13 +52,13 @@ func (m *Matchmaker) loop() {
 
 			// if ticketID is in game, return the SSE connection
 			if _, exists := m.inGame[ticket.TicketID]; exists {
-				ticket.Reject <- struct{}{}
+				select { case ticket.Reject <- struct{}{}: default: } // non-blocking reject
 				continue
 			}
 
 			// if ticketID is in queue, return the SSE connection
 			if _, exists := m.queue.Get(ticket.TicketID); exists {
-				ticket.Reject <- struct{}{}
+				select { case ticket.Reject <- struct{}{}: default: } // non-blocking reject
 				continue
 			}
 
@@ -71,7 +71,7 @@ func (m *Matchmaker) loop() {
 
 				// non-blocking
 				select {
-				case <-current.Value.Leave: // user is not connected, invalidate ticket
+				case <-current.Value.ClosedConnection: // user is not connected, invalidate ticket
 					prev := current.Prev()
 					m.queue.Delete(current.Key)
 					select { case current.Value.Reject <- struct{}{}: default: } // make sure the ticket is closed
