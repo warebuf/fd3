@@ -7,7 +7,7 @@ import (
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
-// lots of test cases we need to check
+// tbh not even sure if this is a well thought out system
 
 type Ticket struct {
 	TicketID string
@@ -56,7 +56,7 @@ func (m *Matchmaker) loop() {
 			// add the ticket to the queue
 			m.queue.Set(ticket.TicketID, ticket)
 
-			// terate from newest to oldest, take the two latest that are in the system
+			// iterate from newest to oldest, take the two latest that are in the system
 			var first, second *Ticket
 			for current := m.queue.Newest(); current != nil || (first == nil && second == nil); {
 
@@ -80,8 +80,8 @@ func (m *Matchmaker) loop() {
 
 			// matchmake
 			if first != nil && second != nil {
-				first.Found <- "test"
-				second.Found <- "test"
+				select { case first.Found <- "test" : default: }
+				select { case second.Found <- "test" : default: }
 				m.queue.Delete(first.TicketID)
 				m.queue.Delete(second.TicketID)
 				m.inGame[first.TicketID] = struct{}{}
