@@ -150,8 +150,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if guestID is in whitelist
-	fmt.Printf("w: %#v\n", w)
 	fmt.Printf("r: %#v\n", r)
+	fmt.Println("\n\n")
 
 	// upgrade HTTPS to WSS, create the websocket object
 	conn, err := upgrader.Upgrade(w, r, nil)
