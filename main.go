@@ -94,10 +94,12 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
 	// add the guest/ticket to the matchmaking queue
 	match := make(chan string, 1)
-	matchmaker.Join <- &matchmaking.Waiting{
-		UserID: guestID,
-		Found:  match,
-		Leave:  ctx.Done(),
+	reject := make(chan struct{}, 1)
+	matchmaker.Join <- &matchmaking.Ticket{
+		TicketID: guestID,
+		Leave:    ctx.Done(),
+		Found:    match,
+		Reject:   reject,
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
@@ -107,6 +109,9 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-ctx.Done(): // is a close signal, will indicate to all listeners that it is closed
 			guestMap.Remove(guestID)
+			return
+		case <-reject:
+			fmt.Println("reject")
 			return
 		case <-match:
 			w.Write([]byte("data: match\n\n")) // must end with a blank line
