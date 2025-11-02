@@ -159,6 +159,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if a connection already exists, close it
+	if oldConn, exists := match.ByUser[guestID]; exists {
+		oldConn.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "second connection"))
+		oldConn.Conn.Close() // triggers Read() error
+	}
+
 	// upgrade HTTPS to WSS, create the websocket object
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -168,11 +174,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn.EnableWriteCompression(true)
 
 	c := &matchmaking.Client{
-		ID:       "a",
+		ID:       guestID,
 		Conn:     conn,
 		HighPrio: make(chan []byte, 32),
 		LowPrio:  make(chan []byte, 32),
+		Done:     make(chan struct{}),
 	}
+
+	match.ByUser[guestID] = c
 
 	go c.Write()
 	c.Read() // note this is not a goroutine because every request spawns a goroutine

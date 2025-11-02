@@ -129,7 +129,7 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*Match) 
 	// create match object
 	match := &Match{
 		ID:        id,
-		byUser:    make(map[string]*Client),
+		ByUser:    make(map[string]*Client),
 		Whitelist: userIDs,
 	}
 

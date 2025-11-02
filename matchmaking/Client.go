@@ -16,12 +16,15 @@ type Client struct {
 
 	HighPrio chan []byte // dynamically created as a buffered channel
 	LowPrio  chan []byte // dynamically created as a buffered channel
+
+	Done chan struct{}
 }
 
 func (c *Client) Read() {
 
 	defer func() {
 		c.Conn.Close()
+		close(c.Done) // signal to close Write()
 	}()
 
 	c.Conn.SetReadLimit(1 << 18)                                 // no larger than 256 KB
@@ -69,6 +72,8 @@ func (c *Client) Write() {
 	for {
 		select {
 		// high prio first
+		case <-c.Done:
+			return
 		case data := <-c.HighPrio:
 			if err := sendData(c, data); err == false {
 				return
@@ -76,6 +81,8 @@ func (c *Client) Write() {
 		default:
 			// if no high prio, take first available
 			select {
+			case <-c.Done:
+				return
 			case data := <-c.HighPrio:
 				if err := sendData(c, data); err == false {
 					return
