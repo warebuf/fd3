@@ -99,6 +99,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*Match) {
 					m.inGame[selected[i].TicketID] = struct{}{}
 					m.inGame[selected[i].TicketID] = struct{}{}
 				}
+				go match.loop()
 			}
 
 			m.mutex.Unlock()
