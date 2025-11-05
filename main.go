@@ -15,7 +15,7 @@ import (
 	"github.com/warebuf/fd3/matchmaking"
 )
 
-var upgrader = websocket.Upgrader{
+var upgrader = websocket.Upgrader {
 	CheckOrigin: func(r *http.Request) bool {
 
 		origin := r.Header.Get("Origin")
