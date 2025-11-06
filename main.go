@@ -12,10 +12,11 @@ import (
 	"github.com/gorilla/websocket"
 
 	// our imports
+	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/matchmaking"
 )
 
-var upgrader = websocket.Upgrader {
+var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 
 		origin := r.Header.Get("Origin")
@@ -237,6 +238,8 @@ func init() {
 	matchMap = make(map[string]*matchmaking.Match)
 	guestMap = matchmaking.NewGuestStore()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap)
+
+	engine.LoadUnitData() // load unit data
 }
 
 func main() {

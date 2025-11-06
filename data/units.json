@@ -1,0 +1,37 @@
+[
+  { 
+    "No": 0, 
+    "Name": "Generic", 
+    "HP": 10,  
+    "Functions": [
+      {
+        "Type": "Heal",
+        "Target": "SingleAny",
+        "ATK": 5,
+        "SPD": 65,
+        "Description": "Heal 5"
+      },
+      {
+        "Type": "AOE",
+        "Target": "EnemiesAll",
+        "ATK": 2,
+        "SPD": 30,
+        "Description": "Attack all enemies for 2"
+      }
+    ] 
+  },
+  { 
+    "No": 1, 
+    "Name": "Gobbler", 
+    "HP": 100, 
+    "Functions": [
+      {
+        "Type": "Attack",
+        "Target": "AttackSingle",
+        "ATK": 50,
+        "SPD": 50,
+        "Description": "Attack enemy for 50"
+      }
+    ] 
+  }
+]
