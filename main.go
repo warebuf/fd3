@@ -13,6 +13,7 @@ import (
 
 	// our imports
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
 
@@ -188,18 +189,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check if guestID is whitelisted
 	matchID := r.URL.Query().Get("matchID")
-	match, exists := matchMap[matchID]
+	matchObj, exists := matchMap[matchID]
 	if !exists {
 		http.Error(w, "Match ID does not exist", http.StatusUnauthorized)
 		return
 	}
-	if _, exists = match.Whitelist[guestID]; !exists {
+	if _, exists = matchObj.Whitelist[guestID]; !exists {
 		http.Error(w, "guestID not whitelisted", http.StatusUnauthorized)
 		return
 	}
 
 	// if a connection already exists, close it
-	if oldConn, exists := match.ByUser[guestID]; exists {
+	if oldConn, exists := matchObj.ByUser[guestID]; exists {
 		oldConn.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "second connection"))
 		oldConn.Conn.Close() // triggers Read() error
 	}
@@ -213,7 +214,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	conn.EnableWriteCompression(true)
 
-	c := &matchmaking.Client{
+	c := &match.Client{
 		ID:       guestID,
 		Conn:     conn,
 		HighPrio: make(chan []byte, 32),
@@ -221,7 +222,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		Done:     make(chan struct{}),
 	}
 
-	match.ByUser[guestID] = c
+	matchObj.ByUser[guestID] = c
 
 	go c.Write()
 	c.Read() // note this is not a goroutine because every request spawns a goroutine
@@ -229,13 +230,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // global variables
-var matchMap map[string]*matchmaking.Match
+var matchMap map[string]*match.Match
 var guestMap *matchmaking.GuestStore
 var matchmaker *matchmaking.Matchmaker
 
 func init() {
 	fmt.Println("server started")
-	matchMap = make(map[string]*matchmaking.Match)
+	matchMap = make(map[string]*match.Match)
 	guestMap = matchmaking.NewGuestStore()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap)
 
