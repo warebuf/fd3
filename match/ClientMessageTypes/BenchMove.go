@@ -1,4 +1,4 @@
-package match
+package clientMessageTypes
 
 type BenchMove struct {
 	Type string `json:"Type"`
