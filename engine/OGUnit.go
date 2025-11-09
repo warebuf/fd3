@@ -7,16 +7,6 @@ import (
 	"path/filepath"
 )
 
-type Unit struct {
-	PlayerID uint
-
-	Name string
-
-	HP  int
-	ATK int
-	SPD int
-}
-
 type OGUnit struct {
 	Name      string   `json:"Name"`
 	HP        int      `json:"HP"`
@@ -39,20 +29,12 @@ func LoadUnitData() []OGUnit {
 }
 
 // Factory
-func NewUnitFromID(originals []OGUnit, OGID int, playerID uint) *Unit {
+func NewUnitFromID(originals []OGUnit, OGID int, playerID uint) {
 
 	// if OGID is 0, do not create, as the 0 element is just a placeholder
 	// if(OGID == 0) {return}
 
-	OG := originals[OGID]
+	// OG := originals[OGID]
 
-	u := &Unit{
-		PlayerID: playerID,
-		Name:     OG.Name,
-		HP:       OG.HP,
-		ATK:      OG.ATK,
-		SPD:      OG.SPD,
-	}
-
-	return u
+	return
 }

@@ -1,8 +1,15 @@
 package engine
 
 type GameState struct {
-	FieldUnits []Unit
-	DeadUnits  []Unit
+	FieldUnits []uint // unitID
+	DeadUnits  []uint // unitID
+
+	// core
+
+	// telemetry
+	TimesAttacked []uint
+	TimesDefended []uint
+	DamageDealt   []uint
 }
 
 // CreateMatchMaking initializes an empty game state with outer slices ready
