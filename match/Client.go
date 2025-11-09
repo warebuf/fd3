@@ -1,6 +1,7 @@
-package matchmaking
+package match
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -18,6 +19,13 @@ type Client struct {
 	LowPrio  chan []byte // dynamically created as a buffered channel
 
 	Done chan struct{}
+}
+
+// throws error if message does not match struct exactly
+func strictUnmarshal(data []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	return dec.Decode(v)
 }
 
 func (c *Client) Read() {
@@ -39,7 +47,7 @@ func (c *Client) Read() {
 		}
 
 		// detect receive time immediately
-		t2 := time.Now().UnixMilli()
+		receiveTime := time.Now().UnixMilli()
 
 		// parse message type
 		var msg struct {
@@ -53,12 +61,18 @@ func (c *Client) Read() {
 		//
 		switch msg.Type {
 		case "p":
-			// append the t2 timestamp to the []byte message
+			// append the serverReceive timestamp to the []byte message
 			newMsg := data[:len(data)-1] // drop trailing '}'
 			newMsg = append(newMsg, []byte(`,"t2":`)...)
-			newMsg = strconv.AppendInt(newMsg, t2, 10)
+			newMsg = strconv.AppendInt(newMsg, receiveTime, 10)
 			newMsg = append(newMsg, '}')
-			c.HighPrio <- newMsg // can make this non-blocking, but whatever for now
+			c.HighPrio <- newMsg // TODO: can make this non-blocking, but whatever for now
+		case "benchMove":
+			var benchMoveData BenchMove
+			if err := strictUnmarshal(data, &benchMoveData); err != nil {
+				return
+			}
+			fmt.Println("benchMoveData", benchMoveData) // add it to match event queue
 		}
 
 		_ = c.Conn.SetReadDeadline(time.Now().Add(65 * time.Second)) // reset the idle timer because we got a message
@@ -74,7 +88,7 @@ func (c *Client) Write() {
 		case <-c.Done:
 			return
 		case data := <-c.HighPrio:
-			if err := sendData(c, data); err == false {
+			if err := sendData(c, data); !err {
 				return
 			}
 		default:
@@ -83,11 +97,11 @@ func (c *Client) Write() {
 			case <-c.Done:
 				return
 			case data := <-c.HighPrio:
-				if err := sendData(c, data); err == false {
+				if err := sendData(c, data); !err {
 					return
 				}
 			case data := <-c.LowPrio:
-				if err := sendData(c, data); err == false {
+				if err := sendData(c, data); !err {
 					return
 				}
 			}

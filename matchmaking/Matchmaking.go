@@ -5,6 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
+
+	"github.com/warebuf/fd3/match"
 )
 
 type Ticket struct {
@@ -23,18 +25,18 @@ type Matchmaker struct {
 	inGame map[string]struct{} // list of users in game
 }
 
-func CreateMatchMaking(MatchMap map[string]*Match) *Matchmaker {
-	m := &Matchmaker{
+func CreateMatchMaking(MatchMap map[string]*match.Match) *Matchmaker {
+	matchMaker := &Matchmaker{
 		queue:  orderedmap.New[string, *Ticket](),
 		inGame: make(map[string]struct{}),
 		Join:   make(chan *Ticket, 1024),
 		Leave:  make(chan string, 1024),
 	}
-	go m.loop(MatchMap)
-	return m
+	go matchMaker.loop(MatchMap)
+	return matchMaker
 }
 
-func (m *Matchmaker) loop(MatchMap map[string]*Match) {
+func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 	for {
 		select {
 		case ticket := <-m.Join:
@@ -84,14 +86,14 @@ func (m *Matchmaker) loop(MatchMap map[string]*Match) {
 
 			// matchmake
 			if len(selected) >= 2 {
-				match := m.createMatch(selected, MatchMap)
+				matchObj := m.createMatch(selected, MatchMap)
 				for i := 0; i < len(selected); i++ {
 					select {
-					case selected[i].Found <- match.ID:
+					case selected[i].Found <- matchObj.ID:
 					default:
 					}
 					select {
-					case selected[i].Found <- match.ID:
+					case selected[i].Found <- matchObj.ID:
 					default:
 					}
 					m.queue.Delete(selected[i].TicketID)
@@ -99,7 +101,6 @@ func (m *Matchmaker) loop(MatchMap map[string]*Match) {
 					m.inGame[selected[i].TicketID] = struct{}{}
 					m.inGame[selected[i].TicketID] = struct{}{}
 				}
-				go match.loop()
 			}
 
 			m.mutex.Unlock()
@@ -110,7 +111,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*Match) {
 
 }
 
-func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*Match) *Match {
+func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Match {
 
 	// create matchID
 	id := uuid.NewString()
@@ -128,9 +129,9 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*Match) 
 	}
 
 	// create match object
-	match := &Match{
+	match := &match.Match{
 		ID:        id,
-		ByUser:    make(map[string]*Client),
+		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 	}
 
