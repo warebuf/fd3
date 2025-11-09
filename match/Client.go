@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/warebuf/fd3/match/clientMessageTypes"
 )
 
 // spawns per websocket connection
@@ -68,7 +70,7 @@ func (c *Client) Read() {
 			newMsg = append(newMsg, '}')
 			c.HighPrio <- newMsg // TODO: can make this non-blocking, but whatever for now
 		case "benchMove":
-			var benchMoveData BenchMove
+			var benchMoveData clientMessageTypes.BenchMove
 			if err := strictUnmarshal(data, &benchMoveData); err != nil {
 				return
 			}
