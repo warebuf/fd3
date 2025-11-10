@@ -27,16 +27,30 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	Mutex        sync.RWMutex
-	GameStates   []*engine.GameState
-	CurrentState uint
-	ticker       time.Ticker
+	Mutex          sync.RWMutex
+	GameStates     []*engine.GameState
+	CurrentState   uint
+	BroadcastTimer *time.Timer
 }
 
-func (match *Match) addATestAttacker() {
-	// add a summon 300 ms from now
-	//   - create the game state object
-	//   - set the timer
+func (match *Match) AddTestAttacker() {
+
+	// set a summon for 500 ms
+	t := time.Now().Add(500 * time.Millisecond)
+	state := engine.CreateGameState(t, match.CurrentState)
+	// add a unit to the game state
+	match.GameStates = append(match.GameStates, state)
+
+	// set the broadcast timer for 300 ms
+	target := time.Until(t.Add(-200 * time.Millisecond))
+	match.BroadcastTimer = time.NewTimer(target)
+
+}
+
+func (match *Match) Loop() {
+	for range match.BroadcastTimer.C {
+		fmt.Println("timer ran")
+	}
 }
 
 func (match *Match) broadcast(data []byte) {
