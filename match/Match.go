@@ -3,6 +3,7 @@ package match
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/warebuf/fd3/engine"
 )
@@ -29,6 +30,13 @@ type Match struct {
 	Mutex        sync.RWMutex
 	GameStates   []*engine.GameState
 	CurrentState uint
+	ticker       time.Ticker
+}
+
+func (match *Match) addATestAttacker() {
+	// add a summon 300 ms from now
+	//   - create the game state object
+	//   - set the timer
 }
 
 func (match *Match) broadcast(data []byte) {
