@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/warebuf/fd3/match/clientMessageTypes"
+	clientMessageTypes "github.com/warebuf/fd3/match/clientMessageTypes"
 )
 
 // spawns per websocket connection

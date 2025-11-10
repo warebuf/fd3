@@ -240,7 +240,7 @@ func init() {
 	guestMap = matchmaking.NewGuestStore()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap)
 
-	engine.LoadUnitData() // load unit data
+	engine.LoadModelSpecs() // load unit data
 }
 
 func main() {

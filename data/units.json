@@ -1,6 +1,6 @@
 [
   { 
-    "No": 0, 
+    "Number": 0, 
     "Name": "Generic", 
     "HP": 10,  
     "Functions": [
@@ -21,7 +21,7 @@
     ] 
   },
   { 
-    "No": 1, 
+    "Number": 1, 
     "Name": "Gobbler", 
     "HP": 100, 
     "Functions": [

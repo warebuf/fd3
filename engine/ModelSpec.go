@@ -7,21 +7,20 @@ import (
 	"path/filepath"
 )
 
-type OGUnit struct {
+type modelSpec struct {
+	Number    uint     `json:"Number"`
 	Name      string   `json:"Name"`
 	HP        int      `json:"HP"`
-	ATK       int      `json:"ATK"`
-	SPD       int      `json:"SPD"`
 	Functions []string `json:"Functions"`
 }
 
-func LoadUnitData() []OGUnit {
+func LoadModelSpecs() []modelSpec {
 	path := filepath.FromSlash("data/units.json")
 
 	file, _ := os.Open(path)
 	defer file.Close()
 
-	var originals []OGUnit
+	var originals []modelSpec
 	json.NewDecoder(file).Decode(&originals)
 
 	fmt.Println("originals", originals)
@@ -29,7 +28,7 @@ func LoadUnitData() []OGUnit {
 }
 
 // Factory
-func NewUnitFromID(originals []OGUnit, OGID int, playerID uint) {
+func NewUnitFromID(originals []modelSpec, OGID int, playerID uint) {
 
 	// if OGID is 0, do not create, as the 0 element is just a placeholder
 	// if(OGID == 0) {return}

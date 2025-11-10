@@ -123,9 +123,9 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*match.M
 	}
 
 	// create whitelist userIDs
-	userIDs := make(map[string]struct{})
+	userIDs := make(map[string]uint)
 	for i := 0; i < len(tickets); i++ {
-		userIDs[tickets[i].TicketID] = struct{}{}
+		userIDs[tickets[i].TicketID] = uint(i)
 	}
 
 	// create match object
