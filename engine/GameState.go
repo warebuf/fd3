@@ -33,9 +33,9 @@ type GameState struct {
 }
 
 // CreateGameState initializes an empty game state with outer slices ready
-func CreateGameState(t time.Time) *GameState {
+func CreateGameState(t time.Time, GSID uint) *GameState {
 	gm := &GameState{
-		GameStateID:    0,
+		GameStateID:    GSID,
 		Timestamp:      t,
 		BenchUnits:     make([]uint, 0),
 		FieldUnits:     make([]uint, 0),
