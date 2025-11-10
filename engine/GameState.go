@@ -1,14 +1,26 @@
 package engine
 
-type GameState struct {
-	FieldUnits []uint // unitID
-	DeadUnits  []uint // unitID
+import "time"
 
-	// core
+type GameState struct {
+	Timestamp time.Time // what time this is set for
+
+	// state sets: array of unitIDs
+	BenchUnits []uint
+	FieldUnits []uint
+	DeadUnits  []uint
+
+	// team sets: index (unitID) ->  team index
+	Team []uint
+
+	// model set
+	ModelNo []uint
+
+	// core unit stats: index (unitID) ->  HP
 	HP []int
 
 	// telemetry
-	TimesAttacked  []uint
+	TimesAttacked  []uint // index (unitID) -> val
 	TimesDefended  []uint
 	DamageDealt    []uint
 	DamageReceived []uint
@@ -17,8 +29,8 @@ type GameState struct {
 	NextID uint
 }
 
-// CreateMatchMaking initializes an empty game state with outer slices ready
-func CreateMatchMaking() *GameState {
+// CreateGameState initializes an empty game state with outer slices ready
+func CreateGameState() *GameState {
 	gm := &GameState{
 		FieldUnits:     make([]uint, 0),
 		DeadUnits:      make([]uint, 0),
