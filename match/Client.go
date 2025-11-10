@@ -44,7 +44,7 @@ func (c *Client) Read() {
 		_, data, err := c.Conn.ReadMessage() // this is blocking
 
 		if err != nil { // Read error or peer closed
-			fmt.Println("closing Read client, ID", c.ID, "%v\n", err)
+			fmt.Println("closing Read client, ID", c.ID)
 			break
 		}
 
@@ -78,8 +78,8 @@ func (c *Client) Read() {
 		}
 
 		_ = c.Conn.SetReadDeadline(time.Now().Add(65 * time.Second)) // reset the idle timer because we got a message
-
 	}
+
 }
 
 // note we only use this to write because we must not write to a ws connection from multiple goroutines
@@ -88,6 +88,7 @@ func (c *Client) Write() {
 		select {
 		// high prio first
 		case <-c.Done:
+			fmt.Println("closing White client, ID", c.ID)
 			return
 		case data := <-c.HighPrio:
 			if err := sendData(c, data); !err {
@@ -97,6 +98,7 @@ func (c *Client) Write() {
 			// if no high prio, take first available
 			select {
 			case <-c.Done:
+				fmt.Println("closing White client, ID", c.ID)
 				return
 			case data := <-c.HighPrio:
 				if err := sendData(c, data); !err {
