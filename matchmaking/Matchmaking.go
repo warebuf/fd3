@@ -89,8 +89,11 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 
 			// matchmake
 			if len(selected) >= 2 {
+
+				// create match
 				matchObj := CreateMatch(selected, MatchMap)
 
+				// send match to all users
 				for i := 0; i < len(selected); i++ {
 					select {
 					case selected[i].Found <- matchObj.ID:
