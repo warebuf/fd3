@@ -1,6 +1,7 @@
 package matchmaking
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -88,7 +89,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 
 			// matchmake
 			if len(selected) >= 2 {
-				matchObj := m.createMatch(selected, MatchMap)
+				matchObj := CreateMatch(selected, MatchMap)
 
 				for i := 0; i < len(selected); i++ {
 					select {
@@ -108,13 +109,15 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 
 			m.mutex.Unlock()
 
-			// fmt.Println("m.queue.Len()", m.queue.Len())
+		case <-m.Leave:
+			fmt.Println("havent programmed this yet, just in to remove syntax warning")
+
 		}
 	}
 
 }
 
-func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Match {
+func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Match {
 
 	// create matchID
 	id := uuid.NewString()
@@ -140,10 +143,14 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*match.M
 		GameStates:     make([]*engine.GameState, 0),
 		CurrentState:   0,
 		BroadcastTimer: nil,
+		ChangedTimer:   make(chan bool),
 	}
 
 	state := engine.CreateGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
+	go match.Loop()
+
+	match.AddTestAttacker()
 
 	MatchMap[id] = match
 

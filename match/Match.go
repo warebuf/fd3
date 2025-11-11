@@ -27,28 +27,40 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameStates     []*engine.GameState
-	CurrentState   uint
+	GameStates   []*engine.GameState
+	CurrentState uint
+
+	ChangedTimer   chan bool
 	BroadcastTimer *time.Timer
 }
 
 func (match *Match) AddTestAttacker() {
-
 	// set a summon for 500 ms
 	t := time.Now().Add(500 * time.Millisecond)
-	curr := match.GameStates[match.CurrentState]
-	newState := summon.BasicSummon(curr, t)
+	newState := summon.BasicSummon(match.GameStates[match.CurrentState], t)
 	match.GameStates = append(match.GameStates, newState)
 
 	// set the broadcast timer for 300 ms
 	target := time.Until(t.Add(-200 * time.Millisecond))
 	match.BroadcastTimer = time.NewTimer(target)
-
+	match.ChangedTimer <- true
 }
 
 func (match *Match) Loop() {
-	for range match.BroadcastTimer.C {
-		fmt.Println("timer ran")
+
+	var timerChannel <-chan time.Time // set to nil on init
+
+	for {
+		select {
+		case isRunning := <-match.ChangedTimer:
+			if isRunning {
+				timerChannel = match.BroadcastTimer.C
+			} else {
+				timerChannel = nil
+			}
+		case <-timerChannel:
+			fmt.Println("timer ran")
+		}
 	}
 }
 
