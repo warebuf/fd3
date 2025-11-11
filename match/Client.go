@@ -62,19 +62,25 @@ func (c *Client) Read() {
 
 		//
 		switch msg.Type {
-		case "p":
+
+		case "p": // this is for pings
 			// append the serverReceive timestamp to the []byte message
 			newMsg := data[:len(data)-1] // drop trailing '}'
 			newMsg = append(newMsg, []byte(`,"t2":`)...)
 			newMsg = strconv.AppendInt(newMsg, receiveTime, 10)
 			newMsg = append(newMsg, '}')
 			c.HighPrio <- newMsg // TODO: can make this non-blocking, but whatever for now
+
 		case "benchMove":
 			var benchMoveData clientMessageTypes.BenchMove
 			if err := strictUnmarshal(data, &benchMoveData); err != nil {
 				return
 			}
-			fmt.Println("benchMoveData", benchMoveData) // add it to match event queue
+			fmt.Println(c.ID, "benchMoveData", benchMoveData) // add it to match event queue
+
+		case "fullState":
+			fmt.Println(c.ID, "fullState")
+
 		}
 
 		_ = c.Conn.SetReadDeadline(time.Now().Add(65 * time.Second)) // reset the idle timer because we got a message

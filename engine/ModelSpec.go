@@ -35,5 +35,4 @@ func NewUnitFromID(originals []modelSpec, OGID int, playerID uint) {
 
 	// OG := originals[OGID]
 
-	return
 }
