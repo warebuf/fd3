@@ -217,6 +217,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	c := &match.Client{
 		ID:       guestID,
 		Conn:     conn,
+		MatchObj: matchObj,
 		HighPrio: make(chan []byte, 32),
 		LowPrio:  make(chan []byte, 32),
 		Done:     make(chan struct{}),

@@ -1,6 +1,7 @@
 package match
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -35,13 +36,13 @@ type Match struct {
 }
 
 func (match *Match) AddTestAttacker() {
-	// set a summon for 500 ms
-	t := time.Now().Add(500 * time.Millisecond)
+	// set a summon for 200 ms
+	t := time.Now().Add(200 * time.Millisecond)
 	newState := summon.BasicSummon(match.GameStates[match.CurrentState], t)
 	match.GameStates = append(match.GameStates, newState)
 
-	// set the broadcast timer for 300 ms
-	target := time.Until(t.Add(-200 * time.Millisecond))
+	// set the broadcast timer for 1 ms
+	target := time.Until(t.Add(-199 * time.Millisecond))
 	match.BroadcastTimer = time.NewTimer(target)
 	match.ChangedTimer <- true
 }
@@ -60,11 +61,68 @@ func (match *Match) Loop() {
 			}
 		case <-timerChannel:
 			fmt.Println("timer ran")
+			match.CurrentState += 1
 		}
 	}
 }
 
-func (match *Match) broadcast(data []byte) {
+// TODO: needs to be censored per client
+func (match *Match) BroadcastGameState() {
+
+	// serialize current game state
+	state := match.GameStates[match.CurrentState]
+	wrapper := struct {
+		Type string      `json:"type"`
+		Data interface{} `json:"data"`
+	}{
+		Type: "fullState",
+		Data: state,
+	}
+	gameStateJSON, err := json.Marshal(wrapper)
+	if err != nil {
+		fmt.Println("problem accessing game state", err)
+		return
+	}
+
+	// send to all clients
+	for key, client := range match.ByUser {
+		select {
+		case client.LowPrio <- gameStateJSON:
+		default:
+			fmt.Println("dropped packet to", key)
+		}
+	}
+}
+
+// TODO: needs to be censored per client
+func (match *Match) SendGameState(ClientID string) {
+
+	// serialize current game state
+	state := match.GameStates[match.CurrentState]
+	wrapper := struct {
+		Type string      `json:"type"`
+		Data interface{} `json:"data"`
+	}{
+		Type: "fullState",
+		Data: state,
+	}
+	gameStateJSON, err := json.Marshal(wrapper)
+	if err != nil {
+		fmt.Println("problem accessing game state", err)
+		return
+	}
+
+	// send it to the client
+	if clientObj, ok := match.ByUser[ClientID]; ok {
+		select {
+		case clientObj.LowPrio <- gameStateJSON:
+		default:
+			fmt.Println("SendGameState, dropped packet to", ClientID)
+		}
+	}
+}
+
+func (match *Match) Broadcast(data []byte) {
 	for key, client := range match.ByUser {
 		select {
 		case client.LowPrio <- data:
