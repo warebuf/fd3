@@ -2,10 +2,12 @@ package matchmaking
 
 import (
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
+	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/match"
 )
 
@@ -87,6 +89,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 			// matchmake
 			if len(selected) >= 2 {
 				matchObj := m.createMatch(selected, MatchMap)
+
 				for i := 0; i < len(selected); i++ {
 					select {
 					case selected[i].Found <- matchObj.ID:
@@ -133,7 +136,14 @@ func (m *Matchmaker) createMatch(tickets []*Ticket, MatchMap map[string]*match.M
 		ID:        id,
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
+
+		GameStates:     make([]*engine.GameState, 0),
+		CurrentState:   0,
+		BroadcastTimer: nil,
 	}
+
+	state := engine.CreateGameState(time.Now(), match.CurrentState)
+	match.GameStates = append(match.GameStates, state)
 
 	MatchMap[id] = match
 

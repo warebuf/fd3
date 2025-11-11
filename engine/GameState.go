@@ -1,9 +1,12 @@
 package engine
 
-import "time"
+import (
+	"time"
+
+	copyslice "github.com/warebuf/fd3/utility/copySlice"
+)
 
 type GameState struct {
-
 	// time the state is set for
 	GameStateID uint
 	Timestamp   time.Time
@@ -50,4 +53,29 @@ func CreateGameState(t time.Time, GSID uint) *GameState {
 		NextUnitID:     0,
 	}
 	return gm
+}
+
+func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
+	if prevState == nil {
+		return nil
+	}
+
+	newState := &GameState{
+		GameStateID: prevState.GameStateID + 1, // increment ID for new state
+		Timestamp:   timestamp,
+		NextUnitID:  prevState.NextUnitID,
+	}
+
+	newState.BenchUnits = copyslice.CopySliceUint(prevState.BenchUnits)
+	newState.FieldUnits = copyslice.CopySliceUint(prevState.FieldUnits)
+	newState.DeadUnits = copyslice.CopySliceUint(prevState.DeadUnits)
+	newState.Team = copyslice.CopySliceUint(prevState.Team)
+	newState.ModelNo = copyslice.CopySliceUint(prevState.ModelNo)
+	newState.HP = copyslice.CopySliceInt(prevState.HP)
+	newState.TimesAttacked = copyslice.CopySliceUint(prevState.TimesAttacked)
+	newState.TimesDefended = copyslice.CopySliceUint(prevState.TimesDefended)
+	newState.DamageDealt = copyslice.CopySliceUint(prevState.DamageDealt)
+	newState.DamageReceived = copyslice.CopySliceUint(prevState.DamageReceived)
+
+	return newState
 }

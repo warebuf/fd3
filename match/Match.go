@@ -2,10 +2,10 @@ package match
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/summon"
 )
 
 /*
@@ -27,7 +27,6 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	Mutex          sync.RWMutex
 	GameStates     []*engine.GameState
 	CurrentState   uint
 	BroadcastTimer *time.Timer
@@ -37,9 +36,9 @@ func (match *Match) AddTestAttacker() {
 
 	// set a summon for 500 ms
 	t := time.Now().Add(500 * time.Millisecond)
-	state := engine.CreateGameState(t, match.CurrentState)
-	// add a unit to the game state
-	match.GameStates = append(match.GameStates, state)
+	curr := match.GameStates[match.CurrentState]
+	newState := summon.BasicSummon(curr, t)
+	match.GameStates = append(match.GameStates, newState)
 
 	// set the broadcast timer for 300 ms
 	target := time.Until(t.Add(-200 * time.Millisecond))
