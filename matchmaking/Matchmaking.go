@@ -155,6 +155,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 	match.AddTestAttacker()
 	match.AddTestAttacker()
+	match.AddTestAttacker()
 
 	MatchMap[id] = match
 
