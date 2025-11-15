@@ -41,12 +41,10 @@ func (match *Match) AddTestAttacker() {
 	newState := summon.BasicSummon(match.GameStates[match.CurrentState], t)
 	match.GameStates = append(match.GameStates, newState)
 
-	// set the broadcast timer for 1 ms
-	target := time.Until(t.Add(-199 * time.Millisecond))
-	match.BroadcastTimer = time.NewTimer(target)
-	match.ChangedTimer <- true
+	// maybe some work here around incrementing currentState on time, idk
 }
 
+// simply increments currentState, not completely functional afaik
 func (match *Match) Loop() {
 
 	var timerChannel <-chan time.Time // set to nil on init
@@ -54,14 +52,16 @@ func (match *Match) Loop() {
 	for {
 		select {
 		case isRunning := <-match.ChangedTimer:
+			fmt.Println("changedTimer")
 			if isRunning {
+				fmt.Println("match.BroadcastTimer", match.BroadcastTimer)
 				timerChannel = match.BroadcastTimer.C
 			} else {
+				fmt.Println("nil")
 				timerChannel = nil
 			}
 		case <-timerChannel:
-			fmt.Println("timer ran")
-			match.CurrentState += 1
+			fmt.Println("timer ran", match.CurrentState, len(match.GameStates))
 		}
 	}
 }

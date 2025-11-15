@@ -84,7 +84,8 @@ func (c *Client) Read() {
 			}
 			fmt.Println(c.ID, "benchMoveData", benchMoveData) // add it to match event queue
 
-		case "fullState":
+		case "fullState": // send all game states and events occurring within the next 200 ms
+			// correction: send all game states within the next 200 ms
 			c.MatchObj.SendGameState(c.ID)
 		}
 

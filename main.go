@@ -158,10 +158,14 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Match ID does not exist", http.StatusUnauthorized)
 		return
 	}
-	if _, exists = match.Whitelist[guestID]; !exists {
+	teamIdx, exists := match.Whitelist[guestID]
+	if !exists {
 		http.Error(w, "guestID not whitelisted", http.StatusUnauthorized)
 		return
 	}
+
+	// write the index in the response
+	fmt.Fprintf(w, "%d", teamIdx)
 
 }
 
