@@ -38,7 +38,7 @@ type Match struct {
 func (match *Match) AddTestAttacker() {
 	// set a summon for 200 ms
 	t := time.Now().Add(200 * time.Millisecond)
-	newState := summon.BasicSummon(match.GameStates[match.CurrentState], t)
+	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t)
 	match.GameStates = append(match.GameStates, newState)
 
 	// maybe some work here around incrementing currentState on time, idk
@@ -97,29 +97,40 @@ func (match *Match) BroadcastGameState() {
 // TODO: needs to be censored per client
 func (match *Match) SendGameState(ClientID string) {
 
-	// serialize current game state
-	state := match.GameStates[match.CurrentState]
-	wrapper := struct {
-		Type string      `json:"type"`
-		Data interface{} `json:"data"`
-	}{
-		Type: "fullState",
-		Data: state,
-	}
-	gameStateJSON, err := json.Marshal(wrapper)
-	if err != nil {
-		fmt.Println("problem accessing game state", err)
-		return
+	curr := match.CurrentState
+
+	for int(curr) < len(match.GameStates) && time.Now().Add(200*time.Millisecond).After(match.GameStates[curr].Timestamp) {
+
+		fmt.Println("SendGameState curr", curr)
+
+		// serialize current game state
+		state := match.GameStates[curr]
+		wrapper := struct {
+			Type string      `json:"type"`
+			Data interface{} `json:"data"`
+		}{
+			Type: "fullState",
+			Data: state,
+		}
+		gameStateJSON, err := json.Marshal(wrapper)
+		if err != nil {
+			fmt.Println("problem accessing game state", err)
+			return
+		}
+
+		// send it to the client
+		if clientObj, ok := match.ByUser[ClientID]; ok {
+			select {
+			case clientObj.LowPrio <- gameStateJSON:
+			default:
+				fmt.Println("SendGameState, dropped packet to", ClientID)
+			}
+		}
+
+		curr += 1
+
 	}
 
-	// send it to the client
-	if clientObj, ok := match.ByUser[ClientID]; ok {
-		select {
-		case clientObj.LowPrio <- gameStateJSON:
-		default:
-			fmt.Println("SendGameState, dropped packet to", ClientID)
-		}
-	}
 }
 
 func (match *Match) Broadcast(data []byte) {
@@ -129,5 +140,15 @@ func (match *Match) Broadcast(data []byte) {
 		default:
 			fmt.Println("dropped packet to", key)
 		}
+	}
+}
+
+func (match *Match) Print() {
+	for i := 0; i < len(match.GameStates); i++ {
+		fmt.Printf("%d %+v\n", match.GameStates[i].Timestamp.UnixMilli(), match.GameStates[i])
+		// fmt.Printf("%d\n", match.GameStates[i].Timestamp.UnixNano())
+		// fmt.Printf("addr=%p\n", match.GameStates[i])
+		// fmt.Printf("GameStateID Addr=%p\n", &match.GameStates[i].GameStateID)
+		//fmt.Printf("\n")
 	}
 }
