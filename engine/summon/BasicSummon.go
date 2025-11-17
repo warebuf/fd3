@@ -12,11 +12,9 @@ func BasicSummon(prevState *engine.GameState, timestamp time.Time) *engine.GameS
 
 	// check if valid bench unit, move it from bench to field
 
-	// temp: create the unit
-	uid := newState.NextUnitID
-
-	newState.FieldUnits = append(newState.FieldUnits, uid)
+	// modify the state
 	newState.Team = append(newState.Team, 0)       // temp: assign to team 0
+	newState.Zone = append(newState.Zone, 1)       // 1 is field
 	newState.ModelNo = append(newState.ModelNo, 0) // temp: hard code model no
 	newState.HP = append(newState.HP, 10)          // temp: hard code HP
 	newState.TimesAttacked = append(newState.TimesAttacked, 0)

@@ -11,13 +11,9 @@ type GameState struct {
 	GameStateID uint
 	Timestamp   time.Time
 
-	// state sets: array of unitIDs
-	BenchUnits []uint
-	FieldUnits []uint
-	DeadUnits  []uint
-
 	// team sets: index (unitID) ->  team index
 	Team []uint
+	Zone []uint // 0: Bench, 1: Field, 2: Dead
 
 	// model set
 	ModelNo []uint
@@ -40,10 +36,8 @@ func CreateGameState(t time.Time, GSID uint) *GameState {
 	gm := &GameState{
 		GameStateID:    GSID,
 		Timestamp:      t,
-		BenchUnits:     make([]uint, 0),
-		FieldUnits:     make([]uint, 0),
-		DeadUnits:      make([]uint, 0),
 		Team:           make([]uint, 0),
+		Zone:           make([]uint, 0),
 		ModelNo:        make([]uint, 0),
 		HP:             make([]int, 0),
 		TimesAttacked:  make([]uint, 0),
@@ -66,10 +60,8 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		NextUnitID:  prevState.NextUnitID,
 	}
 
-	newState.BenchUnits = copyslice.CopySliceUint(prevState.BenchUnits)
-	newState.FieldUnits = copyslice.CopySliceUint(prevState.FieldUnits)
-	newState.DeadUnits = copyslice.CopySliceUint(prevState.DeadUnits)
 	newState.Team = copyslice.CopySliceUint(prevState.Team)
+	newState.Zone = copyslice.CopySliceUint(prevState.Zone)
 	newState.ModelNo = copyslice.CopySliceUint(prevState.ModelNo)
 	newState.HP = copyslice.CopySliceInt(prevState.HP)
 	newState.TimesAttacked = copyslice.CopySliceUint(prevState.TimesAttacked)
