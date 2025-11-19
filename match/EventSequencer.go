@@ -9,3 +9,5 @@ package match
 
 // we can work out all cases to write the EventSequencer / EventScheduler
 
+// we can have an Event data structure, with inputs, autoevents, and autoschedulers
+// we can also have a GameState data structure
