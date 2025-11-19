@@ -11,3 +11,8 @@ package match
 
 // we can have an Event data structure, with inputs, autoevents, and autoschedulers
 // we can also have a GameState data structure
+
+// soo... 
+// inputs can look pretty simple, pretty much just {userIdx, unitIdx, actionType}, just need to do a verification step
+// event types can be pretty simple too, some sort of {ability, unitIdx}
+// not sure exactly how to do autoschedulers...
