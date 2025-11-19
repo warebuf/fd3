@@ -35,10 +35,10 @@ type Match struct {
 	BroadcastTimer *time.Timer
 }
 
-func (match *Match) AddTestAttacker() {
+func (match *Match) AddTestAttacker(team uint, modelNo uint) {
 	// set a summon for 200 ms
 	t := time.Now().Add(200 * time.Millisecond)
-	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t)
+	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
 
 	// maybe some work here around incrementing currentState on time, idk
@@ -146,9 +146,5 @@ func (match *Match) Broadcast(data []byte) {
 func (match *Match) Print() {
 	for i := 0; i < len(match.GameStates); i++ {
 		fmt.Printf("%d %+v\n", match.GameStates[i].Timestamp.UnixMilli(), match.GameStates[i])
-		// fmt.Printf("%d\n", match.GameStates[i].Timestamp.UnixNano())
-		// fmt.Printf("addr=%p\n", match.GameStates[i])
-		// fmt.Printf("GameStateID Addr=%p\n", &match.GameStates[i].GameStateID)
-		//fmt.Printf("\n")
 	}
 }
