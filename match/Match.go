@@ -102,14 +102,12 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 //             
 //             // i mean for now this code will simply increment to the next timestamp
 //             // but going forward, it seems like we have to predict the next gamestate here
-
+//
 //             pseudocode:
 //             increment the state until we get a non-expired timestamp
 //             recalculate the next predicted state vs the next inputState
 //             reconcile the eventSequencer
 //             schedule the next timer
-//             
-//
 //             
 //         }
 //     }
