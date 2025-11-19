@@ -36,7 +36,7 @@ type Match struct {
 	BroadcastTimer *time.Timer
 }
 
-func (match *Match) AddTestAttacker(team uint, modelNo uint) {
+func (match *Match) SummonUnit(team uint, modelNo uint) {
 	// set a summon for 200 ms
 	t := time.Now().Add(200 * time.Millisecond)
 	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t, team, modelNo)

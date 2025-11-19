@@ -83,7 +83,9 @@ func (c *Client) Read() {
 				return
 			}
 			clientIdx := c.MatchObj.Whitelist[c.ID]
-			fmt.Println(c.ID, "benchMoveData", clientIdx, benchMoveData) // add it to match event queue
+			fmt.Println(c.ID, "benchMoveData", clientIdx, benchMoveData)
+			// get the modelNo from the game state
+			// call summonUnit
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
