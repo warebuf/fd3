@@ -51,6 +51,65 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 	// some work here on incredmenting currentState on time
 }
 
+// pseudocode:
+// func (match *Match) Loop() {
+//     timer := time.NewTimer(time.Hour) // dummy long timer
+//     timer.Stop()                      // disable until we set it
+//     var timerC <-chan time.Time       // nil until active
+
+//     for {
+//         select {
+//         case <-match.ChangedHeap: // signal that heap changed
+//             nextTs, ok := match.EarliestTimestamp()
+//             if !ok {
+//                 // No events -> disable timer
+//                 timer.Stop()
+//                 timerC = nil
+//                 continue
+//             }
+
+//             // calculate duration until next event
+//             d := time.Until(nextTs)
+//             if d <= 0 {
+//                 // already expired — fire immediately
+//                 go match.FireEvent(nextTs)
+//                 continue
+//             }
+
+//             // safely reset timer
+//             if !timer.Stop() {
+//                 select {
+//                 case <-timer.C:
+//                 default:
+//                 }
+//             }
+//             timer.Reset(d)
+//             timerC = timer.C
+
+//         case <-timerC:
+//             // timer fired — event at earliest timestamp
+//             nextTs, ok := match.PopEarliest()
+//             if ok {
+//                 match.FireEvent(nextTs)
+//             }
+
+//             // Now schedule the next event (if any)
+//             nextTs, ok = match.EarliestTimestamp()
+//             if !ok {
+//                 timer.Stop()
+//                 timerC = nil
+//             } else {
+//                 d := time.Until(nextTs)
+//                 if d < 0 {
+//                     d = 0
+//                 }
+//                 timer.Reset(d)
+//                 timerC = timer.C
+//             }
+//         }
+//     }
+// }
+
 // simply increments currentState, not completely functional afaik
 func (match *Match) Loop() {
 
