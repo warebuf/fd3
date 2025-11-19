@@ -22,6 +22,7 @@ and will have to request the game state to get caught up
 if they are consistently having issues, let them know
 
 TODO: experiment with different latencies (200 ms - 2 s)
+TODO: add concurrency data structures for needed resources
 */
 
 type Match struct {
@@ -32,7 +33,7 @@ type Match struct {
 	GameStates   []*engine.GameState
 	CurrentState uint
 
-	ChangedTimer   chan bool
+	ChangedHeap    chan bool
 	BroadcastTimer *time.Timer
 }
 
@@ -53,39 +54,50 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 
 // pseudocode:
 // func (match *Match) Loop() {
-//     timer := time.NewTimer(time.Hour) // dummy long timer
+//     timer := time.NewTimer(time.Hour * 8760) // dummy long timer
 //     timer.Stop()                      // disable until we set it
 //     var timerC <-chan time.Time       // nil until active
 
 //     for {
 //         select {
-//         case <-match.ChangedHeap: // signal that heap changed
-//             nextTs, ok := match.EarliestTimestamp()
-//             if !ok {
-//                 // No events -> disable timer
-//                 timer.Stop()
-//                 timerC = nil
-//                 continue
-//             }
-
-//             // calculate duration until next event
-//             d := time.Until(nextTs)
-//             if d <= 0 {
-//                 // already expired — fire immediately
-//                 go match.FireEvent(nextTs)
-//                 continue
-//             }
-
-//             // safely reset timer
-//             if !timer.Stop() {
-//                 select {
-//                 case <-timer.C:
-//                 default:
-//                 }
-//             }
-//             timer.Reset(d)
-//             timerC = timer.C
-
+// 		   case <-match.ChangedHeap:
+//            // no events left
+//            if match.CurrentState+1 >= len(match.GameStates) {
+//               timer.Stop()
+//               timerC = nil
+//               continue
+//            }
+//
+//            // Skip all expired timestamps
+//            for {
+//               nextTs := match.GameStates[match.CurrentState+1].Timestamp
+//               if time.Until(nextTs) > 0 {
+//                  break
+//               }
+//               match.CurrentState++
+//               if match.CurrentState+1 >= len(match.GameStates) {
+//                  break
+//               }
+//            }
+//
+//            // Safely stop and drain timer
+//            if !timer.Stop() {
+//               select {
+//               case <-timer.C:
+//               default:
+//               }
+//            }
+//
+//            // If we still have events, schedule next
+//            if match.CurrentState+1 < len(match.GameStates) {
+//               d := time.Until(match.GameStates[match.CurrentState+1])
+//               timer.Reset(d) // the timer will fire immediately if d is already expired (ie <= 0)
+//               timerC = timer.C
+//            } else { // no future events
+//               timer.Stop()
+//               timerC = nil
+//            }
+//             
 //         case <-timerC:
 //             // timer fired — event at earliest timestamp
 //             nextTs, ok := match.PopEarliest()
