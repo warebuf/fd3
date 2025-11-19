@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/draw"
 	"github.com/warebuf/fd3/engine/summon"
 )
 
@@ -40,8 +41,14 @@ func (match *Match) AddTestAttacker(team uint, modelNo uint) {
 	t := time.Now().Add(200 * time.Millisecond)
 	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
+	// maybe some work here around incrementing currentState on time
+}
 
-	// maybe some work here around incrementing currentState on time, idk
+func (match *Match) DrawCard(team uint, modelNo uint) {
+	t := time.Now().Add(200 * time.Millisecond)
+	newState := draw.DrawUnit(match.GameStates[len(match.GameStates)-1], t, team, modelNo)
+	match.GameStates = append(match.GameStates, newState)
+	// some work here on incredmenting currentState on time
 }
 
 // simply increments currentState, not completely functional afaik
