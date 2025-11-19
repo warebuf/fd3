@@ -22,6 +22,7 @@ and will have to request the game state to get caught up
 if they are consistently having issues, let them know
 
 TODO: experiment with different latencies (200 ms - 2 s)
+TODO: add concurrency data structures for needed resources
 */
 
 type Match struct {
@@ -32,7 +33,7 @@ type Match struct {
 	GameStates   []*engine.GameState
 	CurrentState uint
 
-	ChangedTimer   chan bool
+	ChangedHeap    chan bool
 	BroadcastTimer *time.Timer
 }
 
@@ -50,6 +51,67 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 	match.GameStates = append(match.GameStates, newState)
 	// some work here on incredmenting currentState on time
 }
+
+// pseudocode:
+// func (match *Match) Loop() {
+//     timer := time.NewTimer(time.Hour * 8760) // dummy long timer
+//     timer.Stop()                      // disable until we set it
+//     var timerC <-chan time.Time       // nil until active
+
+//     for {
+//         select {
+// 		   case <-match.ChangedHeap:
+//            // no events left
+//            if match.CurrentState+1 >= len(match.GameStates) {
+//               timer.Stop()
+//               timerC = nil
+//               continue
+//            }
+//
+//            // Skip all expired timestamps
+//            for {
+//               nextTs := match.GameStates[match.CurrentState+1].Timestamp
+//               if time.Until(nextTs) > 0 {
+//                  break
+//               }
+//               match.CurrentState++
+//               if match.CurrentState+1 >= len(match.GameStates) {
+//                  break
+//               }
+//            }
+//
+//            // Safely stop and drain timer
+//            if !timer.Stop() {
+//               select {
+//               case <-timer.C:
+//               default:
+//               }
+//            }
+//
+//            // If we still have events, schedule next
+//            if match.CurrentState+1 < len(match.GameStates) {
+//               d := time.Until(match.GameStates[match.CurrentState+1])
+//               timer.Reset(d) // the timer will fire immediately if d is already expired (ie <= 0)
+//               timerC = timer.C
+//            } else { // no future events
+//               timer.Stop()
+//               timerC = nil
+//            }
+//             
+//         case <-timerC:
+//             
+//             // i mean for now this code will simply increment to the next timestamp
+//             // but going forward, it seems like we have to predict the next gamestate here
+//
+//             pseudocode:
+//             increment the state until we get a non-expired timestamp
+//             recalculate the next predicted state vs the next inputState
+//             reconcile the eventSequencer
+//             schedule the next timer
+//             
+//         }
+//     }
+// }
 
 // simply increments currentState, not completely functional afaik
 func (match *Match) Loop() {
