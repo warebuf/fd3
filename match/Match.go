@@ -99,25 +99,18 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 //            }
 //             
 //         case <-timerC:
-//             // timer fired — event at earliest timestamp
-//             nextTs, ok := match.PopEarliest()
-//             if ok {
-//                 match.FireEvent(nextTs)
-//             }
+//             
+//             // i mean for now this code will simply increment to the next timestamp
+//             // but going forward, it seems like we have to predict the next gamestate here
 
-//             // Now schedule the next event (if any)
-//             nextTs, ok = match.EarliestTimestamp()
-//             if !ok {
-//                 timer.Stop()
-//                 timerC = nil
-//             } else {
-//                 d := time.Until(nextTs)
-//                 if d < 0 {
-//                     d = 0
-//                 }
-//                 timer.Reset(d)
-//                 timerC = timer.C
-//             }
+//             pseudocode:
+//             increment the state until we get a non-expired timestamp
+//             recalculate the next predicted state vs the next inputState
+//             reconcile the eventSequencer
+//             schedule the next timer
+//             
+//
+//             
 //         }
 //     }
 // }
