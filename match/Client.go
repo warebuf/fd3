@@ -82,7 +82,8 @@ func (c *Client) Read() {
 			if err := strictUnmarshal(data, &benchMoveData); err != nil {
 				return
 			}
-			fmt.Println(c.ID, "benchMoveData", benchMoveData) // add it to match event queue
+			clientIdx := c.MatchObj.Whitelist[c.ID]
+			fmt.Println(c.ID, "benchMoveData", clientIdx, benchMoveData) // add it to match event queue
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
