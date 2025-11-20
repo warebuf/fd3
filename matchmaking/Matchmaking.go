@@ -143,15 +143,16 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameStates:     make([]*engine.GameState, 0),
-		CurrentState:   0,
-		BroadcastTimer: nil,
-		ChangedTimer:   make(chan bool),
+		GameStates:   make([]*engine.GameState, 0),
+		CurrentState: 0,
+
+		Events:         make([]match.Event, 0),
+		InputEventChan: make(chan *match.InputEvent, 1024),
 	}
 
 	state := engine.CreateGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
-	go match.Loop()
+	go match.EventScheduler()
 
 	match.DrawCard(0, 0)
 	match.DrawCard(0, 1)

@@ -33,8 +33,8 @@ type Match struct {
 	GameStates   []*engine.GameState
 	CurrentState uint
 
-	ChangedHeap    chan bool
-	BroadcastTimer *time.Timer
+	Events         []Event
+	InputEventChan chan *InputEvent
 }
 
 func (match *Match) SummonUnit(team uint, modelNo uint) {
@@ -97,9 +97,9 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 //               timer.Stop()
 //               timerC = nil
 //            }
-//             
+//
 //         case <-timerC:
-//             
+//
 //             // i mean for now this code will simply increment to the next timestamp
 //             // but going forward, it seems like we have to predict the next gamestate here
 //
@@ -108,32 +108,10 @@ func (match *Match) DrawCard(team uint, modelNo uint) {
 //             recalculate the next predicted state vs the next inputState
 //             reconcile the eventSequencer
 //             schedule the next timer
-//             
+//
 //         }
 //     }
 // }
-
-// simply increments currentState, not completely functional afaik
-func (match *Match) Loop() {
-
-	var timerChannel <-chan time.Time // set to nil on init
-
-	for {
-		select {
-		case isRunning := <-match.ChangedTimer:
-			fmt.Println("changedTimer")
-			if isRunning {
-				fmt.Println("match.BroadcastTimer", match.BroadcastTimer)
-				timerChannel = match.BroadcastTimer.C
-			} else {
-				fmt.Println("nil")
-				timerChannel = nil
-			}
-		case <-timerChannel:
-			fmt.Println("timer ran", match.CurrentState, len(match.GameStates))
-		}
-	}
-}
 
 // TODO: needs to be censored per client
 func (match *Match) BroadcastGameState() {

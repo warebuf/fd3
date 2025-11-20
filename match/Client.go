@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-
-	clientMessageTypes "github.com/warebuf/fd3/match/clientMessageTypes"
 )
 
 // spawns per websocket connection
@@ -51,7 +49,7 @@ func (c *Client) Read() {
 		}
 
 		// detect receive time immediately
-		receiveTime := time.Now().UnixMilli()
+		receiveTime := time.Now()
 
 		// parse message type
 		var msg struct {
@@ -69,7 +67,7 @@ func (c *Client) Read() {
 			// append the serverReceive timestamp to the []byte message
 			newMsg := data[:len(data)-1] // drop trailing '}'
 			newMsg = append(newMsg, []byte(`,"t2":`)...)
-			newMsg = strconv.AppendInt(newMsg, receiveTime, 10)
+			newMsg = strconv.AppendInt(newMsg, receiveTime.UnixMilli(), 10)
 			newMsg = append(newMsg, '}')
 			// non blocking send
 			select {
@@ -78,14 +76,11 @@ func (c *Client) Read() {
 			}
 
 		case "benchMove":
-			var benchMoveData clientMessageTypes.BenchMove
+			var benchMoveData BenchMove
 			if err := strictUnmarshal(data, &benchMoveData); err != nil {
 				return
 			}
-			clientIdx := c.MatchObj.Whitelist[c.ID]
-			fmt.Println(c.ID, "benchMoveData", clientIdx, benchMoveData)
-			// get the modelNo from the game state
-			// call summonUnit
+			ScheduleSummonEvent(receiveTime, c.MatchObj, c.ID, benchMoveData.UnitID)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
