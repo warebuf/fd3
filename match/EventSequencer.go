@@ -20,11 +20,11 @@ import "fmt"
 
 func (match *Match) EventScheduler() {
 
-	for {
-		select {
-		case ie := <-match.InputEventChan:
-			fmt.Println("inputEvent", ie)
-		}
+	for ie := range match.InputEventChan {
+		fmt.Println("inputEvent", ie)
+		// add the event to the array
+		// broadcast
+		// calculate the n+1 event?
 	}
 
 }
