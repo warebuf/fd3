@@ -53,3 +53,25 @@ func RandomSameTeamNoCaster(state *engine.GameState, teamIdx uint, casterIdx uin
 
 	return chosen, true
 }
+
+func RandomEnemy(state *engine.GameState, casterTeamIdx uint) (uint, bool) {
+	var chosen uint
+	count := 0
+
+	for i := 0; i < len(state.Team); i++ {
+
+		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx {
+			count++
+			if rand.Intn(count) == 0 {
+				chosen = uint(i)
+			}
+		}
+
+	}
+
+	if count == 0 {
+		return 0, false // no units found
+	}
+
+	return chosen, true
+}

@@ -2,10 +2,18 @@ package abilities
 
 import (
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/abilityHelpers"
 )
 
-// deal 2 damage to all
+// deal 50 damage to a random enemy
 
-func A00002(state *engine.GameState) {
+func A00002(state *engine.GameState, casterIdx uint) {
+
+	teamIdx := state.Team[casterIdx]
+	targetIdx, ok := abilityHelpers.RandomEnemy(state, teamIdx)
+	if !ok {
+		return
+	}
+	abilityHelpers.DamageOne(state, targetIdx, 50)
 
 }
