@@ -26,6 +26,8 @@ type GameState struct {
 	AbilityStartIdx []uint // the starting index in Abilities[] for this unit
 	AbilityCount    []uint // how many abilities belong to each unit
 
+	Charge []uint
+
 	// counter
 	NextUnitID uint
 }
