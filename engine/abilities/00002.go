@@ -7,7 +7,7 @@ import (
 
 // deal 50 damage to a random enemy
 
-func A00002(state *engine.GameState, casterIdx uint) {
+func A00002(state *engine.GameState, casterIdx int) {
 
 	teamIdx := state.Team[casterIdx]
 	targetIdx, ok := abilityHelpers.RandomEnemy(state, teamIdx)

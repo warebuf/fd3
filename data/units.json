@@ -3,15 +3,17 @@
     "Number": 0, 
     "Name": "Generic", 
     "HP": 10,  
-    "Functions": [
+    "Abilities": [
       {
-        "SPD": 65,
+        "AbilityID": 0,
         "Name": "HealRandom",
+        "CD": 2,
         "Description": "Heal 5"
       },
       {
-        "SPD": 30,
+        "AbilityID": 1,
         "Name": "AOE",
+        "CD": 3,
         "Description": "Attack all for 2"
       }
     ] 
@@ -20,10 +22,11 @@
     "Number": 1, 
     "Name": "Gobbler", 
     "HP": 100, 
-    "Functions": [
+    "Abilities": [
       {
-        "SPD": 50,
+        "AbilityID": 2,
         "Name": "HardAttack50",
+        "CD": 5,
         "Description": "Attack enemy for 50"
       }
     ] 

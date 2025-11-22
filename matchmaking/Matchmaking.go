@@ -26,14 +26,19 @@ type Matchmaker struct {
 	Leave chan string
 
 	inGame map[string]struct{} // list of users in game
+
+	UnitModels []engine.Model
 }
 
-func CreateMatchMaking(MatchMap map[string]*match.Match) *Matchmaker {
+func CreateMatchMaking(MatchMap map[string]*match.Match, unitModels []engine.Model) *Matchmaker {
 	matchMaker := &Matchmaker{
-		queue:  orderedmap.New[string, *Ticket](),
+		queue: orderedmap.New[string, *Ticket](),
+		Join:  make(chan *Ticket, 1024),
+		Leave: make(chan string, 1024),
+
 		inGame: make(map[string]struct{}),
-		Join:   make(chan *Ticket, 1024),
-		Leave:  make(chan string, 1024),
+
+		UnitModels: unitModels,
 	}
 	go matchMaker.loop(MatchMap)
 	return matchMaker
@@ -91,7 +96,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 			if len(selected) >= 2 {
 
 				// create match
-				matchObj := CreateMatch(selected, MatchMap)
+				matchObj := CreateMatch(selected, MatchMap, m.UnitModels)
 
 				// send match to all users
 				for i := 0; i < len(selected); i++ {
@@ -120,7 +125,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 
 }
 
-func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Match {
+func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels []engine.Model) *match.Match {
 
 	// create matchID
 	id := uuid.NewString()
@@ -139,6 +144,8 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 	// create match object
 	match := &match.Match{
+		UnitModels: unitModels,
+
 		ID:        id,
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,

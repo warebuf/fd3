@@ -8,45 +8,46 @@ import (
 
 type GameState struct {
 	// time the state is set for
-	GameStateID uint
+	GameStateID int
 	Timestamp   time.Time
 
 	// team sets: index (unitID) ->  team index
-	Team []uint
-	Zone []uint // 0: Bench, 1: Field, 2: Dead
+	Team []int
+	Zone []int // 0: Bench, 1: Field, 2: Dead
 
 	// model set
-	ModelNo []uint
+	ModelNo []int
 
 	// core unit stats: index (unitID) ->  HP
 	HP []int
 
 	// abilities
-	Abilities       []uint // abilities are flattened for each unit
-	AbilityStartIdx []uint // the starting index in Abilities[] for this unit
-	AbilityCount    []uint // how many abilities belong to each unit
+	Abilities       []int // abilities are flattened for each unit
+	AbilityStartIdx []int // the starting index in Abilities[] for this unit
+	AbilityCount    []int // how many abilities belong to each unit
 
-	Charge []uint
+	AbilityCharge   []int64
+	AbilityCooldown []int64
 
 	// counter
 	NextUnitID uint
 }
 
 type Telemetry struct {
-	TimesAttacked  []uint // index (unitID) -> val
-	TimesDefended  []uint
-	DamageDealt    []uint
-	DamageReceived []uint
+	TimesAttacked  []int64 // index (unitID) -> val
+	TimesDefended  []int64
+	DamageDealt    []int64
+	DamageReceived []int64
 }
 
 // CreateGameState initializes an empty game state with outer slices ready
-func CreateGameState(t time.Time, GSID uint) *GameState {
+func CreateGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
 		GameStateID: GSID,
 		Timestamp:   t,
-		Team:        make([]uint, 0),
-		Zone:        make([]uint, 0),
-		ModelNo:     make([]uint, 0),
+		Team:        make([]int, 0),
+		Zone:        make([]int, 0),
+		ModelNo:     make([]int, 0),
 		HP:          make([]int, 0),
 		NextUnitID:  0,
 	}
@@ -64,9 +65,9 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		NextUnitID:  prevState.NextUnitID,
 	}
 
-	newState.Team = copyslice.CopySliceUint(prevState.Team)
-	newState.Zone = copyslice.CopySliceUint(prevState.Zone)
-	newState.ModelNo = copyslice.CopySliceUint(prevState.ModelNo)
+	newState.Team = copyslice.CopySliceInt(prevState.Team)
+	newState.Zone = copyslice.CopySliceInt(prevState.Zone)
+	newState.ModelNo = copyslice.CopySliceInt(prevState.ModelNo)
 	newState.HP = copyslice.CopySliceInt(prevState.HP)
 	return newState
 }

@@ -10,6 +10,6 @@ func DamageAll(state *engine.GameState, dmgAmount int) {
 	}
 }
 
-func DamageOne(state *engine.GameState, targetIdx uint, dmgAmount int) {
+func DamageOne(state *engine.GameState, targetIdx int, dmgAmount int) {
 	state.HP[targetIdx] -= dmgAmount
 }

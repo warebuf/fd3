@@ -26,28 +26,30 @@ TODO: add concurrency data structures for needed resources
 */
 
 type Match struct {
+	UnitModels []engine.Model
+
 	ID        string
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
 	GameStates   []*engine.GameState
-	CurrentState uint
+	CurrentState int
 
 	Events         []Event
 	InputEventChan chan *InputEvent
 }
 
-func (match *Match) SummonUnit(team uint, modelNo uint) {
+func (match *Match) SummonUnit(team int, modelNo int) {
 	// set a summon for 200 ms
 	t := time.Now().Add(200 * time.Millisecond)
-	newState := summon.BasicSummon(match.GameStates[len(match.GameStates)-1], t, team, modelNo)
+	newState := summon.BasicSummon(match.UnitModels, match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
 	// maybe some work here around incrementing currentState on time
 }
 
-func (match *Match) DrawCard(team uint, modelNo uint) {
+func (match *Match) DrawCard(team int, modelNo int) {
 	t := time.Now().Add(200 * time.Millisecond)
-	newState := draw.DrawUnit(match.GameStates[len(match.GameStates)-1], t, team, modelNo)
+	newState := draw.DrawUnit(match.UnitModels, match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
 	// some work here on incredmenting currentState on time
 }
