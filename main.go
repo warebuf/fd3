@@ -241,11 +241,15 @@ var matchmaker *matchmaking.Matchmaker
 
 func init() {
 	fmt.Println("server started")
-	matchMap = make(map[string]*match.Match)
-	guestMap = matchmaking.NewGuestStore()
-	matchmaker = matchmaking.CreateMatchMaking(matchMap)
 
-	engine.LoadModelSpecs() // load unit data
+	// create guest store
+	guestMap = matchmaking.NewGuestStore()
+
+	// create matchmaking goroutine
+	matchMap = make(map[string]*match.Match)
+	unitModels := engine.LoadModelSpecs()
+	matchmaker = matchmaking.CreateMatchMaking(matchMap, unitModels)
+
 }
 
 func main() {
