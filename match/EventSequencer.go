@@ -20,6 +20,11 @@ import "fmt"
 
 func (match *Match) EventScheduler() {
 
+	// init
+	for i := 0; i < len(match.GameStates[match.CurrentState].ModelNo); i++ {
+		fmt.Println("es init", i, match.GameStates[match.CurrentState].ModelNo[i])
+	}
+
 	for ie := range match.InputEventChan {
 		fmt.Println("inputEvent", ie)
 		// add the event to the array
