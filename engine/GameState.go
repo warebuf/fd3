@@ -3,7 +3,7 @@ package engine
 import (
 	"time"
 
-	copyslice "github.com/warebuf/fd3/utility/copySlice"
+	"github.com/warebuf/fd3/utility/shallowCopy"
 )
 
 type GameState struct {
@@ -22,12 +22,11 @@ type GameState struct {
 	HP []int
 
 	// abilities
-	Abilities       []int // abilities are flattened for each unit
-	AbilityStartIdx []int // the starting index in Abilities[] for this unit
-	AbilityCount    []int // how many abilities belong to each unit
-
-	AbilityCharge   []int64
-	AbilityCooldown []int64
+	Abilities       []int   // abilities are flattened for each unit
+	AbilityStartIdx []int   // the starting index in Abilities[] for this unit
+	AbilityCount    []int   // how many abilities belong to each unit
+	AbilityCharge   []int64 // saved in millisconds
+	AbilitySPD      []int64 // in milliseconds
 
 	// counter
 	NextUnitID uint
@@ -41,15 +40,21 @@ type Telemetry struct {
 }
 
 // CreateGameState initializes an empty game state with outer slices ready
-func CreateGameState(t time.Time, GSID int) *GameState {
+func CreateFirstGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
-		GameStateID: GSID,
-		Timestamp:   t,
-		Team:        make([]int, 0),
-		Zone:        make([]int, 0),
-		ModelNo:     make([]int, 0),
-		HP:          make([]int, 0),
-		NextUnitID:  0,
+		GameStateID:     GSID,
+		Timestamp:       t,
+		Team:            make([]int, 0),
+		Zone:            make([]int, 0),
+		ModelNo:         make([]int, 0),
+		HP:              make([]int, 0),
+		Abilities:       make([]int, 0),
+		AbilityStartIdx: make([]int, 0),
+		AbilityCount:    make([]int, 0),
+		AbilityCharge:   make([]int64, 0),
+		AbilitySPD:      make([]int64, 0),
+
+		NextUnitID: 0,
 	}
 	return gm
 }
@@ -65,9 +70,15 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		NextUnitID:  prevState.NextUnitID,
 	}
 
-	newState.Team = copyslice.CopySliceInt(prevState.Team)
-	newState.Zone = copyslice.CopySliceInt(prevState.Zone)
-	newState.ModelNo = copyslice.CopySliceInt(prevState.ModelNo)
-	newState.HP = copyslice.CopySliceInt(prevState.HP)
+	newState.Team = shallowCopy.IntSlice(prevState.Team)
+	newState.Zone = shallowCopy.IntSlice(prevState.Zone)
+	newState.ModelNo = shallowCopy.IntSlice(prevState.ModelNo)
+	newState.HP = shallowCopy.IntSlice(prevState.HP)
+	newState.Abilities = shallowCopy.IntSlice(prevState.Abilities)
+	newState.AbilityStartIdx = shallowCopy.IntSlice(prevState.AbilityStartIdx)
+	newState.AbilityCount = shallowCopy.IntSlice(prevState.AbilityCount)
+	newState.AbilityCharge = shallowCopy.Int64Slice(prevState.AbilityCharge)
+	newState.AbilitySPD = shallowCopy.Int64Slice(prevState.AbilitySPD)
+
 	return newState
 }

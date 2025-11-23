@@ -159,7 +159,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 		InputEventChan: make(chan *match.InputEvent, 1024),
 	}
 
-	state := engine.CreateGameState(time.Now(), match.CurrentState)
+	state := engine.CreateFirstGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
 
 	match.SummonUnit(0, 1)
