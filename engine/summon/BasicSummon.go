@@ -6,13 +6,14 @@ import (
 	"github.com/warebuf/fd3/engine"
 )
 
-func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timestamp time.Time, team int, modelNo int) *engine.GameState {
+func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timestamp time.Time, team int, unitIdx int) *engine.GameState {
 
 	newState := engine.CopyGameState(timestamp, prevState)
 
 	// check if valid bench unit, move it from bench to field
 
 	// get model
+	modelNo := prevState.ModelNo[unitIdx]
 	model := unitModels[modelNo]
 
 	// modify the state

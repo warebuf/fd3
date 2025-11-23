@@ -7,8 +7,10 @@ type Event interface {
 }
 
 type InputEvent struct {
-	T    time.Time
-	Type string
+	T       time.Time
+	Type    string
+	TeamIdx int
+	UnitIdx int
 }
 
 func (e *InputEvent) Timestamp() time.Time { return e.T }

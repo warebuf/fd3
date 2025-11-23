@@ -3,6 +3,8 @@ package match
 import (
 	"fmt"
 	"time"
+
+	"github.com/warebuf/fd3/engine/summon"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -27,15 +29,26 @@ func (match *Match) EventScheduler() {
 	for match.CurrentState+1 < len(match.GameStates) && time.Now().After(match.GameStates[match.CurrentState].Timestamp) {
 		match.CurrentState += 1
 	}
-	fmt.Println("CurrentState", match.CurrentState)
 
 	for ie := range match.InputEventChan {
-		fmt.Println("inputEvent", ie.T.UnixMilli(), ie.Type)
+		fmt.Println("inputEvent", ie)
+
 		// remove all from the gameState array not within the next 200 ms
-		
+		curr := match.CurrentState
+		deadline := ie.T.Add(200 * time.Millisecond)
+		for curr < len(match.GameStates) && deadline.After(match.GameStates[curr].Timestamp) {
+			curr += 1
+		}
+		newGameStatesArr := match.GameStates[0:curr]
 
 		// create a new gameState with this applied
+		newState := summon.BasicSummon(match.UnitModels, match.GameStates[len(match.GameStates)-1], deadline, ie.TeamIdx, ie.UnitIdx)
+		newGameStatesArr = append(newGameStatesArr, newState)
+		match.GameStates = newGameStatesArr
+
 		// broadcast it
+		match.BroadcastLastGameState()
+
 		// TODO: schedule autoscheduler
 	}
 
