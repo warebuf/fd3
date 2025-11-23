@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -15,8 +14,7 @@ func ScheduleSummonEvent(timestamp time.Time, match *Match, clientID string, uni
 
 	// check if the summon is valid
 
-	fmt.Println(timestamp, "summon", clientIdx, unitIdx)
-
+	
 	ie := &InputEvent{
 		T:       timestamp,
 		Type:    "Summon",

@@ -19,10 +19,6 @@ import (
 // we can have an Event data structure, with inputs, autoevents, and autoschedulers
 // we can also have a GameState data structure
 
-// soo...
-// inputs can look pretty simple, pretty much just {userIdx, unitIdx, actionType}, just need to do a verification step
-// event types can be pretty simple too, some sort of {ability, unitIdx}
-
 func (match *Match) EventScheduler() {
 
 	// increment currentState to most recent state
@@ -31,7 +27,7 @@ func (match *Match) EventScheduler() {
 	}
 
 	for ie := range match.InputEventChan {
-		fmt.Println("inputEvent", ie)
+		fmt.Println("inputEvent", ie, ie.T.UnixMilli(), ie.Type, ie.TeamIdx, ie.UnitIdx)
 
 		// remove all from the gameState array not within the next 200 ms
 		curr := match.CurrentState
