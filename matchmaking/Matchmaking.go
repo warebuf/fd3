@@ -160,7 +160,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	state := engine.CreateFirstGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
 
-	match.SummonUnit(0, 1)
 	match.DrawCard(0, 0)
 	match.DrawCard(0, 1)
 	match.DrawCard(1, 0)

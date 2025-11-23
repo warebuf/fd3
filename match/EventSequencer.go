@@ -23,29 +23,20 @@ import (
 
 func (match *Match) EventScheduler() {
 
-	// init
-	fmt.Println("now", time.Now().UnixMilli())
-	fmt.Println("state0", match.GameStates[match.CurrentState].Timestamp.UnixMilli())
-	fmt.Println("Abilities", match.GameStates[match.CurrentState].Abilities)
-	fmt.Println("AbilityCharge", match.GameStates[match.CurrentState].AbilityCharge)
-	fmt.Println("AbilityCount", match.GameStates[match.CurrentState].AbilityCount)
-	fmt.Println("AbilitySPD", match.GameStates[match.CurrentState].AbilitySPD)
-	fmt.Println("AbilityStartIdx", match.GameStates[match.CurrentState].AbilityStartIdx)
-
-	//var minTime int64 = math.MaxInt64
-	for i := 0; i < len(match.GameStates[match.CurrentState].Zone); i++ {
-
-		if match.GameStates[match.CurrentState].Zone[i] == 1 && match.GameStates[match.CurrentState].HP[i] > 0 {
-
-		}
-
+	// increment currentState to most recent state
+	for match.CurrentState+1 < len(match.GameStates) && time.Now().After(match.GameStates[match.CurrentState].Timestamp) {
+		match.CurrentState += 1
 	}
+	fmt.Println("CurrentState", match.CurrentState)
 
 	for ie := range match.InputEventChan {
-		fmt.Println("inputEvent", ie)
-		// add the event to the array
-		// broadcast
-		// calculate the n+1 event?
+		fmt.Println("inputEvent", ie.T.UnixMilli(), ie.Type)
+		// remove all from the gameState array not within the next 200 ms
+		
+
+		// create a new gameState with this applied
+		// broadcast it
+		// TODO: schedule autoscheduler
 	}
 
 }

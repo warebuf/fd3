@@ -40,15 +40,14 @@ type Match struct {
 }
 
 func (match *Match) SummonUnit(team int, modelNo int) {
-	// set a summon for 200 ms
-	t := time.Now().Add(200 * time.Millisecond)
+	t := time.Now()
 	newState := summon.BasicSummon(match.UnitModels, match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
 	// maybe some work here around incrementing currentState on time
 }
 
 func (match *Match) DrawCard(team int, modelNo int) {
-	t := time.Now().Add(200 * time.Millisecond)
+	t := time.Now()
 	newState := draw.DrawUnit(match.UnitModels, match.GameStates[len(match.GameStates)-1], t, team, modelNo)
 	match.GameStates = append(match.GameStates, newState)
 	// some work here on incredmenting currentState on time
@@ -87,7 +86,7 @@ func (match *Match) SendGameState(ClientID string) {
 
 	curr := match.CurrentState
 
-	for int(curr) < len(match.GameStates) && time.Now().Add(200*time.Millisecond).After(match.GameStates[curr].Timestamp) {
+	for curr < len(match.GameStates) && time.Now().Add(200*time.Millisecond).After(match.GameStates[curr].Timestamp) {
 
 		// serialize current game state
 		state := match.GameStates[curr]
