@@ -150,8 +150,10 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameStates:   make([]*engine.GameState, 0),
-		CurrentState: 0,
+		GameStates:        make([]*engine.GameState, 0),
+		CurrentState:      0,
+		GameStatesChanged: make(chan struct{}),
+		CurrentStateTimer: nil,
 
 		Events:         make([]match.Event, 0),
 		InputEventChan: make(chan *match.InputEvent, 1024),
@@ -165,6 +167,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	match.DrawCard(1, 0)
 	match.DrawCard(1, 1)
 
+	go match.UpdateCurrentState()
 	go match.EventScheduler() // on init, check the game state, schedule if first if possible
 
 	MatchMap[id] = match

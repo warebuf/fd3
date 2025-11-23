@@ -20,9 +20,6 @@ if they have a lag spike, not my problem, they missed the event
 and will have to request the game state to get caught up
 
 if they are consistently having issues, let them know
-
-TODO: experiment with different latencies (200 ms - 2 s)
-TODO: add concurrency data structures for needed resources
 */
 
 type Match struct {
@@ -32,8 +29,10 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameStates   []*engine.GameState
-	CurrentState int
+	GameStates        []*engine.GameState
+	CurrentState      int
+	GameStatesChanged chan struct{} // when GameStates is modified, set a new timer
+	CurrentStateTimer *time.Timer   // when timer goes off, increment CurrentState
 
 	Events         []Event
 	InputEventChan chan *InputEvent
