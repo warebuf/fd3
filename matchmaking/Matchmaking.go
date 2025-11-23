@@ -150,8 +150,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		StartTime: time.Now().Add(1 * time.Second), // start in 1 second
-
 		GameStates:   make([]*engine.GameState, 0),
 		CurrentState: 0,
 
@@ -159,7 +157,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 		InputEventChan: make(chan *match.InputEvent, 1024),
 	}
 
-	state := engine.CreateGameState(time.Now(), match.CurrentState)
+	state := engine.CreateFirstGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
 
 	match.SummonUnit(0, 1)
