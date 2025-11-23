@@ -32,8 +32,6 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	StartTime time.Time
-
 	GameStates   []*engine.GameState
 	CurrentState int
 
@@ -90,8 +88,6 @@ func (match *Match) SendGameState(ClientID string) {
 	curr := match.CurrentState
 
 	for int(curr) < len(match.GameStates) && time.Now().Add(200*time.Millisecond).After(match.GameStates[curr].Timestamp) {
-
-		fmt.Println("SendGameState curr", curr)
 
 		// serialize current game state
 		state := match.GameStates[curr]
