@@ -22,7 +22,7 @@ import (
 func (match *Match) EventScheduler() {
 
 	for ie := range match.InputEventChan {
-		fmt.Println("inputEvent", ie, ie.T.UnixMilli(), ie.Type, ie.TeamIdx, ie.UnitIdx)
+		fmt.Println("inputEvent", ie.T.UnixMilli(), ie.Type, ie.TeamIdx, ie.UnitIdx)
 
 		// remove all from the gameState array not within the next 200 ms, assume at least 1 GameState exists
 		deadline := ie.T.Add(200 * time.Millisecond)

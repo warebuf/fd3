@@ -2,7 +2,6 @@ package engine
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -30,7 +29,6 @@ func LoadModelSpecs() []Model {
 	var originals []Model
 	json.NewDecoder(file).Decode(&originals)
 
-	fmt.Println("originals", originals)
 	return originals
 }
 
