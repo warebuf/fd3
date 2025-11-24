@@ -31,11 +31,8 @@ type Match struct {
 
 	GameStates        []*engine.GameState
 	CurrentState      int
-	GameStatesChanged chan struct{} // when GameStates is modified, set a new timer
-	CurrentStateTimer *time.Timer   // when timer goes off, increment CurrentState
 
-	Events         []Event
-	InputEventChan chan *InputEvent
+	// should be just the event priority queue here
 }
 
 func (match *Match) SummonUnit(team int, modelNo int) {
