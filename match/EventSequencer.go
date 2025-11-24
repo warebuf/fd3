@@ -23,8 +23,13 @@ import (
 // chatgpt is telling me two goroutines doesnt really work because they block each other because of the mutex on the gamestate
 // which makes sense i think
 
-// should have one loop that is EventScheduler - a priority queue that has a timer, pushes into a channel
-// another loop that is EventProcessor - reads the channel and does the behavior
+// basically event scheduler owns the priority queue, gameStates, currentState
+// select {
+// case input := <-InputEventChan:
+//     // Create an event and push it onto the PQ
+// case <-timer.C:
+//     // time to process the next event in PQ
+// }
 
 func (match *Match) EventScheduler() {
 
