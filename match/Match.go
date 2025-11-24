@@ -34,6 +34,7 @@ type Match struct {
 	
 	InputEventChan chan *InputEvent
 	EventPQueue EventPQ
+	EventPQTimer time.Timer
 	nextSeq int
 }
 
