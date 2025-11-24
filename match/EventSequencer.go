@@ -19,6 +19,13 @@ import (
 // we can have an Event data structure, with inputs, autoevents, and autoschedulers
 // we can also have a GameState data structure
 
+// maybe we put the InputEventChan and the AutoScheduler into a priority queue sorted by timestamp
+// chatgpt is telling me two goroutines doesnt really work because they block each other because of the mutex on the gamestate
+// which makes sense i think
+
+// should have one loop that is EventScheduler - a priority queue that has a timer, pushes into a channel
+// another loop that is EventProcessor - reads the channel and does the behavior
+
 func (match *Match) EventScheduler() {
 
 	for ie := range match.InputEventChan {
@@ -45,7 +52,10 @@ func (match *Match) EventScheduler() {
 		// TODO: schedule autoscheduler
 
 		// let UpdateCurrentState know that GameStates arr has changed
-		match.GameStatesChanged <- struct{}{}
+		select {
+		case match.GameStatesChanged <- struct{}{}:
+		default: // drop notification if one is already pending
+		}
 	}
 
 }
