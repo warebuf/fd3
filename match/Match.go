@@ -31,6 +31,8 @@ type Match struct {
 
 	GameStates        []*engine.GameState
 	CurrentState      int
+	
+	InputEventChan chan *InputEvent
 	EventPQueue EventPQ
 	nextSeq int
 }
