@@ -22,6 +22,14 @@ import (
 
 func (match *Match) EventScheduler() {
 
+	for {
+		select {
+		case ie := <- match.InputEvent Chan:
+
+		case <- match.PQTimer.C:
+		}
+	}
+
 	for ie := range match.InputEventChan {
 		fmt.Println("inputEvent", ie.T.UnixMilli(), ie.Type, ie.TeamIdx, ie.UnitIdx)
 
