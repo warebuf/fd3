@@ -29,10 +29,10 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	EventPQueue EventPQ
 	GameStates        []*engine.GameState
 	CurrentState      int
-	
+	EventPQueue EventPQ
+	nextSeq int
 }
 
 func (match *Match) SummonUnit(team int, modelNo int) {
