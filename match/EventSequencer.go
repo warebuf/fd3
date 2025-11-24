@@ -19,6 +19,8 @@ import (
 // we can have an Event data structure, with inputs, autoevents, and autoschedulers
 // we can also have a GameState data structure
 
+// maybe we put the InputEventChan and the AutoScheduler into a priority queue sorted by timestamp
+
 func (match *Match) EventScheduler() {
 
 	for ie := range match.InputEventChan {
