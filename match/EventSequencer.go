@@ -89,8 +89,7 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 			fmt.Println("ie", ie)
 
-			// remove all from the gameState array not within the next 200 ms,
-			// assume at least 1 GameState exists
+			// think you have to remove all autoschedulers and their associated autoevents
 
 			// 	// create a new gameState with this applied
 			// 	newState := summon.BasicSummon(match.UnitModels, match.GameStates[len(match.GameStates)-1], deadline, ie.TeamIdx, ie.UnitIdx)
