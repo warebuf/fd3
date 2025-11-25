@@ -4,6 +4,7 @@ package match
 
 type EventItem struct {
 	Event Event
+	Type  string
 	seq   int64 // strictly increasing tie-breaker
 }
 
