@@ -1,6 +1,7 @@
 package matchmaking
 
 import (
+	"container/heap"
 	"fmt"
 	"sync"
 	"time"
@@ -150,14 +151,14 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameStates:        make([]*engine.GameState, 0),
-		CurrentState:      0,
-		GameStatesChanged: make(chan struct{}),
-		CurrentStateTimer: nil,
+		GameStates:   make([]*engine.GameState, 0),
+		CurrentState: 0,
 
-		Events:         make([]match.Event, 0),
 		InputEventChan: make(chan *match.InputEvent, 1024),
+		EventPQTimer:   nil,
+		NextSeq:        0,
 	}
+	heap.Init(&match.EventPQueue)
 
 	state := engine.CreateFirstGameState(time.Now(), match.CurrentState)
 	match.GameStates = append(match.GameStates, state)
@@ -167,7 +168,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	match.DrawCard(1, 0)
 	match.DrawCard(1, 1)
 
-	go match.UpdateCurrentState()
 	go match.EventScheduler() // on init, check the game state, schedule if first if possible
 
 	MatchMap[id] = match

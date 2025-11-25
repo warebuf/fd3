@@ -1,7 +1,5 @@
 package match
 
-import "time"
-
 // Priority Queue stuff
 
 type EventItem struct {
@@ -48,5 +46,3 @@ func (pq EventPQ) Peek() (*EventItem, bool) {
 	}
 	return pq[0], true
 }
-
-
