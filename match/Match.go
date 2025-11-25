@@ -29,13 +29,13 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameStates        []*engine.GameState
-	CurrentState      int
-	GameStatesChanged chan struct{} // when GameStates is modified, set a new timer
-	CurrentStateTimer *time.Timer   // when timer goes off, increment CurrentState
+	GameStates   []*engine.GameState
+	CurrentState int
 
-	Events         []Event
 	InputEventChan chan *InputEvent
+	EventPQueue    EventPQ
+	EventPQTimer   *time.Timer
+	NextSeq        int
 }
 
 func (match *Match) SummonUnit(team int, modelNo int) {

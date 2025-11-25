@@ -6,6 +6,8 @@ type Event interface {
 	Timestamp() time.Time
 }
 
+// Event types
+
 type InputEvent struct {
 	T       time.Time
 	Type    string
