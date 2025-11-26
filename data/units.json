@@ -2,7 +2,7 @@
   { 
     "Number": 0, 
     "Name": "Generic", 
-    "HP": 10,  
+    "HP": 100,  
     "Abilities": [
       {
         "AbilityID": 0,

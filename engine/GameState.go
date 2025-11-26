@@ -28,8 +28,6 @@ type GameState struct {
 	AbilityCharge   []int64 // saved in millisconds
 	AbilitySPD      []int64 // in milliseconds
 
-	// counter
-	NextUnitID uint
 }
 
 type Telemetry struct {
@@ -53,8 +51,6 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 		AbilityCount:    make([]int, 0),
 		AbilityCharge:   make([]int64, 0),
 		AbilitySPD:      make([]int64, 0),
-
-		NextUnitID: 0,
 	}
 	return gm
 }
@@ -67,7 +63,6 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState := &GameState{
 		GameStateID: prevState.GameStateID + 1, // increment ID for new state
 		Timestamp:   timestamp,
-		NextUnitID:  prevState.NextUnitID,
 	}
 
 	newState.Team = shallowCopy.IntSlice(prevState.Team)

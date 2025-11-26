@@ -17,14 +17,14 @@ type InputEvent struct {
 
 func (e *InputEvent) Timestamp() time.Time { return e.T }
 
-type AutoEvent struct {
-	T time.Time
-}
-
-func (e *AutoEvent) Timestamp() time.Time { return e.T }
-
 type AutoScheduler struct {
 	T time.Time
 }
 
 func (e *AutoScheduler) Timestamp() time.Time { return e.T }
+
+type CurrentEvent struct {
+	T time.Time
+}
+
+func (e *CurrentEvent) Timestamp() time.Time { return e.T }
