@@ -53,10 +53,9 @@ func (match *Match) DrawCard(team int, modelNo int) {
 }
 
 // TODO: needs to be censored per client
-func (match *Match) BroadcastLastGameState() {
+func (match *Match) BroadcastGameState(state *engine.GameState) {
 
-	// serialize current game state
-	state := match.GameStates[len(match.GameStates)-1]
+	// serialize game state
 	wrapper := struct {
 		Type string      `json:"type"`
 		Data interface{} `json:"data"`
