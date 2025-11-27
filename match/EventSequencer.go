@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/abilities"
 	"github.com/warebuf/fd3/engine/summon"
 )
 
@@ -51,6 +52,97 @@ func (match *Match) EventScheduler() {
 
 }
 
+func (match *Match) handleDuePQEvents() {
+	for {
+
+		// return if empty
+		if match.EventPQueue.Len() == 0 {
+			return
+		}
+
+		next := match.EventPQueue[0]
+
+		// no more due events
+		if time.Now().Before(next.Event.Timestamp()) {
+			break
+		}
+
+		heap.Pop(&match.EventPQueue) // pop the event
+
+		// handle the event
+		switch next.Type {
+		case "AutoScheduler":
+			fmt.Println("received AutoScheduler")
+
+			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
+
+			//increment
+			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], autoEventTime)
+			match.BroadcastGameState(incrementedState)
+			pushCurrentEvent(match, autoEventTime)
+
+			// figure out which abilities are due
+			dueUnits := []int{} // matches length of dueAbilities
+			dueAbilities := []int{}
+			for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
+				for j := 0; j < incrementedState.AbilityCount[i]; j++ {
+					abilityIdx := incrementedState.AbilityStartIdx[i] + j
+					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] {
+						dueAbilities = append(dueAbilities, abilityIdx)
+						dueUnits = append(dueUnits, i)
+					}
+				}
+			}
+
+			// activate abilities
+			abilityState, modified := handleDueAbilities(incrementedState, dueUnits, dueAbilities)
+			if modified {
+				match.GameStates = append(match.GameStates, abilityState)
+				match.BroadcastGameState(abilityState)
+				pushCurrentEvent(match, autoEventTime)
+			}
+
+			// schedule next AutoScheduler
+			nextAutoEventTime, success := calcNextAutoEvent(abilityState, true)
+			if success {
+				pushAutoScheduler(match, nextAutoEventTime)
+			}
+
+		case "Current":
+			match.CurrentState += 1
+			fmt.Println("received Current ->", match.CurrentState, len(match.GameStates))
+
+		case "Input":
+			fmt.Println("received Input")
+			ie := next.Event.(*InputEvent)
+
+			// remove all autoschedulers
+
+			// increment the state from the last confirmed GameState
+			nextTimestamp := ie.T.Add(200 * time.Millisecond)
+			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
+			match.BroadcastGameState(incrementedState)
+			pushCurrentEvent(match, nextTimestamp)
+
+			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
+			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
+			match.GameStates = append(match.GameStates, newState)
+			match.BroadcastGameState(newState)
+			pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
+
+			// schedule autoscheduler
+			nextAutoEventTime, success := calcNextAutoEvent(newState, true)
+			if success {
+				pushAutoScheduler(match, nextAutoEventTime)
+			}
+
+		}
+
+	}
+
+	// set timer for next event or set it to nil
+}
+
 func pushInputEvent(match *Match, ev *InputEvent) {
 	match.NextSeq++
 	ev.T = time.Now() // relabel the timestamp when putting it into PQ
@@ -91,63 +183,6 @@ func pushAutoScheduler(match *Match, nextAutoEvent time.Time) {
 	heap.Push(&match.EventPQueue, item)
 }
 
-func (match *Match) handleDuePQEvents() {
-	for {
-
-		// return if empty
-		if match.EventPQueue.Len() == 0 {
-			return
-		}
-
-		next := match.EventPQueue[0]
-
-		// no more due events
-		if time.Now().Before(next.Event.Timestamp()) {
-			break
-		}
-
-		heap.Pop(&match.EventPQueue) // pop the event
-
-		// handle the event
-		switch next.Type {
-		case "AutoScheduler":
-			fmt.Println("received AutoScheduler")
-
-		case "Current":
-			match.CurrentState += 1
-			fmt.Println("received Current ->", match.CurrentState)
-
-		case "Input":
-			fmt.Println("received Input")
-			ie := next.Event.(*InputEvent)
-
-			// remove all autoschedulers and their associated autoevents
-
-			// increment the state from the last confirmed GameState
-			nextTimestamp := ie.T.Add(200 * time.Millisecond)
-			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
-			match.BroadcastGameState(incrementedState)
-			pushCurrentEvent(match, nextTimestamp)
-
-			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
-			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
-			match.GameStates = append(match.GameStates, newState)
-			match.BroadcastGameState(newState)
-			pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
-
-			// schedule autoscheduler
-			nextAutoEvent, success := calcNextAutoEvent(newState)
-			if success {
-				pushAutoScheduler(match, nextAutoEvent)
-			}
-
-		}
-
-	}
-
-	// set timer for next event or set it to nil
-}
-
 // increment currentState to most recent state
 func (match *Match) setCurrentState() {
 	for match.CurrentState+1 < len(match.GameStates) && time.Now().After(match.GameStates[match.CurrentState].Timestamp) {
@@ -179,7 +214,7 @@ func incrementState(state *engine.GameState, nextTimestamp time.Time) *engine.Ga
 }
 
 // if we return a negative number, no autoevent found
-func calcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
+func calcNextAutoEvent(state *engine.GameState, ignoreDue bool) (time.Time, bool) {
 
 	timeToAutoEvent := math.MaxInt
 
@@ -188,7 +223,9 @@ func calcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
 				timeLeft := int(state.AbilitySPD[j] - state.AbilityCharge[j])
-				if timeLeft < timeToAutoEvent {
+				if timeLeft == 0 && ignoreDue {
+					continue
+				} else if timeLeft < timeToAutoEvent {
 					timeToAutoEvent = timeLeft
 				}
 
@@ -207,6 +244,50 @@ func calcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 
 }
 
-func handleAutoScheduler() {
+// could use an array of functions but will use a switch statement for now
 
+func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueAbilities []int) (*engine.GameState, bool) {
+
+	fmt.Println("dueUnits", dueUnits)
+	fmt.Println("dueAbilities", dueAbilities)
+
+	newState := engine.CopyGameState(incrementedState.Timestamp, incrementedState)
+	modified := false
+
+	for i := 0; i < len(dueAbilities); i++ {
+
+		dueUnit := dueUnits[i]
+		dueAbility := dueAbilities[i]
+		abilityNo := newState.Abilities[dueAbility]
+
+		switch abilityNo {
+		case 0:
+			fmt.Println("used A00000")
+			occurred := abilities.A00000(newState, dueUnit)
+			fmt.Println("occurred", occurred)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
+		case 1:
+			fmt.Println("used A00001")
+			occurred := abilities.A00001(newState)
+			fmt.Println("occurred", occurred)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
+		case 2:
+			fmt.Println("used A00002")
+			occurred := abilities.A00002(newState, dueUnit)
+			fmt.Println("occurred", occurred)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
+		}
+
+	}
+
+	return newState, modified
 }
