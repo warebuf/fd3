@@ -1,5 +1,10 @@
 package match
 
+import (
+	"container/heap"
+	"fmt"
+)
+
 // Priority Queue stuff
 
 type EventItem struct {
@@ -46,4 +51,15 @@ func (pq EventPQ) Peek() (*EventItem, bool) {
 		return nil, false
 	}
 	return pq[0], true
+}
+
+func (pq *EventPQ) RemoveFirstAutoScheduler() {
+	for i, item := range *pq {
+		// Type assertion check for InputEvent
+		if _, ok := item.Event.(*AutoScheduler); ok {
+			removed := heap.Remove(pq, i).(*EventItem)
+			fmt.Println("removed", removed)
+			return
+		}
+	}
 }

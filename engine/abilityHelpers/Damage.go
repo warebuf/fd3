@@ -6,7 +6,9 @@ import "github.com/warebuf/fd3/engine"
 
 func DamageAll(state *engine.GameState, dmgAmount int) {
 	for i := 0; i < len(state.HP); i++ {
-		state.HP[i] -= dmgAmount
+		if state.HP[i] > 0 && state.Zone[i] == 1 {
+			state.HP[i] -= dmgAmount
+		}
 	}
 }
 

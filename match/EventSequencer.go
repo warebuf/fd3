@@ -78,6 +78,7 @@ func (match *Match) handleDuePQEvents() {
 
 			//increment
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], autoEventTime)
+			match.GameStates = append(match.GameStates, incrementedState)
 			match.BroadcastGameState(incrementedState)
 			pushCurrentEvent(match, autoEventTime)
 
@@ -116,11 +117,13 @@ func (match *Match) handleDuePQEvents() {
 			fmt.Println("received Input")
 			ie := next.Event.(*InputEvent)
 
-			// remove all autoschedulers
+			// remove all autoscheduler events (at most only 1 exists in current design)
+			match.EventPQueue.RemoveFirstAutoScheduler()
 
 			// increment the state from the last confirmed GameState
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
+			match.GameStates = append(match.GameStates, incrementedState)
 			match.BroadcastGameState(incrementedState)
 			pushCurrentEvent(match, nextTimestamp)
 
@@ -141,6 +144,8 @@ func (match *Match) handleDuePQEvents() {
 	}
 
 	// set timer for next event or set it to nil
+	match.setPQTimer()
+
 }
 
 func pushInputEvent(match *Match, ev *InputEvent) {
@@ -201,7 +206,6 @@ func incrementState(state *engine.GameState, nextTimestamp time.Time) *engine.Ga
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
 
 				if state.AbilitySPD[j]-increment < state.AbilityCharge[j] { // we've reached past the charge
-					//fmt.Println("we've reached past the charge???", state.AbilityCharge[j]+increment)
 					newState.AbilityCharge[j] = newState.AbilitySPD[j]
 				} else {
 					newState.AbilityCharge[j] += increment
@@ -244,7 +248,35 @@ func calcNextAutoEvent(state *engine.GameState, ignoreDue bool) (time.Time, bool
 
 }
 
-// could use an array of functions but will use a switch statement for now
+func (match *Match) setPQTimer() {
+
+	// clear timer
+	if match.EventPQTimer != nil {
+		if !match.EventPQTimer.Stop() {
+			select {
+			case <-match.EventPQTimer.C: // drain the channel
+			default:
+			}
+		}
+	}
+
+	// if no events, return
+	first, ok := match.EventPQueue.Peek()
+	if !ok {
+		match.EventPQTimer = nil
+		return
+	}
+
+	// set timer
+	now := time.Now()
+	fireTime := first.Event.Timestamp()
+	delay := fireTime.Sub(now)
+	if delay < 0 {
+		delay = 0
+	}
+	match.EventPQTimer = time.NewTimer(delay)
+
+}
 
 func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueAbilities []int) (*engine.GameState, bool) {
 
@@ -260,6 +292,7 @@ func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 		dueAbility := dueAbilities[i]
 		abilityNo := newState.Abilities[dueAbility]
 
+		// could use an array of functions but will use a switch statement for now
 		switch abilityNo {
 		case 0:
 			fmt.Println("used A00000")
