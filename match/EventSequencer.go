@@ -218,7 +218,7 @@ func incrementState(state *engine.GameState, nextTimestamp time.Time) *engine.Ga
 }
 
 // if we return a negative number, no autoevent found
-func calcNextAutoEvent(state *engine.GameState, ignoreDue bool) (time.Time, bool) {
+func calcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 
 	timeToAutoEvent := math.MaxInt
 
@@ -227,9 +227,9 @@ func calcNextAutoEvent(state *engine.GameState, ignoreDue bool) (time.Time, bool
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
 				timeLeft := int(state.AbilitySPD[j] - state.AbilityCharge[j])
-				if timeLeft == 0 && ignoreDue {
-					continue
-				} else if timeLeft < timeToAutoEvent {
+				if timeLeft < timeToAutoEvent {
+					// check if this is actually available
+					ss
 					timeToAutoEvent = timeLeft
 				}
 
