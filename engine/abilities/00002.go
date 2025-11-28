@@ -18,3 +18,11 @@ func A00002(state *engine.GameState, casterIdx int) bool {
 
 	return true
 }
+
+func A00002Valid(state *engine.GameState, casterIdx int) bool {
+	if state.Zone[casterIdx] != 1 {
+		return false
+	}
+	teamIdx := state.Team[casterIdx]
+	return abilityHelpers.RandomEnemyCheck(state, teamIdx)
+}

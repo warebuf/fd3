@@ -31,6 +31,15 @@ func RandomSameTeam(state *engine.GameState, teamIdx int) (int, bool) {
 	return chosen, true
 }
 
+func RandomSameTeamCheck(state *engine.GameState, teamIdx int) bool {
+	for i := 0; i < len(state.Team); i++ {
+		if state.Zone[i] == 1 && state.Team[i] == teamIdx {
+			return true
+		}
+	}
+	return false
+}
+
 // same team, does not include casting unit
 func RandomSameTeamNoCaster(state *engine.GameState, teamIdx int, casterIdx int) (int, bool) {
 	var chosen int
@@ -74,4 +83,13 @@ func RandomEnemy(state *engine.GameState, casterTeamIdx int) (int, bool) {
 	}
 
 	return chosen, true
+}
+
+func RandomEnemyCheck(state *engine.GameState, casterTeamIdx int) bool {
+	for i := 0; i < len(state.Team); i++ {
+		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx {
+			return true
+		}
+	}
+	return false
 }
