@@ -8,7 +8,6 @@ import (
 // deal 2 damage to all
 
 func A00001(state *engine.GameState) bool {
-
 	abilityHelpers.DamageAll(state, 2)
 	return true
 }

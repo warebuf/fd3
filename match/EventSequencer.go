@@ -294,25 +294,26 @@ func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 		// could use an array of functions but will use a switch statement for now
 		switch abilityNo {
 		case 0:
-			fmt.Println("used A00000")
 			occurred := abilities.A00000(newState, dueUnit)
-			fmt.Println("occurred", occurred)
 			if occurred {
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 1:
-			fmt.Println("used A00001")
 			occurred := abilities.A00001(newState)
-			fmt.Println("occurred", occurred)
 			if occurred {
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 2:
-			fmt.Println("used A00002")
 			occurred := abilities.A00002(newState, dueUnit)
-			fmt.Println("occurred", occurred)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
+		case 3:
+			occurred := abilities.A00003(newState, dueUnit)
+			fmt.Println(3, occurred)
 			if occurred {
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
@@ -339,14 +340,9 @@ func checkValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 		return abilities.A00001Valid(state, casterIdx)
 	case 2:
 		return abilities.A00002Valid(state, casterIdx)
+	case 3:
+		fmt.Println("checkValidAbility", casterIdx, abilities.A00003Valid(state, casterIdx))
+		return abilities.A00003Valid(state, casterIdx)
 	}
 	return false
-}
-
-func printState(state *engine.GameState) {
-	for i := 0; i < len(state.HP); i++ {
-
-		fmt.Println(i, "TEAM:", state.Team[i], "Zone", state.Zone[i], "Model", state.ModelNo[i], state.HP[i])
-
-	}
 }

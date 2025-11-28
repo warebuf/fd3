@@ -30,5 +30,18 @@
         "Description": "Attack enemy for 50"
       }
     ] 
+  },
+  { 
+    "Number": 2, 
+    "Name": "Buggie", 
+    "HP": 100, 
+    "Abilities": [
+      {
+        "AbilityID": 3,
+        "Name": "Heal50",
+        "CD": 5,
+        "Description": "Heal any unit on team for 50"
+      }
+    ] 
   }
 ]

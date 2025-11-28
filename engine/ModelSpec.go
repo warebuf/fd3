@@ -31,13 +31,3 @@ func LoadModelSpecs() []Model {
 
 	return originals
 }
-
-// Factory
-func NewUnitFromID(originals []Model, OGID int, playerID uint) {
-
-	// if OGID is 0, do not create, as the 0 element is just a placeholder
-	// if(OGID == 0) {return}
-
-	// OG := originals[OGID]
-
-}

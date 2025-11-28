@@ -164,9 +164,12 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	match.GameStates = append(match.GameStates, state)
 
 	match.DrawCard(0, 0)
-	match.DrawCard(0, 1)
 	match.DrawCard(1, 0)
+	match.DrawCard(0, 1)
 	match.DrawCard(1, 1)
+	match.DrawCard(0, 2)
+	match.DrawCard(1, 2)
+
 	time.Sleep(1 * time.Millisecond)
 
 	go match.EventScheduler() // on init, check the game state, schedule if first if possible
