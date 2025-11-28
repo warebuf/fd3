@@ -125,9 +125,3 @@ func (match *Match) Broadcast(data []byte) {
 		}
 	}
 }
-
-func (match *Match) Print() {
-	for i := 0; i < len(match.GameStates); i++ {
-		fmt.Printf("%d %+v\n", match.GameStates[i].Timestamp.UnixMilli(), match.GameStates[i])
-	}
-}

@@ -26,7 +26,7 @@ import (
 func (match *Match) EventScheduler() {
 
 	// on init
-	match.setCurrentState()
+	match.SetCurrentState()
 
 	for {
 
@@ -88,7 +88,8 @@ func (match *Match) handleDuePQEvents() {
 			for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
 				for j := 0; j < incrementedState.AbilityCount[i]; j++ {
 					abilityIdx := incrementedState.AbilityStartIdx[i] + j
-					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] {
+					isValid := checkValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
+					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
 						dueAbilities = append(dueAbilities, abilityIdx)
 						dueUnits = append(dueUnits, i)
 					}
@@ -104,7 +105,7 @@ func (match *Match) handleDuePQEvents() {
 			}
 
 			// schedule next AutoScheduler
-			nextAutoEventTime, success := calcNextAutoEvent(abilityState, true)
+			nextAutoEventTime, success := calcNextAutoEvent(abilityState)
 			if success {
 				pushAutoScheduler(match, nextAutoEventTime)
 			}
@@ -134,7 +135,7 @@ func (match *Match) handleDuePQEvents() {
 			pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
 
 			// schedule autoscheduler
-			nextAutoEventTime, success := calcNextAutoEvent(newState, true)
+			nextAutoEventTime, success := calcNextAutoEvent(newState)
 			if success {
 				pushAutoScheduler(match, nextAutoEventTime)
 			}
@@ -189,7 +190,7 @@ func pushAutoScheduler(match *Match, nextAutoEvent time.Time) {
 }
 
 // increment currentState to most recent state
-func (match *Match) setCurrentState() {
+func (match *Match) SetCurrentState() {
 	for match.CurrentState+1 < len(match.GameStates) && time.Now().After(match.GameStates[match.CurrentState].Timestamp) {
 		match.CurrentState += 1
 	}
@@ -227,9 +228,7 @@ func calcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
 				timeLeft := int(state.AbilitySPD[j] - state.AbilityCharge[j])
-				if timeLeft < timeToAutoEvent {
-					// check if this is actually available
-					ss
+				if timeLeft < timeToAutoEvent && checkValidAbility(state, i, state.Abilities[j]) {
 					timeToAutoEvent = timeLeft
 				}
 
@@ -322,5 +321,32 @@ func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 
 	}
 
+	// mark dead as dead
+	for i := 0; i < len(newState.HP); i++ {
+		if newState.HP[i] <= 0 {
+			newState.Zone[i] = 2
+		}
+	}
+
 	return newState, modified
+}
+
+func checkValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bool {
+	switch abilityNo {
+	case 0:
+		return abilities.A00000Valid(state, casterIdx)
+	case 1:
+		return abilities.A00001Valid(state, casterIdx)
+	case 2:
+		return abilities.A00002Valid(state, casterIdx)
+	}
+	return false
+}
+
+func printState(state *engine.GameState) {
+	for i := 0; i < len(state.HP); i++ {
+
+		fmt.Println(i, "TEAM:", state.Team[i], "Zone", state.Zone[i], "Model", state.ModelNo[i], state.HP[i])
+
+	}
 }
