@@ -27,7 +27,6 @@ func (match *Match) EventScheduler() {
 
 	// on init
 	match.SetCurrentState()
-	fmt.Println("stateCount", match.CurrentState, len(match.GameStates))
 
 	for {
 
