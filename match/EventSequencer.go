@@ -341,7 +341,6 @@ func checkValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 	case 2:
 		return abilities.A00002Valid(state, casterIdx)
 	case 3:
-		fmt.Println("checkValidAbility", casterIdx, abilities.A00003Valid(state, casterIdx))
 		return abilities.A00003Valid(state, casterIdx)
 	}
 	return false
