@@ -72,13 +72,9 @@ func (match *Match) handleDuePQEvents() {
 		case "AutoScheduler":
 			fmt.Println("received AutoScheduler")
 
-			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
-
 			//increment
+			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], autoEventTime)
-			match.GameStates = append(match.GameStates, incrementedState)
-			match.BroadcastGameState(incrementedState)
-			pushCurrentEvent(match, autoEventTime)
 
 			// figure out which abilities are due
 			dueUnits := []int{} // matches length of dueAbilities
@@ -122,9 +118,6 @@ func (match *Match) handleDuePQEvents() {
 			// increment the state from the last confirmed GameState
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
-			match.GameStates = append(match.GameStates, incrementedState)
-			match.BroadcastGameState(incrementedState)
-			pushCurrentEvent(match, nextTimestamp)
 
 			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
 			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
