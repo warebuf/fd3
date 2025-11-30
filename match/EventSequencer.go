@@ -16,12 +16,10 @@ import (
 // 200ms before every autoevent, we are guaranteed for that autoevent/state to happen
 // so 200ms before every autoevent, we are valid to calculate the next autoevent
 
-// I have one loop that handles
-// pushing InputEventChan into the priority queue
-// taking out events from the priority queue
-//    - handling incrementing currentEvents
-//    - handling broadcasting InputEvents
-//    - handling broadcasting AutoSchedulers
+// this one loop handles pushing inputs into a priority queue
+// and taking out Events, Inputs, and AutoSchedulers from it
+
+// TODO: bug when there are 3 attackers on 1 healer
 
 func (match *Match) EventScheduler() {
 
@@ -313,7 +311,6 @@ func handleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 			}
 		case 3:
 			occurred := abilities.A00003(newState, dueUnit)
-			fmt.Println(3, occurred)
 			if occurred {
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
