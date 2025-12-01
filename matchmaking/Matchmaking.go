@@ -144,38 +144,40 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	}
 
 	// create match object
-	match := &match.Match{
+	m := &match.Match{
 		UnitModels: unitModels,
 
 		ID:        id,
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameStates:   make([]*engine.GameState, 0),
-		CurrentState: 0,
+		GameStates:    make([]*engine.GameState, 0),
+		CurrentState:  0,
+		NextRoundTime: time.Now().Add(3 * time.Second),
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,
 		NextSeq:        0,
 	}
-	heap.Init(&match.EventPQueue)
+	heap.Init(&m.EventPQueue)
 
-	state := engine.CreateFirstGameState(time.Now(), match.CurrentState)
-	match.GameStates = append(match.GameStates, state)
+	state := engine.CreateFirstGameState(time.Now(), m.CurrentState)
+	m.GameStates = append(m.GameStates, state)
+	match.PushNewRound(m) // timer for starting the game
 
-	match.DrawCard(0, 0)
-	match.DrawCard(1, 0)
-	match.DrawCard(0, 1)
-	match.DrawCard(1, 1)
-	match.DrawCard(0, 2)
-	match.DrawCard(1, 2)
+	m.DrawCard(0, 0)
+	m.DrawCard(1, 0)
+	m.DrawCard(0, 1)
+	m.DrawCard(1, 1)
+	m.DrawCard(0, 2)
+	m.DrawCard(1, 2)
 
 	time.Sleep(1 * time.Millisecond)
 
-	go match.EventScheduler() // on init, check the game state, schedule if first if possible
+	go m.EventScheduler() // on init, check the game state, schedule if first if possible
 
-	MatchMap[id] = match
+	MatchMap[id] = m
 
-	return match
+	return m
 
 }

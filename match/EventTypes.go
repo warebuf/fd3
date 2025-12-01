@@ -28,3 +28,9 @@ type CurrentEvent struct {
 }
 
 func (e *CurrentEvent) Timestamp() time.Time { return e.T }
+
+type NewRoundEvent struct {
+	T time.Time
+}
+
+func (e *NewRoundEvent) Timestamp() time.Time { return e.T }

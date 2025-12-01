@@ -10,6 +10,7 @@ type GameState struct {
 	// time the state is set for
 	GameStateID int
 	Timestamp   time.Time
+	Round       int
 
 	// team sets: index (unitID) ->  team index
 	Team []int
@@ -42,6 +43,7 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
 		GameStateID:     GSID,
 		Timestamp:       t,
+		Round:           0,
 		Team:            make([]int, 0),
 		Zone:            make([]int, 0),
 		ModelNo:         make([]int, 0),
@@ -63,6 +65,7 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState := &GameState{
 		GameStateID: prevState.GameStateID + 1, // increment ID for new state
 		Timestamp:   timestamp,
+		Round:       prevState.Round,
 	}
 
 	newState.Team = shallowCopy.IntSlice(prevState.Team)

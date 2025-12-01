@@ -72,13 +72,9 @@ func (match *Match) handleDuePQEvents() {
 		case "AutoScheduler":
 			fmt.Println("received AutoScheduler")
 
-			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
-
 			//increment
+			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], autoEventTime)
-			match.GameStates = append(match.GameStates, incrementedState)
-			match.BroadcastGameState(incrementedState)
-			pushCurrentEvent(match, autoEventTime)
 
 			// figure out which abilities are due
 			dueUnits := []int{} // matches length of dueAbilities
@@ -110,7 +106,7 @@ func (match *Match) handleDuePQEvents() {
 
 		case "Current":
 			match.CurrentState += 1
-			fmt.Println("received Current ->", match.CurrentState, len(match.GameStates))
+			fmt.Println("moved to Current State", match.CurrentState, "/", len(match.GameStates)-1)
 
 		case "Input":
 			fmt.Println("received Input")
@@ -122,9 +118,6 @@ func (match *Match) handleDuePQEvents() {
 			// increment the state from the last confirmed GameState
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
 			incrementedState := incrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
-			match.GameStates = append(match.GameStates, incrementedState)
-			match.BroadcastGameState(incrementedState)
-			pushCurrentEvent(match, nextTimestamp)
 
 			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
 			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
@@ -138,6 +131,18 @@ func (match *Match) handleDuePQEvents() {
 				pushAutoScheduler(match, nextAutoEventTime)
 			}
 
+		case "NewRound":
+			fmt.Println("received NewRound")
+
+			// remove all autoscheduler events (at most only 1 exists in current design)
+			match.EventPQueue.RemoveFirstAutoScheduler()
+
+			// copy state
+			// increment the round
+			// set the next round time?
+
+			// sim any first round summons
+
 		}
 
 	}
@@ -145,6 +150,19 @@ func (match *Match) handleDuePQEvents() {
 	// set timer for next event or set it to nil
 	match.setPQTimer()
 
+}
+
+func PushNewRound(match *Match) {
+	match.NextSeq++
+	newRound := &NewRoundEvent{
+		T: match.NextRoundTime.Add(-200 * time.Millisecond),
+	}
+	item := &EventItem{
+		Event: newRound,
+		Type:  "NewRound",
+		seq:   int64(match.NextSeq),
+	}
+	heap.Push(&match.EventPQueue, item)
 }
 
 func pushInputEvent(match *Match, ev *InputEvent) {
@@ -159,11 +177,10 @@ func pushInputEvent(match *Match, ev *InputEvent) {
 }
 
 func pushCurrentEvent(match *Match, timestamp time.Time) {
+	match.NextSeq++
 	currentEvent := &CurrentEvent{
 		T: timestamp,
 	}
-
-	match.NextSeq++
 	item := &EventItem{
 		Event: currentEvent,
 		Type:  "Current",
@@ -174,11 +191,10 @@ func pushCurrentEvent(match *Match, timestamp time.Time) {
 
 // AutoScheduler happens 200 ms earlier
 func pushAutoScheduler(match *Match, nextAutoEvent time.Time) {
+	match.NextSeq++
 	currentEvent := &CurrentEvent{
 		T: nextAutoEvent.Add(-200 * time.Millisecond),
 	}
-
-	match.NextSeq++
 	item := &EventItem{
 		Event: currentEvent,
 		Type:  "AutoScheduler",
