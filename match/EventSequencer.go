@@ -141,7 +141,9 @@ func (match *Match) handleDuePQEvents() {
 			// increment the round
 			// set the next round time?
 
-			// sim any first round summons
+			// sim any first round summons (add a summon condition, an enumeration/ioata in the game state)
+
+			// schedule autoscheduler
 
 		}
 
