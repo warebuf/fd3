@@ -28,7 +28,7 @@
       {
         "AbilityID": 2,
         "Name": "HardAttack50",
-        "CD": 5,
+        "CD": 15,
         "Description": "Attack enemy for 50"
       }
     ] 
@@ -42,7 +42,7 @@
       {
         "AbilityID": 3,
         "Name": "Heal50",
-        "CD": 5,
+        "CD": 15,
         "Description": "Heal any unit on team for 50"
       }
     ] 
