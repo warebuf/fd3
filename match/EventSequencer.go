@@ -145,11 +145,28 @@ func (match *Match) handleDuePQEvents() {
 			newState.Round += 1
 			match.GameStates = append(match.GameStates, newState)
 			match.BroadcastGameState(newState)
+			pushCurrentEvent(match, roundTimestamp)
 
 			// sim any first round summons (add a summon condition, an enumeration/ioata in the game state)
+			prevState := newState
+			modified := false
+			for i := 0; i < len(newState.Zone); i++ {
+				if newState.Zone[i] == 0 && newState.SummonCondition[i] == engine.SummonTypeStart {
+					modified = true
+					prevState = summon.BasicSummon(match.UnitModels, prevState, roundTimestamp, newState.Team[i], i)
+				}
+			}
+			if modified {
+				match.GameStates = append(match.GameStates, prevState)
+				match.BroadcastGameState(prevState)
+				pushCurrentEvent(match, roundTimestamp)
+			}
 
 			// schedule autoscheduler
-
+			nextAutoEventTime, success := calcNextAutoEvent(prevState)
+			if success {
+				pushAutoScheduler(match, nextAutoEventTime)
+			}
 		}
 
 	}

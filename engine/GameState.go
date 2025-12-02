@@ -29,6 +29,7 @@ type GameState struct {
 	AbilityCharge   []int64 // saved in millisconds
 	AbilitySPD      []int64 // in milliseconds
 
+	SummonCondition []SummonType
 }
 
 type Telemetry struct {
@@ -53,6 +54,7 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 		AbilityCount:    make([]int, 0),
 		AbilityCharge:   make([]int64, 0),
 		AbilitySPD:      make([]int64, 0),
+		SummonCondition: make([]SummonType, 0),
 	}
 	return gm
 }
@@ -77,6 +79,7 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState.AbilityCount = shallowCopy.IntSlice(prevState.AbilityCount)
 	newState.AbilityCharge = shallowCopy.Int64Slice(prevState.AbilityCharge)
 	newState.AbilitySPD = shallowCopy.Int64Slice(prevState.AbilitySPD)
+	newState.SummonCondition = CopySummonTypeSlice(prevState.SummonCondition)
 
 	return newState
 }

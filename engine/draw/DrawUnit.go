@@ -20,6 +20,7 @@ func DrawUnit(unitModels []engine.Model, prevState *engine.GameState, timestamp 
 	newState.Zone = append(newState.Zone, 0) // 0 is bench
 	newState.ModelNo = append(newState.ModelNo, modelNo)
 	newState.HP = append(newState.HP, model.HP)
+	newState.SummonCondition = append(newState.SummonCondition, model.SummonCondition)
 
 	newState.AbilityStartIdx = append(newState.AbilityStartIdx, len(newState.Abilities))
 	newState.AbilityCount = append(newState.AbilityCount, len(model.Abilities))

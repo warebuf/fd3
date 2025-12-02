@@ -21,6 +21,7 @@ func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timesta
 	newState.Zone = append(newState.Zone, 1) // 1 is field
 	newState.ModelNo = append(newState.ModelNo, modelNo)
 	newState.HP = append(newState.HP, model.HP) // temp: hard code HP
+	newState.SummonCondition = append(newState.SummonCondition, model.SummonCondition)
 
 	newState.AbilityStartIdx = append(newState.AbilityStartIdx, len(newState.Abilities))
 	newState.AbilityCount = append(newState.AbilityCount, len(model.Abilities))

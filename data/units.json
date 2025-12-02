@@ -3,6 +3,7 @@
     "Number": 0, 
     "Name": "Generic", 
     "HP": 100,  
+    "SummonCondition": 0,
     "Abilities": [
       {
         "AbilityID": 0,
@@ -18,10 +19,11 @@
       }
     ] 
   },
-  { 
+  {
     "Number": 1, 
     "Name": "Gobbler", 
     "HP": 100, 
+    "SummonCondition": 1,
     "Abilities": [
       {
         "AbilityID": 2,
@@ -35,6 +37,7 @@
     "Number": 2, 
     "Name": "Buggie", 
     "HP": 100, 
+    "SummonCondition": 1,
     "Abilities": [
       {
         "AbilityID": 3,
