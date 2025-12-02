@@ -122,7 +122,7 @@ func (match *Match) handleDuePQEvents() {
 			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
 			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
 			match.GameStates = append(match.GameStates, newState)
-			match.BroadcastGameState(newState) // TODO: swap push and Broadcast
+			match.BroadcastGameState(newState)
 			pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
 
 			// schedule autoscheduler
@@ -138,8 +138,13 @@ func (match *Match) handleDuePQEvents() {
 			match.EventPQueue.RemoveFirstAutoScheduler()
 
 			// copy state
+			roundTimestamp := next.Event.Timestamp().Add(200 * time.Millisecond)
+			newState := engine.CopyGameState(roundTimestamp, match.GameStates[len(match.GameStates)-1])
+
 			// increment the round
-			// set the next round time?
+			newState.Round += 1
+			match.GameStates = append(match.GameStates, newState)
+			match.BroadcastGameState(newState)
 
 			// sim any first round summons (add a summon condition, an enumeration/ioata in the game state)
 

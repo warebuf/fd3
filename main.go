@@ -2,6 +2,7 @@ package main
 
 import (
 	// std lib
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -164,9 +165,16 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// write the index in the response
-	fmt.Fprintf(w, "%d", teamIdx)
-
+	// write the response
+	resp := struct {
+		TeamIdx       uint      `json:"teamIdx"`
+		NextRoundTime time.Time `json:"nextRoundTime"`
+	}{
+		TeamIdx:       teamIdx,
+		NextRoundTime: match.NextRoundTime,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
