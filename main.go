@@ -242,10 +242,30 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getModelData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(unitModels)
+}
+
+func simStep(w http.ResponseWriter, r *http.Request) {
+
+	var req engine.GameState
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Println("Decode error:", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Decoded object: %+v\n", req)
+
+}
+
 // global variables
 var matchMap map[string]*match.Match
 var guestMap *matchmaking.GuestStore
 var matchmaker *matchmaking.Matchmaker
+var unitModels []engine.Model
 
 func init() {
 	fmt.Println("server started")
@@ -255,7 +275,7 @@ func init() {
 
 	// create matchmaking goroutine
 	matchMap = make(map[string]*match.Match)
-	unitModels := engine.LoadModelSpecs()
+	unitModels = engine.LoadModelSpecs()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap, unitModels)
 
 }
@@ -269,6 +289,10 @@ func main() {
 	// websocket routes
 	http.HandleFunc("/ws/check", wsPreflight)
 	http.HandleFunc("/ws", wsHandler)
+
+	// simulate routes
+	http.HandleFunc("/getModelData", getModelData)
+	http.HandleFunc("/simStep", simStep)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 
