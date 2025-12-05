@@ -317,6 +317,8 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 	newState := engine.CopyGameState(incrementedState.Timestamp, incrementedState)
 	modified := false
 
+	// apply heals first
+	// make sure attacks on HP > 0
 	for i := 0; i < len(dueAbilities); i++ {
 
 		dueUnit := dueUnits[i]
