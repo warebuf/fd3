@@ -1,6 +1,10 @@
 package engine
 
 import (
+	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/warebuf/fd3/utility/shallowCopy"
@@ -82,4 +86,87 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState.SummonCondition = CopySummonTypeSlice(prevState.SummonCondition)
 
 	return newState
+}
+
+func PrintState(state *GameState) {
+	for i := 0; i < len(state.HP); i++ {
+		if state.Team[i] == 0 {
+			fmt.Printf(strconv.Itoa(state.ModelNo[i]) + ":" + strconv.Itoa(state.HP[i]) + " ")
+		}
+	}
+	fmt.Println("")
+	for i := 0; i < len(state.HP); i++ {
+		if state.Team[i] == 1 {
+			fmt.Printf(strconv.Itoa(state.ModelNo[i]) + ":" + strconv.Itoa(state.HP[i]) + " ")
+		}
+	}
+	fmt.Println("")
+}
+
+// each unit retains order, simply save HP
+func ConvertStateToHPKey(state *GameState) string {
+
+	teamStrings := []string{}
+
+	i := 0
+	for {
+		currentString := ""
+		for j := 0; j < len(state.HP); j++ {
+			if state.Team[j] == i {
+				currentString += strconv.Itoa(state.ModelNo[j])
+				currentString += ":"
+				currentString += strconv.Itoa(state.HP[j])
+				currentString += " "
+			}
+		}
+
+		if len(currentString) == 0 {
+			break
+		}
+
+		teamStrings = append(teamStrings, currentString)
+		i += 1
+
+	}
+
+	return strings.Join(teamStrings, ";")
+}
+
+// sort by ID
+func ConvertStateToModelNoKey(state *GameState) string {
+
+	teamStrings := []string{}
+
+	i := 0
+	found := false
+	for {
+		units := []int{}
+		for j := 0; j < len(state.ModelNo); j++ {
+			if state.Team[j] == i {
+				found = true
+				if state.HP[j] > 0 {
+					units = append(units, state.ModelNo[j])
+				}
+			}
+		}
+
+		if !found {
+			break
+		}
+
+		// sort
+		sort.Ints(units)
+
+		// convert to strings
+		unitStrings := make([]string, len(units))
+		for a, b := range units {
+			unitStrings[a] = strconv.Itoa(b)
+		}
+
+		teamStrings = append(teamStrings, strings.Join(unitStrings, ","))
+		i += 1
+		found = false
+	}
+
+	return strings.Join(teamStrings, ";")
 }

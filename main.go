@@ -249,15 +249,89 @@ func getModelData(w http.ResponseWriter, r *http.Request) {
 
 func simStep(w http.ResponseWriter, r *http.Request) {
 
-	var req engine.GameState
+	var recState *engine.GameState
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&recState); err != nil {
 		fmt.Println("Decode error:", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	fmt.Printf("Decoded object: %+v\n", req)
+	nextAutoEventTime, success := match.CalcNextAutoEvent(recState)
+	if !success {
+		return
+	}
+
+	incrementedState := match.IncrementState(recState, nextAutoEventTime)
+
+	dueUnits := []int{} // matches length of dueAbilities
+	dueAbilities := []int{}
+	for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
+		for j := 0; j < incrementedState.AbilityCount[i]; j++ {
+			abilityIdx := incrementedState.AbilityStartIdx[i] + j
+			isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
+			if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
+				dueAbilities = append(dueAbilities, abilityIdx)
+				dueUnits = append(dueUnits, i)
+			}
+		}
+	}
+
+	finalState, modified := match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+
+	if !modified {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(finalState)
+
+}
+
+func simMatch(w http.ResponseWriter, r *http.Request) {
+
+	var recState *engine.GameState
+
+	if err := json.NewDecoder(r.Body).Decode(&recState); err != nil {
+		fmt.Println("Decode error:", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	iterationState := engine.CopyGameState(recState.Timestamp, recState)
+	for y := 0; y < 100; y++ {
+
+		nextAutoEventTime, success := match.CalcNextAutoEvent(iterationState)
+		if !success {
+			break
+		}
+
+		incrementedState := match.IncrementState(iterationState, nextAutoEventTime)
+
+		dueUnits := []int{} // matches length of dueAbilities
+		dueAbilities := []int{}
+		for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
+			for j := 0; j < incrementedState.AbilityCount[i]; j++ {
+				abilityIdx := incrementedState.AbilityStartIdx[i] + j
+				isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
+				if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
+					dueAbilities = append(dueAbilities, abilityIdx)
+					dueUnits = append(dueUnits, i)
+				}
+			}
+		}
+
+		modified := false
+		iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+
+		if !modified {
+			break
+		}
+
+	}
+
+	fmt.Println(engine.ConvertStateToHPKey(iterationState))
+	fmt.Println(engine.ConvertStateToModelNoKey(iterationState))
 
 }
 
@@ -293,6 +367,7 @@ func main() {
 	// simulate routes
 	http.HandleFunc("/getModelData", getModelData)
 	http.HandleFunc("/simStep", simStep)
+	http.HandleFunc("/simMatch", simMatch)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 
