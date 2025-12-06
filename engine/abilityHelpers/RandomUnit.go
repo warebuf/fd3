@@ -69,7 +69,7 @@ func RandomEnemy(state *engine.GameState, casterTeamIdx int) (int, bool) {
 
 	for i := 0; i < len(state.Team); i++ {
 
-		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx {
+		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx && state.HP[i] > 0 {
 			count++
 			if rand.Intn(count) == 0 {
 				chosen = i
@@ -87,7 +87,7 @@ func RandomEnemy(state *engine.GameState, casterTeamIdx int) (int, bool) {
 
 func RandomEnemyCheck(state *engine.GameState, casterTeamIdx int) bool {
 	for i := 0; i < len(state.Team); i++ {
-		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx {
+		if state.Zone[i] == 1 && state.Team[i] != casterTeamIdx && state.HP[i] > 0 {
 			return true
 		}
 	}

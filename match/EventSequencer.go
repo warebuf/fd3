@@ -9,6 +9,7 @@ import (
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/abilities"
 	"github.com/warebuf/fd3/engine/summon"
+	"github.com/warebuf/fd3/utility/sort"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -18,8 +19,6 @@ import (
 
 // this one loop handles pushing inputs into a priority queue
 // and taking out Events, Inputs, and AutoSchedulers from it
-
-// TODO: bug when there are 3 attackers on 1 healer
 
 func (match *Match) EventScheduler() {
 
@@ -317,13 +316,20 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 	newState := engine.CopyGameState(incrementedState.Timestamp, incrementedState)
 	modified := false
 
-	// apply heals first
-	// make sure attacks on HP > 0
-	for i := 0; i < len(dueAbilities); i++ {
+	fmt.Println("dueUnits", dueUnits)
+	fmt.Println("dueAbilities", dueAbilities)
+	prio := sortAbilitiesByPrio(incrementedState, dueAbilities)
+	fmt.Println("prio", prio)
 
-		dueUnit := dueUnits[i]
-		dueAbility := dueAbilities[i]
+	for i := 0; i < len(prio); i++ {
+
+		idx := prio[i]
+
+		dueUnit := dueUnits[idx]
+		dueAbility := dueAbilities[idx]
 		abilityNo := newState.Abilities[dueAbility]
+
+		fmt.Println(i, idx, dueUnit, dueAbility, abilityNo)
 
 		// could use an array of functions but will use a switch statement for now
 		switch abilityNo {
@@ -363,6 +369,40 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 	}
 
 	return newState, modified
+}
+
+func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
+
+	abilityNo := make([]int, len(dueAbilities))
+	for i := 0; i < len(dueAbilities); i++ {
+		abilityNo[i] = state.Abilities[dueAbilities[i]]
+	}
+
+	fmt.Println("abilityNo", abilityNo)
+
+	prio := make([]int, len(abilityNo))
+
+	// heal has prio over damage
+	for i := 0; i < len(abilityNo); i++ {
+		switch abilityNo[i] {
+		case 0:
+			prio[i] = 0
+		case 1:
+			prio[i] = 1
+		case 2:
+			prio[i] = 1
+		case 3:
+			prio[i] = 0
+		}
+	}
+
+	sorted := sort.SortedIndexes(prio)
+
+	fmt.Println("dueAbilities", dueAbilities)
+	fmt.Println("sorted", sorted)
+
+	return sorted
+
 }
 
 func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bool {
