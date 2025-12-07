@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -249,7 +250,7 @@ func getModelData(w http.ResponseWriter, r *http.Request) {
 
 func simStep(w http.ResponseWriter, r *http.Request) {
 
-	var recState *engine.GameState
+	var recState engine.GameState
 
 	if err := json.NewDecoder(r.Body).Decode(&recState); err != nil {
 		fmt.Println("Decode error:", err)
@@ -257,12 +258,12 @@ func simStep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nextAutoEventTime, success := match.CalcNextAutoEvent(recState)
+	nextAutoEventTime, success := match.CalcNextAutoEvent(&recState)
 	if !success {
 		return
 	}
 
-	incrementedState := match.IncrementState(recState, nextAutoEventTime)
+	incrementedState := match.IncrementState(&recState, nextAutoEventTime)
 
 	dueUnits := []int{} // matches length of dueAbilities
 	dueAbilities := []int{}
@@ -290,7 +291,7 @@ func simStep(w http.ResponseWriter, r *http.Request) {
 
 func simMatch(w http.ResponseWriter, r *http.Request) {
 
-	var recState *engine.GameState
+	var recState engine.GameState
 
 	if err := json.NewDecoder(r.Body).Decode(&recState); err != nil {
 		fmt.Println("Decode error:", err)
@@ -298,8 +299,9 @@ func simMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	iterationState := engine.CopyGameState(recState.Timestamp, recState)
-	for y := 0; y < 100; y++ {
+	iterationState := engine.CopyGameState(recState.Timestamp, &recState)
+	y := 0
+	for y = 0; y < 100; y++ {
 
 		nextAutoEventTime, success := match.CalcNextAutoEvent(iterationState)
 		if !success {
@@ -330,8 +332,77 @@ func simMatch(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	fmt.Println("iterations", y)
 	fmt.Println(engine.ConvertStateToHPKey(iterationState))
 	fmt.Println(engine.ConvertStateToModelNoKey(iterationState))
+
+}
+
+func simProb(w http.ResponseWriter, r *http.Request) {
+
+	var recState engine.GameState
+
+	if err := json.NewDecoder(r.Body).Decode(&recState); err != nil {
+		fmt.Println("Decode error:", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	HPMap := make(map[string]int)
+	ModelMap := make(map[string]int)
+	IterationMap := make(map[string]int)
+
+	iterations := 100000
+	rounds := 50
+
+	for x := 0; x < iterations; x++ {
+		fmt.Println("x", x)
+		iterationState := engine.CopyGameState(recState.Timestamp, &recState)
+		y := 0
+		for y = 0; y < rounds; y++ {
+
+			nextAutoEventTime, success := match.CalcNextAutoEvent(iterationState)
+			if !success {
+				break
+			}
+
+			incrementedState := match.IncrementState(iterationState, nextAutoEventTime)
+
+			dueUnits := []int{} // matches length of dueAbilities
+			dueAbilities := []int{}
+			for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
+				for j := 0; j < incrementedState.AbilityCount[i]; j++ {
+					abilityIdx := incrementedState.AbilityStartIdx[i] + j
+					isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
+					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
+						dueAbilities = append(dueAbilities, abilityIdx)
+						dueUnits = append(dueUnits, i)
+					}
+				}
+			}
+
+			modified := false
+			iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+
+			if !modified {
+				break
+			}
+
+		}
+		HPKey := engine.ConvertStateToHPKey(iterationState)
+		ModelKey := engine.ConvertStateToModelNoKey(iterationState)
+		HPMap[HPKey]++
+		ModelMap[ModelKey]++
+		IterationMap[ModelKey] += y
+		//fmt.Println(HPKey)
+		//fmt.Println("y", y)
+	}
+
+	for key, value := range ModelMap {
+		avg := math.Round((float64(value)/float64(iterations))*1000) / 1000
+		iterAvg := math.Round((float64(IterationMap[key])/float64(value))*1000) / 1000
+		fmt.Printf("%s %.1f%% iterations avg: %.2f\n", key, avg*100, iterAvg)
+	}
 
 }
 
@@ -368,6 +439,7 @@ func main() {
 	http.HandleFunc("/getModelData", getModelData)
 	http.HandleFunc("/simStep", simStep)
 	http.HandleFunc("/simMatch", simMatch)
+	http.HandleFunc("/simProb", simProb)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 

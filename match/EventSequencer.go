@@ -316,10 +316,7 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 	newState := engine.CopyGameState(incrementedState.Timestamp, incrementedState)
 	modified := false
 
-	fmt.Println("dueUnits", dueUnits)
-	fmt.Println("dueAbilities", dueAbilities)
 	prio := sortAbilitiesByPrio(incrementedState, dueAbilities)
-	fmt.Println("prio", prio)
 
 	for i := 0; i < len(prio); i++ {
 
@@ -328,8 +325,6 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 		dueUnit := dueUnits[idx]
 		dueAbility := dueAbilities[idx]
 		abilityNo := newState.Abilities[dueAbility]
-
-		fmt.Println(i, idx, dueUnit, dueAbility, abilityNo)
 
 		// could use an array of functions but will use a switch statement for now
 		switch abilityNo {
@@ -378,8 +373,6 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 		abilityNo[i] = state.Abilities[dueAbilities[i]]
 	}
 
-	fmt.Println("abilityNo", abilityNo)
-
 	prio := make([]int, len(abilityNo))
 
 	// heal has prio over damage
@@ -397,9 +390,6 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 	}
 
 	sorted := sort.SortedIndexes(prio)
-
-	fmt.Println("dueAbilities", dueAbilities)
-	fmt.Println("sorted", sorted)
 
 	return sorted
 

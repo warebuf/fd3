@@ -14,14 +14,12 @@ func RandomSameTeam(state *engine.GameState, teamIdx int) (int, bool) {
 	count := 0
 
 	for i := 0; i < len(state.Team); i++ {
-
-		if state.Zone[i] == 1 && state.Team[i] == teamIdx {
+		if state.Zone[i] == 1 && state.Team[i] == teamIdx && state.HP[i] > 0 {
 			count++
 			if rand.Intn(count) == 0 {
 				chosen = i
 			}
 		}
-
 	}
 
 	if count == 0 {
@@ -33,7 +31,7 @@ func RandomSameTeam(state *engine.GameState, teamIdx int) (int, bool) {
 
 func RandomSameTeamCheck(state *engine.GameState, teamIdx int) bool {
 	for i := 0; i < len(state.Team); i++ {
-		if state.Zone[i] == 1 && state.Team[i] == teamIdx {
+		if state.Zone[i] == 1 && state.Team[i] == teamIdx && state.HP[i] > 0 {
 			return true
 		}
 	}

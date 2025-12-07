@@ -13,7 +13,8 @@ func A00002(state *engine.GameState, casterIdx int) bool {
 	if !ok {
 		return false
 	}
-	abilityHelpers.DamageOne(state, targetIdx, 50)
+	//fmt.Println(casterIdx, "Atk", targetIdx)
+	abilityHelpers.DamageOne(state, targetIdx, 34)
 	return true
 }
 
