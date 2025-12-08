@@ -14,7 +14,7 @@ func A00003(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	//fmt.Println(casterIdx, "Heal", targetIdx)
-	abilityHelpers.HealOne(state, targetIdx, 34)
+	abilityHelpers.HealOne(state, targetIdx, 50)
 	return true
 }
 
