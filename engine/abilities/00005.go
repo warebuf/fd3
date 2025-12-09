@@ -5,7 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/abilityHelpers"
 )
 
-// deal 10 damage to a random enemy
+// deal 34 damage to a random enemy
 
 func A00005(state *engine.GameState, casterIdx int) bool {
 	teamIdx := state.Team[casterIdx]
@@ -14,7 +14,7 @@ func A00005(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	//fmt.Println(casterIdx, "Atk", targetIdx)
-	abilityHelpers.DamageOne(state, targetIdx, 10)
+	abilityHelpers.DamageOne(state, targetIdx, 34)
 	return true
 }
 
