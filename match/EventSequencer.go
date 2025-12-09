@@ -364,6 +364,18 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
 			}
+		case 6:
+			occurred := abilities.A00006(newState, dueUnit)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
+		case 7:
+			occurred := abilities.A00007(newState, dueUnit)
+			if occurred {
+				modified = true
+				newState.AbilityCharge[dueAbility] = 0
+			}
 		}
 
 	}
@@ -402,6 +414,10 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 			prio[i] = 0
 		case 5:
 			prio[i] = 1
+		case 6:
+			prio[i] = 0
+		case 7:
+			prio[i] = 1
 		}
 	}
 
@@ -425,6 +441,10 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 		return abilities.A00004Valid(state, casterIdx)
 	case 5:
 		return abilities.A00005Valid(state, casterIdx)
+	case 6:
+		return abilities.A00006Valid(state, casterIdx)
+	case 7:
+		return abilities.A00007Valid(state, casterIdx)
 	}
 	return false
 }

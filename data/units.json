@@ -74,5 +74,33 @@
         "Description": "Attack enemy for 50"
       }
     ] 
+  },
+  { 
+    "Number": 5, 
+    "Name": "fish", 
+    "HP": 100, 
+    "SummonCondition": 1,
+    "Abilities": [
+      {
+        "AbilityID": 6,
+        "Name": "Heal25",
+        "CD": 5,
+        "Description": "Heal any unit on team for 25"
+      }
+    ] 
+  },
+  { 
+    "Number": 6, 
+    "Name": "chicken", 
+    "HP": 100, 
+    "SummonCondition": 1,
+    "Abilities": [
+      {
+        "AbilityID": 7,
+        "Name": "HardAttack25",
+        "CD": 5,
+        "Description": "Attack enemy for 25"
+      }
+    ] 
   }
 ]

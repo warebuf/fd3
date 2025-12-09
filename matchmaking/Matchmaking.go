@@ -165,11 +165,11 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	m.GameStates = append(m.GameStates, state)
 	match.PushNewRound(m) // timer for starting the game, could also broadcast the time here
 
-	m.DrawCard(0, 3)
-	m.DrawCard(0, 3)
+	m.DrawCard(0, 5)
+	m.DrawCard(0, 5)
 
-	m.DrawCard(1, 4)
-	m.DrawCard(1, 4)
+	m.DrawCard(1, 6)
+	m.DrawCard(1, 6)
 
 	time.Sleep(1 * time.Millisecond)
 
