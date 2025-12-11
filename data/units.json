@@ -102,5 +102,19 @@
         "Description": "Attack enemy for 25"
       }
     ] 
+  },
+  { 
+    "Number": 7, 
+    "Name": "peekay", 
+    "HP": 100, 
+    "SummonCondition": 1,
+    "Abilities": [
+      {
+        "AbilityID": 8,
+        "Name": "Counterattack",
+        "CD": 5,
+        "Description": "If attacked, reflect the attack back to the attacker"
+      }
+    ] 
   }
 ]

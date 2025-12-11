@@ -7,15 +7,16 @@ import (
 
 // deal 50 damage to a random enemy
 
-func A00002(state *engine.GameState, casterIdx int) bool {
+// return target index
+func A00002(state *engine.GameState, casterIdx int) int {
 	teamIdx := state.Team[casterIdx]
 	targetIdx, ok := abilityHelpers.RandomEnemy(state, teamIdx)
 	if !ok {
-		return false
+		return -1
 	}
 	//fmt.Println(casterIdx, "Atk", targetIdx)
 	abilityHelpers.DamageOne(state, targetIdx, 50)
-	return true
+	return targetIdx
 }
 
 func A00002Valid(state *engine.GameState, casterIdx int) bool {
