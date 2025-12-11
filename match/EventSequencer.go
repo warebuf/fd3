@@ -448,3 +448,12 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 	}
 	return false
 }
+
+func CheckCounter(state *engine.GameState, casterIdx int) {
+
+	// get modelNo
+	modelNo := state.ModelNo[casterIdx]
+
+	// check all abilities for the model
+
+}
