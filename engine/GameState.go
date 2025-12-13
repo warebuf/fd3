@@ -30,8 +30,8 @@ type GameState struct {
 	Abilities       []int   // abilities are flattened for each unit
 	AbilityStartIdx []int   // the starting index in Abilities[] for this unit
 	AbilityCount    []int   // how many abilities belong to each unit
-	AbilityCharge   []int64 // saved in millisconds
-	AbilitySPD      []int64 // in milliseconds
+	AbilityCharge   []int64 // flattened, saved in millisconds
+	AbilitySPD      []int64 // flattened, in milliseconds
 
 	SummonCondition []SummonType
 }

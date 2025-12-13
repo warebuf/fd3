@@ -376,6 +376,9 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
 			}
+		case 8:
+			fmt.Println("cannot handle counterattack here, there is a bug")
+
 		}
 
 	}
@@ -418,6 +421,8 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 			prio[i] = 0
 		case 7:
 			prio[i] = 1
+		case 8: // counter, should not be sorted because cannot be activated by itself
+			prio[i] = 2
 		}
 	}
 
@@ -445,15 +450,25 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 		return abilities.A00006Valid(state, casterIdx)
 	case 7:
 		return abilities.A00007Valid(state, casterIdx)
+	case 8: // counter, should never be valid to be initiated by itself
+		return false
 	}
 	return false
 }
 
-func CheckCounter(state *engine.GameState, casterIdx int) {
-
-	// get modelNo
-	modelNo := state.ModelNo[casterIdx]
+func CheckCounter(state *engine.GameState, defenderIdx int, attackerIdx int) bool {
 
 	// check all abilities for the model
+	for i := state.AbilityStartIdx[defenderIdx]; i < state.AbilityStartIdx[defenderIdx]+state.AbilityCount[defenderIdx]; i++ {
 
+		switch state.Abilities[i] {
+		case 8:
+			return abilities.A00008CounterValid(state, defenderIdx, attackerIdx)
+		default:
+			// continue
+		}
+
+	}
+
+	return false
 }
