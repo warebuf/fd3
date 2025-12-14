@@ -7,8 +7,9 @@ import (
 
 // deal 2 damage to all
 
-func A00001(state *engine.GameState) bool {
+func A00001(state *engine.GameState, casterIdx int) bool {
 	abilityHelpers.DamageAll(state, 2)
+	state.AbilityCharge[casterIdx] = 0
 	return true
 }
 

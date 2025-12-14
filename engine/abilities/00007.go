@@ -16,6 +16,7 @@ func A00007(state *engine.GameState, casterIdx int) int {
 	}
 	//fmt.Println(casterIdx, "Atk", targetIdx)
 	abilityHelpers.DamageOne(state, targetIdx, 25)
+	state.AbilityCharge[casterIdx] = 0
 	return targetIdx
 }
 
