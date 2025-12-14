@@ -332,56 +332,49 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 			occurred := abilities.A00000(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 1:
-			occurred := abilities.A00001(newState)
+			occurred := abilities.A00001(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				for i := 0; i < len(newState.Zone); i++ {
+					if newState.Zone[i] == 1 {
+						ApplyCounterChain(newState, i, dueUnit, 2)
+					}
+				}
 			}
 		case 2:
-			// select random unit
-			target := abilities.A00002Declaration(newState, dueUnit)
-			if target < 0 {
-				continue
-			}
-			// check for counters
-			// sim attack
-			occurred := abilities.A00002(newState, dueUnit, target)
-			if occurred {
+			targetIdx := abilities.A00002(newState, dueUnit)
+			if targetIdx >= 0 {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				ApplyCounterChain(newState, targetIdx, dueUnit, 50)
 			}
 		case 3:
 			occurred := abilities.A00003(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 4:
 			occurred := abilities.A00004(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 5:
-			occurred := abilities.A00005(newState, dueUnit)
-			if occurred {
+			targetIdx := abilities.A00005(newState, dueUnit)
+			if targetIdx >= 0 {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				ApplyCounterChain(newState, targetIdx, dueUnit, 34)
 			}
 		case 6:
 			occurred := abilities.A00006(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 7:
-			occurred := abilities.A00007(newState, dueUnit)
-			if occurred {
+			targetIdx := abilities.A00007(newState, dueUnit)
+			if targetIdx >= 0 {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				ApplyCounterChain(newState, targetIdx, dueUnit, 25)
 			}
 		case 8:
 			fmt.Println("cannot handle counterattack here, there is a bug")
@@ -463,6 +456,9 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 	return false
 }
 
+// three types of implementations
+// (1) reflect and mult, (2) cancel and return a fixed amount, (3) reflect only up to a certain amount
+// actually, you can think of a bunch more, reflect and boost, reflect to a teammate, etc
 func ApplyCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int, dmg int) {
 
 	defenderQueue := []int{defenderIdx}
@@ -480,9 +476,12 @@ func ApplyCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int
 		// check all abilities for this unit
 		for i := state.AbilityStartIdx[currDefender]; i < state.AbilityStartIdx[currDefender]+state.AbilityCount[currDefender]; i++ {
 			switch state.Abilities[i] {
-			case 8:
-				check = abilities.A00008CounterValid(state, currDefender, currAttacker)
-
+			case 8: // reflect and mult 1x
+				if abilities.A00008CounterValid(state, currDefender, currAttacker) {
+					currentDmg = abilities.A00008(state, currDefender, currAttacker, currentDmg)
+					defenderQueue = append(defenderQueue, currAttacker)
+					attackerQueue = append(attackerQueue, currDefender)
+				}
 			default:
 				// do nothing
 			}

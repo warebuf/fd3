@@ -105,7 +105,7 @@
   },
   { 
     "Number": 7, 
-    "Name": "peekay", 
+    "Name": "county", 
     "HP": 100, 
     "SummonCondition": 1,
     "Abilities": [

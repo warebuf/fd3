@@ -7,15 +7,14 @@ import (
 
 // counter
 
-func A00008(state *engine.GameState, targetIdx int, dmg int) bool {
+// reflect and return mult 1x
+func A00008(state *engine.GameState, defIdx int, targetIdx int, dmg int) int {
+	abilityHelpers.HealOne(state, defIdx, dmg)
 	abilityHelpers.DamageOne(state, targetIdx, dmg)
-	return true
+	state.AbilityCharge[defIdx] = 0
+	return dmg
 }
 
 func A00008CounterValid(state *engine.GameState, defenderIdx int, attackerIdx int) bool {
-
-	if state.AbilityCharge[defenderIdx] < state.AbilitySPD[defenderIdx] {
-		return false
-	}
-	return true
+	return state.AbilityCharge[defenderIdx] >= state.AbilitySPD[defenderIdx]
 }
