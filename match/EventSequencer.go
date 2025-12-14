@@ -341,7 +341,14 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 2:
-			occurred := abilities.A00002(newState, dueUnit)
+			// select random unit
+			target := abilities.A00002Declaration(newState, dueUnit)
+			if target < 0 {
+				continue
+			}
+			// check for counters
+			// sim attack
+			occurred := abilities.A00002(newState, dueUnit, target)
 			if occurred {
 				modified = true
 				newState.AbilityCharge[dueAbility] = 0
@@ -449,10 +456,7 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 	return false
 }
 
-func CheckCounter(state *engine.GameState, casterIdx int) {
-
-	// get modelNo
-	modelNo := state.ModelNo[casterIdx]
+func CheckCounterChain(state *engine.GameState, casterIdx int) {
 
 	// check all abilities for the model
 
