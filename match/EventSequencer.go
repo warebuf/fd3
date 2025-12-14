@@ -463,19 +463,30 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 	return false
 }
 
-func CheckCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int) bool {
+func ApplyCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int, dmg int) {
 
-	// check all abilities for the model
-	for i := state.AbilityStartIdx[defenderIdx]; i < state.AbilityStartIdx[defenderIdx]+state.AbilityCount[defenderIdx]; i++ {
+	defenderQueue := []int{defenderIdx}
+	attackerQueue := []int{attackerIdx}
+	currentDmg := dmg
 
-		switch state.Abilities[i] {
-		case 8:
-			return abilities.A00008CounterValid(state, defenderIdx, attackerIdx)
-		default:
-			// continue
+	for len(defenderQueue) > 0 {
+
+		// pop next attacker and defender
+		currDefender := defenderQueue[0]
+		defenderQueue = defenderQueue[1:]
+		currAttacker := attackerQueue[0]
+		attackerQueue = attackerQueue[1:]
+
+		// check all abilities for this unit
+		for i := state.AbilityStartIdx[currDefender]; i < state.AbilityStartIdx[currDefender]+state.AbilityCount[currDefender]; i++ {
+			switch state.Abilities[i] {
+			case 8:
+				check = abilities.A00008CounterValid(state, currDefender, currAttacker)
+
+			default:
+				// do nothing
+			}
 		}
-
 	}
 
-	return false
 }
