@@ -19,42 +19,14 @@
       }
     ] 
   },
-  {
+  { 
     "Number": 1, 
-    "Name": "Gobbler", 
-    "HP": 100, 
-    "SummonCondition": 1,
-    "Abilities": [
-      {
-        "AbilityID": 2,
-        "Name": "HardAttack50",
-        "CD": 5,
-        "Description": "Attack enemy for 50"
-      }
-    ] 
-  },
-  { 
-    "Number": 2, 
-    "Name": "Buggie", 
-    "HP": 100, 
-    "SummonCondition": 1,
-    "Abilities": [
-      {
-        "AbilityID": 3,
-        "Name": "Heal50",
-        "CD": 5,
-        "Description": "Heal any unit on team for 50"
-      }
-    ] 
-  },
-  { 
-    "Number": 3, 
     "Name": "treebie", 
     "HP": 100, 
     "SummonCondition": 1,
     "Abilities": [
       {
-        "AbilityID": 4,
+        "AbilityID": 2,
         "Name": "Heal34",
         "CD": 5,
         "Description": "Heal any unit on team for 34"
@@ -62,13 +34,13 @@
     ] 
   },
   { 
-    "Number": 4, 
+    "Number": 2, 
     "Name": "dumbmonkey", 
     "HP": 100, 
     "SummonCondition": 1,
     "Abilities": [
       {
-        "AbilityID": 5,
+        "AbilityID": 3,
         "Name": "HardAttack34",
         "CD": 5,
         "Description": "Attack enemy for 50"
@@ -76,41 +48,13 @@
     ] 
   },
   { 
-    "Number": 5, 
-    "Name": "fish", 
-    "HP": 100, 
-    "SummonCondition": 1,
-    "Abilities": [
-      {
-        "AbilityID": 6,
-        "Name": "Heal25",
-        "CD": 5,
-        "Description": "Heal any unit on team for 25"
-      }
-    ] 
-  },
-  { 
-    "Number": 6, 
-    "Name": "chicken", 
-    "HP": 100, 
-    "SummonCondition": 1,
-    "Abilities": [
-      {
-        "AbilityID": 7,
-        "Name": "HardAttack25",
-        "CD": 5,
-        "Description": "Attack enemy for 25"
-      }
-    ] 
-  },
-  { 
-    "Number": 7, 
+    "Number": 3, 
     "Name": "county", 
     "HP": 100, 
     "SummonCondition": 1,
     "Abilities": [
       {
-        "AbilityID": 8,
+        "AbilityID": 4,
         "Name": "Counterattack",
         "CD": 5,
         "Description": "If attacked, reflect the attack back to the attacker"

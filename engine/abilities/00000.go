@@ -14,7 +14,6 @@ func A00000(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	abilityHelpers.HealOne(state, targetIdx, 5)
-	state.AbilityCharge[casterIdx] = 0
 	return true
 }
 

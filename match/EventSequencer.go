@@ -260,7 +260,6 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 	timeToAutoEvent := math.MaxInt
 
 	for i := 0; i < len(state.Zone); i++ {
-
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
 				timeLeft := int(state.AbilitySPD[j] - state.AbilityCharge[j])
@@ -270,8 +269,9 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 
 			}
 		}
-
 	}
+
+	fmt.Println("timeToAutoEvent", timeToAutoEvent)
 
 	if timeToAutoEvent == math.MaxInt {
 		return time.Time{}, false
@@ -332,11 +332,13 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 			occurred := abilities.A00000(newState, dueUnit)
 			if occurred {
 				modified = true
+				newState.AbilityCharge[dueAbility] = 0
 			}
 		case 1:
 			occurred := abilities.A00001(newState, dueUnit)
 			if occurred {
 				modified = true
+				newState.AbilityCharge[dueAbility] = 0
 				for i := 0; i < len(newState.Zone); i++ {
 					if newState.Zone[i] == 1 {
 						ApplyCounterChain(newState, i, dueUnit, 2)
@@ -344,39 +346,19 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 				}
 			}
 		case 2:
-			targetIdx := abilities.A00002(newState, dueUnit)
-			if targetIdx >= 0 {
+			occurred := abilities.A00002(newState, dueUnit)
+			if occurred {
+				newState.AbilityCharge[dueAbility] = 0
 				modified = true
-				ApplyCounterChain(newState, targetIdx, dueUnit, 50)
 			}
 		case 3:
-			occurred := abilities.A00003(newState, dueUnit)
-			if occurred {
-				modified = true
-			}
-		case 4:
-			occurred := abilities.A00004(newState, dueUnit)
-			if occurred {
-				modified = true
-			}
-		case 5:
-			targetIdx := abilities.A00005(newState, dueUnit)
+			targetIdx := abilities.A00003(newState, dueUnit)
 			if targetIdx >= 0 {
 				modified = true
+				newState.AbilityCharge[dueAbility] = 0
 				ApplyCounterChain(newState, targetIdx, dueUnit, 34)
 			}
-		case 6:
-			occurred := abilities.A00006(newState, dueUnit)
-			if occurred {
-				modified = true
-			}
-		case 7:
-			targetIdx := abilities.A00007(newState, dueUnit)
-			if targetIdx >= 0 {
-				modified = true
-				ApplyCounterChain(newState, targetIdx, dueUnit, 25)
-			}
-		case 8:
+		case 4:
 			fmt.Println("cannot handle counterattack here, there is a bug")
 
 		}
@@ -410,18 +392,10 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 		case 1:
 			prio[i] = 1
 		case 2:
-			prio[i] = 1
+			prio[i] = 0
 		case 3:
-			prio[i] = 0
-		case 4:
-			prio[i] = 0
-		case 5:
 			prio[i] = 1
-		case 6:
-			prio[i] = 0
-		case 7:
-			prio[i] = 1
-		case 8: // counter, should not be sorted because cannot be activated by itself
+		case 4: // counter, should not be sorted because cannot be activated by itself
 			prio[i] = 2
 		}
 	}
@@ -442,15 +416,7 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 		return abilities.A00002Valid(state, casterIdx)
 	case 3:
 		return abilities.A00003Valid(state, casterIdx)
-	case 4:
-		return abilities.A00004Valid(state, casterIdx)
-	case 5:
-		return abilities.A00005Valid(state, casterIdx)
-	case 6:
-		return abilities.A00006Valid(state, casterIdx)
-	case 7:
-		return abilities.A00007Valid(state, casterIdx)
-	case 8: // counter, should never be valid to be initiated by itself
+	case 4: // counter, should never be valid to be initiated by itself
 		return false
 	}
 	return false
@@ -476,9 +442,10 @@ func ApplyCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int
 		// check all abilities for this unit
 		for i := state.AbilityStartIdx[currDefender]; i < state.AbilityStartIdx[currDefender]+state.AbilityCount[currDefender]; i++ {
 			switch state.Abilities[i] {
-			case 8: // reflect and mult 1x
-				if abilities.A00008CounterValid(state, currDefender, currAttacker) {
-					currentDmg = abilities.A00008(state, currDefender, currAttacker, currentDmg)
+			case 4: // reflect and mult 1x
+				if abilities.A00004CounterValid(state, i) {
+					currentDmg = abilities.A00004(state, currDefender, currAttacker, currentDmg)
+					state.AbilityCharge[i] = 0
 					defenderQueue = append(defenderQueue, currAttacker)
 					attackerQueue = append(attackerQueue, currDefender)
 				}

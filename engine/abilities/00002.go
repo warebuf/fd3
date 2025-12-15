@@ -5,19 +5,17 @@ import (
 	"github.com/warebuf/fd3/engine/abilityHelpers"
 )
 
-// deal 50 damage to a random enemy
+// Heal any unit on team for 34
 
-func A00002(state *engine.GameState, casterIdx int) int {
-
+func A00002(state *engine.GameState, casterIdx int) bool {
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := abilityHelpers.RandomEnemy(state, teamIdx)
+	targetIdx, ok := abilityHelpers.RandomSameTeam(state, teamIdx)
 	if !ok {
-		return -1
+		return false
 	}
-
-	abilityHelpers.DamageOne(state, targetIdx, 50)
-	state.AbilityCharge[casterIdx] = 0
-	return targetIdx
+	//fmt.Println(casterIdx, "Heal", targetIdx)
+	abilityHelpers.HealOne(state, targetIdx, 34)
+	return true
 }
 
 func A00002Valid(state *engine.GameState, casterIdx int) bool {
@@ -25,5 +23,5 @@ func A00002Valid(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	teamIdx := state.Team[casterIdx]
-	return abilityHelpers.RandomEnemyCheck(state, teamIdx)
+	return abilityHelpers.RandomSameTeamCheck(state, teamIdx)
 }
