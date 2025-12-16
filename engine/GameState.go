@@ -18,7 +18,7 @@ type GameState struct {
 
 	// team sets: index (unitID) ->  team index
 	Team []int
-	Zone []int // 0: Bench, 1: Field, 2: Dead
+	Zone []int // 0: Bench, 1: Field, 2: Dead, 3: QueuedSummon
 
 	// model set
 	ModelNo []int

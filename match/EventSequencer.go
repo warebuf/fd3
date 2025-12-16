@@ -150,7 +150,7 @@ func (match *Match) handleDuePQEvents() {
 			prevState := newState
 			modified := false
 			for i := 0; i < len(newState.Zone); i++ {
-				if newState.Zone[i] == 0 && newState.SummonCondition[i] == engine.SummonTypeStart {
+				if newState.Zone[i] == 3 {
 					modified = true
 					prevState = summon.BasicSummon(match.UnitModels, prevState, roundTimestamp, newState.Team[i], i)
 				}
@@ -241,7 +241,6 @@ func IncrementState(state *engine.GameState, nextTimestamp time.Time) *engine.Ga
 	for i := 0; i < len(state.Zone); i++ {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
-
 				if state.AbilitySPD[j]-increment < state.AbilityCharge[j] { // we've reached past the charge
 					newState.AbilityCharge[j] = newState.AbilitySPD[j]
 				} else {

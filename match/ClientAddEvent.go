@@ -12,12 +12,12 @@ func ScheduleSummonEvent(timestamp time.Time, match *Match, clientID string, uni
 		return
 	}
 
-	// match has not started
-	if match.GameStates[match.CurrentState].Round == 0 {
+	// this function should only be doing rate limit checks, not sim checks
+
+	// can check that unitIdx is non negative
+	if unitIdx < 0 {
 		return
 	}
-
-	// check if the summon is valid
 
 	ie := &InputEvent{
 		T:       timestamp,
