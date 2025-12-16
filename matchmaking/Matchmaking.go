@@ -153,7 +153,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 
 		GameStates:    make([]*engine.GameState, 0),
 		CurrentState:  0,
-		NextRoundTime: time.Now().Add(60 * time.Second),
+		NextRoundTime: time.Now().Add(20 * time.Second),
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,
@@ -166,12 +166,37 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 	match.PushNewRound(m) // timer for starting the game, could also broadcast the time here
 
 	m.DrawCard(0, 0)
-	m.DrawCard(0, 0)
+	m.DrawCard(0, 1)
+	m.DrawCard(0, 1)
+	m.DrawCard(0, 1)
+	m.DrawCard(0, 1)
 	m.DrawCard(0, 1)
 	m.DrawCard(0, 2)
+	m.DrawCard(0, 2)
+	m.DrawCard(0, 2)
+	m.DrawCard(0, 2)
+	m.DrawCard(0, 2)
+	m.DrawCard(0, 3)
+	m.DrawCard(0, 3)
+	m.DrawCard(0, 3)
+	m.DrawCard(0, 3)
+	m.DrawCard(0, 3)
 
 	m.DrawCard(1, 0)
+	m.DrawCard(1, 1)
+	m.DrawCard(1, 1)
+	m.DrawCard(1, 1)
+	m.DrawCard(1, 1)
+	m.DrawCard(1, 1)
 	m.DrawCard(1, 2)
+	m.DrawCard(1, 2)
+	m.DrawCard(1, 2)
+	m.DrawCard(1, 2)
+	m.DrawCard(1, 2)
+	m.DrawCard(1, 3)
+	m.DrawCard(1, 3)
+	m.DrawCard(1, 3)
+	m.DrawCard(1, 3)
 	m.DrawCard(1, 3)
 
 	time.Sleep(1 * time.Millisecond)

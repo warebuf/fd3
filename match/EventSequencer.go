@@ -270,8 +270,6 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 		}
 	}
 
-	fmt.Println("timeToAutoEvent", timeToAutoEvent)
-
 	if timeToAutoEvent == math.MaxInt {
 		return time.Time{}, false
 	}
