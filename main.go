@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"net/http"
+	"sort"
 	"time"
 
 	// 3rd party imports
@@ -17,6 +17,7 @@ import (
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
+	"github.com/warebuf/fd3/utility/compressState"
 )
 
 var upgrader = websocket.Upgrader{
@@ -398,10 +399,34 @@ func simProb(w http.ResponseWriter, r *http.Request) {
 		//fmt.Println("y", y)
 	}
 
-	for key, value := range ModelMap {
-		avg := math.Round((float64(value)/float64(iterations))*1000) / 1000
-		iterAvg := math.Round((float64(IterationMap[key])/float64(value))*1000) / 1000
-		fmt.Printf("%s %.1f%% iterations avg: %.2f\n", key, avg*100, iterAvg)
+	// printing out the states in order
+	keys := make([]string, 0, len(ModelMap))
+	for k, v := range ModelMap {
+		if v == 0 {
+			continue
+		}
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		ai := float64(ModelMap[keys[i]]) / float64(iterations)
+		aj := float64(ModelMap[keys[j]]) / float64(iterations)
+		return ai > aj // descending
+	})
+
+	for _, k := range keys {
+		value := ModelMap[k]
+		avg := float64(value) / float64(iterations)
+
+		compressed := compressState.CompressPattern(k)
+		//iterAvg := float64(IterationMap[k]) / float64(value)
+		//fmt.Printf("%s %.1f%% iterations avg: %.2f\n", k, avg*100, iterAvg)
+		if avg*100 >= 1 {
+			fmt.Printf("%.0f%% %s \n", avg*100, compressed)
+		} else {
+			fmt.Printf("%.1f%% %s \n", avg*100, compressed)
+		}
+
 	}
 
 }
