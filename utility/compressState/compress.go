@@ -1,7 +1,6 @@
 package compressState
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -25,30 +24,25 @@ func CompressPattern(s string) string {
 
 		curr := mapChar[s[i]]
 
-		fmt.Println(i, "result", result.String(), "s[i]", string(s[i]), "prev", string(prev), "curr", string(curr), "count", count)
-
-		if s[i] == ';' {
+		if prev == '$' && s[i] == ';' {
+			result.WriteByte(';')
+		} else if prev == '$' {
+			prev = curr
+			count = 1
+		} else if s[i] == ',' {
+		} else if s[i] == ';' {
 			result.WriteString(strconv.Itoa(count))
 			result.WriteByte(prev)
 			result.WriteByte(';')
 			prev = byte('$')
 			count = 0
-			fmt.Println("c", string(prev), count)
-		} else if s[i] == ',' {
-			fmt.Println("b", string(prev), count)
-		} else if prev == '$' {
-			prev = curr
-			count = 1
-			fmt.Println("a", string(prev), count)
 		} else if prev == curr {
 			count += 1
-			fmt.Println("d", string(prev), count)
 		} else {
 			result.WriteString(strconv.Itoa(count))
 			result.WriteByte(prev)
 			prev = curr
 			count = 1
-			fmt.Println("e", string(prev), count)
 		}
 
 	}

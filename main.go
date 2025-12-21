@@ -426,8 +426,9 @@ func simProb(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Printf("%.1f%% %s \n", avg*100, compressed)
 		}
-
 	}
+
+	compressState.Excel()
 
 }
 
