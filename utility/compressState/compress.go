@@ -5,6 +5,31 @@ import (
 	"strings"
 )
 
+func IntToAlphaNumeric(nums []int) string {
+
+	mapChar := map[int]byte{
+		1: 'h',
+		2: 'a',
+		3: 'c',
+	}
+
+	// create an array of length n (max num in mapChar)
+	counter := make([]int, 3+1)
+	for i := 0; i < len(nums); i++ {
+		counter[nums[i]] += 1
+	}
+
+	var result strings.Builder
+	for i := 0; i < len(counter); i++ {
+		if counter[i] > 0 {
+			result.WriteString(strconv.Itoa(counter[i]))
+			result.WriteByte(mapChar[i])
+		}
+	}
+
+	return result.String()
+}
+
 func CompressPattern(s string) string {
 	if len(s) == 0 {
 		return ""
@@ -48,8 +73,10 @@ func CompressPattern(s string) string {
 	}
 
 	// flush last run
-	result.WriteString(strconv.Itoa(count))
-	result.WriteByte(prev)
+	if prev != '$' {
+		result.WriteString(strconv.Itoa(count))
+		result.WriteByte(prev)
+	}
 
 	return result.String()
 }

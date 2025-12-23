@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	// 3rd party imports
@@ -15,8 +16,10 @@ import (
 
 	// our imports
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/summon"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
+	"github.com/warebuf/fd3/performance"
 	"github.com/warebuf/fd3/utility/compressState"
 )
 
@@ -427,8 +430,117 @@ func simProb(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("%.1f%% %s \n", avg*100, compressed)
 		}
 	}
+}
 
-	compressState.Excel()
+func simAll(w http.ResponseWriter, r *http.Request) {
+
+	iterations := 10000
+	rounds := 50
+
+	combos := performance.GenerateCombos(10, unitModels) // generate all possible combinatons
+	teamsWithDups := performance.GenerateTeams(combos)   // generate all possible teams
+	teams := performance.RemoveDups(teamsWithDups)       // sort each arr, remove dups
+
+	lineupToAns := make(map[string]string)
+
+	for i := 0; i < len(teams); i++ {
+
+		// create the state
+		state := engine.CreateFirstGameState(time.Now(), 0)
+
+		key1 := compressState.IntToAlphaNumeric(teams[i][0])
+		key2 := compressState.IntToAlphaNumeric(teams[i][1])
+		key := key1 + ";" + key2
+		fmt.Println(i, key)
+
+		// summon units
+		for j := 0; j < len(teams[i][0]); j++ {
+			state = summon.SpawnSummon(unitModels, state, 0, teams[i][0][j])
+		}
+		for j := 0; j < len(teams[i][1]); j++ {
+			state = summon.SpawnSummon(unitModels, state, 1, teams[i][1][j])
+		}
+
+		HPMap := make(map[string]int)
+		ModelMap := make(map[string]int)
+		IterationMap := make(map[string]int)
+
+		for x := 0; x < iterations; x++ {
+			iterationState := engine.CopyGameState(state.Timestamp, state)
+			y := 0
+			for y = 0; y < rounds; y++ {
+
+				nextAutoEventTime, success := match.CalcNextAutoEvent(iterationState)
+				if !success {
+					break
+				}
+
+				incrementedState := match.IncrementState(iterationState, nextAutoEventTime)
+
+				dueUnits := []int{} // matches length of dueAbilities
+				dueAbilities := []int{}
+				for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
+					for j := 0; j < incrementedState.AbilityCount[i]; j++ {
+						abilityIdx := incrementedState.AbilityStartIdx[i] + j
+						isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
+						if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
+							dueAbilities = append(dueAbilities, abilityIdx)
+							dueUnits = append(dueUnits, i)
+						}
+					}
+				}
+
+				modified := false
+				iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+
+				if !modified {
+					break
+				}
+
+			}
+			HPKey := engine.ConvertStateToHPKey(iterationState)
+			ModelKey := engine.ConvertStateToModelNoKey(iterationState)
+			HPMap[HPKey]++
+			ModelMap[ModelKey]++
+			IterationMap[ModelKey] += y
+			//fmt.Println(HPKey)
+			//fmt.Println("y", y)
+		}
+
+		// printing out the states in order of percent
+		keys := make([]string, 0, len(ModelMap))
+		for k, v := range ModelMap {
+			if v == 0 {
+				continue
+			}
+			keys = append(keys, k)
+		}
+
+		sort.Slice(keys, func(i, j int) bool {
+			ai := float64(ModelMap[keys[i]]) / float64(iterations)
+			aj := float64(ModelMap[keys[j]]) / float64(iterations)
+			return ai > aj // descending
+		})
+
+		var ans strings.Builder
+		for _, k := range keys {
+			value := ModelMap[k]
+			avg := float64(value) / float64(iterations)
+
+			compressed := compressState.CompressPattern(k)
+			if avg*100 >= 1 {
+				fmt.Fprintf(&ans, "%.0f%% %s\n", avg*100, compressed)
+				fmt.Printf("%.0f%% %s \n", avg*100, compressed)
+			} else {
+				//fmt.Fprintf(&ans, "%.1f%% %s\n", avg*100, compressed)
+				fmt.Printf("%.1f%% %s \n", avg*100, compressed)
+			}
+		}
+		lineupToAns[key] = ans.String()
+
+	}
+
+	compressState.Excel(teams, lineupToAns)
 
 }
 
@@ -466,6 +578,7 @@ func main() {
 	http.HandleFunc("/simStep", simStep)
 	http.HandleFunc("/simMatch", simMatch)
 	http.HandleFunc("/simProb", simProb)
+	http.HandleFunc("/simAll", simAll)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 
