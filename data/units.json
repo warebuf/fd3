@@ -2,17 +2,19 @@
   { 
     "Number": 0, 
     "Name": "Generic", 
-    "HP": 100,  
+    "HP": 150,  
     "SummonCondition": 0,
-    "Abilities": [
+    "Functions": [
       {
-        "AbilityID": 0,
+        "FunctionID": 0,
+        "Type": "Auto",
         "Name": "HealRandom",
         "CD": 2,
         "Description": "Heal 5"
       },
       {
-        "AbilityID": 1,
+        "FunctionID": 1,
+        "Type": "Auto",
         "Name": "AOE",
         "CD": 3,
         "Description": "Attack all for 2"
@@ -21,27 +23,29 @@
   },
   { 
     "Number": 1, 
-    "Name": "treebie", 
-    "HP": 100, 
+    "Name": "Healer", 
+    "HP": 150, 
     "SummonCondition": 1,
-    "Abilities": [
+    "Functions": [
       {
-        "AbilityID": 2,
-        "Name": "Heal34",
+        "FunctionID": 2,
+        "Type": "Auto",
+        "Name": "Heal50",
         "CD": 5,
-        "Description": "Heal any unit on team for 34"
+        "Description": "Heal any unit on team for 50"
       }
     ] 
   },
   { 
     "Number": 2, 
-    "Name": "dumbmonkey", 
-    "HP": 100, 
+    "Name": "Attacker", 
+    "HP": 150, 
     "SummonCondition": 1,
-    "Abilities": [
+    "Functions": [
       {
-        "AbilityID": 3,
-        "Name": "HardAttack34",
+        "FunctionID": 3,
+        "Type": "Auto",
+        "Name": "HardAttack50",
         "CD": 5,
         "Description": "Attack enemy for 50"
       }
@@ -49,16 +53,38 @@
   },
   { 
     "Number": 3, 
-    "Name": "county", 
-    "HP": 100, 
+    "Name": "Counter", 
+    "HP": 150, 
     "SummonCondition": 1,
-    "Abilities": [
+    "Functions": [
       {
-        "AbilityID": 4,
+        "FunctionID": 4,
+        "Type": "Auto",
         "Name": "Counterattack",
         "CD": 5,
         "Description": "If attacked, reflect the attack back to the attacker"
       }
     ] 
+  },
+  { 
+    "Number": 4, 
+    "Name": "Guinsoo", 
+    "HP": 150, 
+    "SummonCondition": 1,
+    "Functions": [
+      {
+        "FunctionID": 5,
+        "Type": "Auto",
+        "Name": "HardAttack50",
+        "CD": 5,
+        "Description": "Attack enemy for 50. Gain 25 EXP if successful."
+      },
+      {
+        "FunctionID": 6,
+        "Type": "Manual",
+        "Name": "ManualAuto",
+        "Description": "Spend 75 EXP. Attack a target for 100. Reset all abilities."
+      }
+    ]
   }
 ]

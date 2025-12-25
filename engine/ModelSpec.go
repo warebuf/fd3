@@ -11,13 +11,14 @@ type Model struct {
 	Name            string     `json:"Name"`
 	HP              int        `json:"HP"`
 	SummonCondition SummonType `json:"SummonCondition"`
-	Abilities       []Ability  `json:"Abilities"`
+	Functions       []Function `json:"Functions"`
 }
 
-type Ability struct {
-	AbilityID   int    `json:"AbilityID"`
+type Function struct {
+	FunctionID  int    `json:"FunctionID"`
+	Type        string `json:"Type"`
 	Name        string `json:"Name"`
-	CD          int64  `json:"CD"`
+	CD          int    `json:"CD"`
 	Description string `json:"Description"`
 }
 

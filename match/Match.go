@@ -10,18 +10,6 @@ import (
 	"github.com/warebuf/fd3/engine/summon"
 )
 
-/*
-note:
-the only flaw in this system is that if a client has
-a lag spike or has bad internet, they will not receive
-the new game states in time
-
-if they have a lag spike, not my problem, they missed the event
-and will have to request the game state to get caught up
-
-if they are consistently having issues, let them know
-*/
-
 type Match struct {
 	UnitModels []engine.Model
 

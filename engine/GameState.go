@@ -24,14 +24,16 @@ type GameState struct {
 	ModelNo []int
 
 	// core unit stats: index (unitID) ->  HP
-	HP []int
+	HP  []int
+	EXP []int
 
-	// abilities
-	Abilities       []int   // abilities are flattened for each unit
-	AbilityStartIdx []int   // the starting index in Abilities[] for this unit
-	AbilityCount    []int   // how many abilities belong to each unit
-	AbilityCharge   []int64 // flattened, saved in millisconds
-	AbilitySPD      []int64 // flattened, in milliseconds
+	// functions
+	Functions        []int // abilities are flattened for each unit
+	FunctionType     []int // 0 is auto, 1 is manual, 2 is passive
+	FunctionStartIdx []int // the starting index in Functions[] for this unit
+	FunctionCount    []int // how many functions belong to each unit
+	FunctionCharge   []int // flattened, saved in millisconds
+	FunctionSPD      []int // flattened, in milliseconds
 
 	SummonCondition []SummonType
 }
@@ -46,19 +48,21 @@ type Telemetry struct {
 // CreateGameState initializes an empty game state with outer slices ready
 func CreateFirstGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
-		GameStateID:     GSID,
-		Timestamp:       t,
-		Round:           0,
-		Team:            make([]int, 0),
-		Zone:            make([]int, 0),
-		ModelNo:         make([]int, 0),
-		HP:              make([]int, 0),
-		Abilities:       make([]int, 0),
-		AbilityStartIdx: make([]int, 0),
-		AbilityCount:    make([]int, 0),
-		AbilityCharge:   make([]int64, 0),
-		AbilitySPD:      make([]int64, 0),
-		SummonCondition: make([]SummonType, 0),
+		GameStateID:      GSID,
+		Timestamp:        t,
+		Round:            0,
+		Team:             make([]int, 0),
+		Zone:             make([]int, 0),
+		ModelNo:          make([]int, 0),
+		HP:               make([]int, 0),
+		EXP:              make([]int, 0),
+		Functions:        make([]int, 0),
+		FunctionType:     make([]int, 0),
+		FunctionStartIdx: make([]int, 0),
+		FunctionCount:    make([]int, 0),
+		FunctionCharge:   make([]int, 0),
+		FunctionSPD:      make([]int, 0),
+		SummonCondition:  make([]SummonType, 0),
 	}
 	return gm
 }
@@ -78,11 +82,13 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState.Zone = shallowCopy.IntSlice(prevState.Zone)
 	newState.ModelNo = shallowCopy.IntSlice(prevState.ModelNo)
 	newState.HP = shallowCopy.IntSlice(prevState.HP)
-	newState.Abilities = shallowCopy.IntSlice(prevState.Abilities)
-	newState.AbilityStartIdx = shallowCopy.IntSlice(prevState.AbilityStartIdx)
-	newState.AbilityCount = shallowCopy.IntSlice(prevState.AbilityCount)
-	newState.AbilityCharge = shallowCopy.Int64Slice(prevState.AbilityCharge)
-	newState.AbilitySPD = shallowCopy.Int64Slice(prevState.AbilitySPD)
+	newState.EXP = shallowCopy.IntSlice(prevState.EXP)
+	newState.Functions = shallowCopy.IntSlice(prevState.Functions)
+	newState.FunctionType = shallowCopy.IntSlice(prevState.FunctionType)
+	newState.FunctionStartIdx = shallowCopy.IntSlice(prevState.FunctionStartIdx)
+	newState.FunctionCount = shallowCopy.IntSlice(prevState.FunctionCount)
+	newState.FunctionCharge = shallowCopy.IntSlice(prevState.FunctionCharge)
+	newState.FunctionSPD = shallowCopy.IntSlice(prevState.FunctionSPD)
 	newState.SummonCondition = CopySummonTypeSlice(prevState.SummonCondition)
 
 	return newState

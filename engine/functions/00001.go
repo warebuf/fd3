@@ -1,14 +1,13 @@
-package abilities
+package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/abilityHelpers"
+	"github.com/warebuf/fd3/engine/functionHelpers"
 )
 
 // deal 2 damage to all
-
 func A00001(state *engine.GameState, casterIdx int) bool {
-	abilityHelpers.DamageAll(state, 2)
+	functionHelpers.DamageAll(state, 2)
 	return true
 }
 

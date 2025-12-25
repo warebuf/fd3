@@ -13,6 +13,7 @@ type InputEvent struct {
 	Type    string
 	TeamIdx int
 	UnitIdx int
+	FuncIdx int
 }
 
 func (e *InputEvent) Timestamp() time.Time { return e.T }

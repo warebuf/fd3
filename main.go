@@ -252,6 +252,8 @@ func getModelData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(unitModels)
 }
 
+// TODO:
+// these 3 functions need to be modularized (maybe added to the performance lib) and adapted to the auto, manual, passive model
 func simStep(w http.ResponseWriter, r *http.Request) {
 
 	var recState engine.GameState
@@ -269,20 +271,23 @@ func simStep(w http.ResponseWriter, r *http.Request) {
 
 	incrementedState := match.IncrementState(&recState, nextAutoEventTime)
 
-	dueUnits := []int{} // matches length of dueAbilities
-	dueAbilities := []int{}
-	for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
-		for j := 0; j < incrementedState.AbilityCount[i]; j++ {
-			abilityIdx := incrementedState.AbilityStartIdx[i] + j
-			isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
-			if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
-				dueAbilities = append(dueAbilities, abilityIdx)
-				dueUnits = append(dueUnits, i)
+	dueUnits := []int{} // matches length of dueFunctions
+	dueFunctions := []int{}
+	for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+		for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+			funcIdx := incrementedState.FunctionStartIdx[i] + j
+			if incrementedState.FunctionType[j] == 0 { // only process auto funcs
+				isValid := match.CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+				if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+					dueFunctions = append(dueFunctions, funcIdx)
+					dueUnits = append(dueUnits, i)
+				}
 			}
+
 		}
 	}
 
-	finalState, modified := match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+	finalState, modified := match.HandleDueFunctions(incrementedState, dueUnits, dueFunctions)
 
 	if !modified {
 		return
@@ -315,20 +320,22 @@ func simMatch(w http.ResponseWriter, r *http.Request) {
 		incrementedState := match.IncrementState(iterationState, nextAutoEventTime)
 
 		dueUnits := []int{} // matches length of dueAbilities
-		dueAbilities := []int{}
-		for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
-			for j := 0; j < incrementedState.AbilityCount[i]; j++ {
-				abilityIdx := incrementedState.AbilityStartIdx[i] + j
-				isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
-				if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
-					dueAbilities = append(dueAbilities, abilityIdx)
-					dueUnits = append(dueUnits, i)
+		dueFunctions := []int{}
+		for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+			for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+				funcIdx := incrementedState.FunctionStartIdx[i] + j
+				if incrementedState.FunctionType[funcIdx] == 0 { // only process auto funcs
+					isValid := match.CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+					if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+						dueFunctions = append(dueFunctions, funcIdx)
+						dueUnits = append(dueUnits, i)
+					}
 				}
 			}
 		}
 
 		modified := false
-		iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+		iterationState, modified = match.HandleDueFunctions(incrementedState, dueUnits, dueFunctions)
 
 		if !modified {
 			break
@@ -360,7 +367,7 @@ func simProb(w http.ResponseWriter, r *http.Request) {
 	rounds := 50
 
 	for x := 0; x < iterations; x++ {
-		fmt.Println("x", x)
+
 		iterationState := engine.CopyGameState(recState.Timestamp, &recState)
 		y := 0
 		for y = 0; y < rounds; y++ {
@@ -372,21 +379,23 @@ func simProb(w http.ResponseWriter, r *http.Request) {
 
 			incrementedState := match.IncrementState(iterationState, nextAutoEventTime)
 
-			dueUnits := []int{} // matches length of dueAbilities
-			dueAbilities := []int{}
-			for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
-				for j := 0; j < incrementedState.AbilityCount[i]; j++ {
-					abilityIdx := incrementedState.AbilityStartIdx[i] + j
-					isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
-					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
-						dueAbilities = append(dueAbilities, abilityIdx)
-						dueUnits = append(dueUnits, i)
+			dueUnits := []int{} // matches length of dueFunctions
+			dueFunctions := []int{}
+			for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+				for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+					funcIdx := incrementedState.FunctionStartIdx[i] + j
+					if incrementedState.FunctionType[funcIdx] == 0 { // only process auto funcs
+						isValid := match.CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+						if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+							dueFunctions = append(dueFunctions, funcIdx)
+							dueUnits = append(dueUnits, i)
+						}
 					}
 				}
 			}
 
 			modified := false
-			iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+			iterationState, modified = match.HandleDueFunctions(incrementedState, dueUnits, dueFunctions)
 
 			if !modified {
 				break
@@ -479,19 +488,21 @@ func simAll(w http.ResponseWriter, r *http.Request) {
 
 				dueUnits := []int{} // matches length of dueAbilities
 				dueAbilities := []int{}
-				for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
-					for j := 0; j < incrementedState.AbilityCount[i]; j++ {
-						abilityIdx := incrementedState.AbilityStartIdx[i] + j
-						isValid := match.CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
-						if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
-							dueAbilities = append(dueAbilities, abilityIdx)
-							dueUnits = append(dueUnits, i)
+				for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+					for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+						funcIdx := incrementedState.FunctionStartIdx[i] + j
+						if incrementedState.FunctionType[funcIdx] == 0 {
+							isValid := match.CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+							if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+								dueAbilities = append(dueAbilities, funcIdx)
+								dueUnits = append(dueUnits, i)
+							}
 						}
 					}
 				}
 
 				modified := false
-				iterationState, modified = match.HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+				iterationState, modified = match.HandleDueFunctions(incrementedState, dueUnits, dueAbilities)
 
 				if !modified {
 					break

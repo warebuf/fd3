@@ -1,4 +1,4 @@
-package abilityHelpers
+package functionHelpers
 
 import "github.com/warebuf/fd3/engine"
 

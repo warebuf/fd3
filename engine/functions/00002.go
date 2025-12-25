@@ -1,20 +1,19 @@
-package abilities
+package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/abilityHelpers"
+	"github.com/warebuf/fd3/engine/functionHelpers"
 )
 
-// Heal any unit on team for 34
-
+// Heal any unit on team for 50
 func A00002(state *engine.GameState, casterIdx int) bool {
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := abilityHelpers.RandomSameTeam(state, teamIdx)
+	targetIdx, ok := functionHelpers.RandomSameTeam(state, teamIdx)
 	if !ok {
 		return false
 	}
 	//fmt.Println(casterIdx, "Heal", targetIdx)
-	abilityHelpers.HealOne(state, targetIdx, 34)
+	functionHelpers.HealOne(state, targetIdx, 50)
 	return true
 }
 
@@ -23,5 +22,5 @@ func A00002Valid(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	teamIdx := state.Team[casterIdx]
-	return abilityHelpers.RandomSameTeamCheck(state, teamIdx)
+	return functionHelpers.RandomSameTeamCheck(state, teamIdx)
 }

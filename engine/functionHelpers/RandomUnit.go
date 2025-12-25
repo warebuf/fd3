@@ -1,4 +1,4 @@
-package abilityHelpers
+package functionHelpers
 
 import (
 	"math/rand"

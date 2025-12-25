@@ -82,6 +82,13 @@ func (c *Client) Read() {
 			}
 			ScheduleSummonEvent(receiveTime, c.MatchObj, c.ID, int(benchMoveData.UnitID))
 
+		case "Active":
+			var parsed Manual
+			if err := strictUnmarshal(data, &parsed); err != nil {
+				return
+			}
+			ActiveFunctionEvent(receiveTime, c.MatchObj, c.ID, int(parsed.UnitID), int(parsed.FunctionID))
+
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
 			c.MatchObj.SendGameState(c.ID)

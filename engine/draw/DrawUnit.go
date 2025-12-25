@@ -20,14 +20,23 @@ func DrawUnit(unitModels []engine.Model, prevState *engine.GameState, timestamp 
 	newState.Zone = append(newState.Zone, 0) // 0 is bench
 	newState.ModelNo = append(newState.ModelNo, modelNo)
 	newState.HP = append(newState.HP, model.HP)
+	newState.EXP = append(newState.EXP, 0)
 	newState.SummonCondition = append(newState.SummonCondition, model.SummonCondition)
 
-	newState.AbilityStartIdx = append(newState.AbilityStartIdx, len(newState.Abilities))
-	newState.AbilityCount = append(newState.AbilityCount, len(model.Abilities))
-	for i := 0; i < len(model.Abilities); i++ {
-		newState.Abilities = append(newState.Abilities, model.Abilities[i].AbilityID)
-		newState.AbilitySPD = append(newState.AbilitySPD, model.Abilities[i].CD*1000)
-		newState.AbilityCharge = append(newState.AbilityCharge, 0)
+	newState.FunctionStartIdx = append(newState.FunctionStartIdx, len(newState.Functions))
+	newState.FunctionCount = append(newState.FunctionCount, len(model.Functions))
+	for i := 0; i < len(model.Functions); i++ {
+		newState.Functions = append(newState.Functions, model.Functions[i].FunctionID)
+		newState.FunctionSPD = append(newState.FunctionSPD, model.Functions[i].CD*1000)
+		newState.FunctionCharge = append(newState.FunctionCharge, 0)
+
+		// push FunctionType as int
+		switch model.Functions[i].Type {
+		case "Auto":
+			newState.FunctionType = append(newState.FunctionType, 0)
+		case "Manual":
+			newState.FunctionType = append(newState.FunctionType, 1)
+		}
 	}
 
 	// trigger any effects

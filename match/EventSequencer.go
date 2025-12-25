@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/abilities"
+	"github.com/warebuf/fd3/engine/functions"
 	"github.com/warebuf/fd3/engine/summon"
 	"github.com/warebuf/fd3/utility/sort"
 )
@@ -42,7 +42,6 @@ func (match *Match) EventScheduler() {
 			pushInputEvent(match, ie)
 
 		case <-timerC:
-			fmt.Println("timer fired")
 			match.handleDuePQEvents()
 		}
 	}
@@ -77,20 +76,22 @@ func (match *Match) handleDuePQEvents() {
 
 			// figure out which abilities are due
 			dueUnits := []int{} // matches length of dueAbilities
-			dueAbilities := []int{}
-			for i := 0; i < len(incrementedState.AbilityStartIdx); i++ {
-				for j := 0; j < incrementedState.AbilityCount[i]; j++ {
-					abilityIdx := incrementedState.AbilityStartIdx[i] + j
-					isValid := CheckValidAbility(incrementedState, i, incrementedState.Abilities[abilityIdx])
-					if incrementedState.AbilityCharge[abilityIdx] >= incrementedState.AbilitySPD[abilityIdx] && isValid {
-						dueAbilities = append(dueAbilities, abilityIdx)
-						dueUnits = append(dueUnits, i)
+			dueFunc := []int{}
+			for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+				for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+					funcIdx := incrementedState.FunctionStartIdx[i] + j
+					if incrementedState.FunctionType[funcIdx] == 0 { // only check auto functions
+						isValid := CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+						if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+							dueFunc = append(dueFunc, funcIdx)
+							dueUnits = append(dueUnits, i)
+						}
 					}
 				}
 			}
 
 			// activate abilities
-			abilityState, modified := HandleDueAbilities(incrementedState, dueUnits, dueAbilities)
+			abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFunc)
 			if modified {
 				match.GameStates = append(match.GameStates, abilityState)
 				match.BroadcastGameState(abilityState)
@@ -110,6 +111,7 @@ func (match *Match) handleDuePQEvents() {
 		case "Input":
 			fmt.Println("received Input")
 			ie := next.Event.(*InputEvent)
+			fmt.Println("ie", ie)
 
 			// remove all autoscheduler events (at most only 1 exists in current design)
 			match.EventPQueue.RemoveFirstAutoScheduler()
@@ -118,16 +120,60 @@ func (match *Match) handleDuePQEvents() {
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
 			incrementedState := IncrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
 
-			// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
-			newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
-			match.GameStates = append(match.GameStates, newState)
-			match.BroadcastGameState(newState)
-			pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
+			if ie.Type == "Summon" {
 
-			// schedule autoscheduler
-			nextAutoEventTime, success := CalcNextAutoEvent(newState)
-			if success {
-				pushAutoScheduler(match, nextAutoEventTime)
+				// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
+				newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
+				match.GameStates = append(match.GameStates, newState)
+				match.BroadcastGameState(newState)
+				pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
+
+				// schedule autoscheduler
+				nextAutoEventTime, success := CalcNextAutoEvent(newState)
+				if success {
+					pushAutoScheduler(match, nextAutoEventTime)
+				}
+
+			} else if ie.Type == "Active" {
+
+				// check whether the active is truly due, otherwise we can skip
+				dueUnits := []int{} // matches length of dueAbilities
+				dueFunc := []int{}
+				if CheckValidFunction(incrementedState, ie.UnitIdx, ie.FuncIdx) {
+					dueFunc = append(dueFunc, ie.FuncIdx)
+					dueUnits = append(dueUnits, ie.UnitIdx)
+				} else {
+					continue
+				}
+
+				// check for other functions that are due
+				for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
+					for j := 0; j < incrementedState.FunctionCount[i]; j++ {
+						funcIdx := incrementedState.FunctionStartIdx[i] + j
+						if incrementedState.FunctionType[funcIdx] == 0 { // only check auto functions
+							isValid := CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
+							if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
+								dueFunc = append(dueFunc, funcIdx)
+								dueUnits = append(dueUnits, i)
+							}
+						}
+					}
+				}
+
+				// activate abilities
+				abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFunc)
+				if modified {
+					match.GameStates = append(match.GameStates, abilityState)
+					match.BroadcastGameState(abilityState)
+					pushCurrentEvent(match, nextTimestamp)
+				}
+
+				// schedule next AutoScheduler
+				nextAutoEventTime, success := CalcNextAutoEvent(abilityState)
+				if success {
+					pushAutoScheduler(match, nextAutoEventTime)
+				}
+
 			}
 
 		case "NewRound":
@@ -236,15 +282,17 @@ func (match *Match) SetCurrentState() {
 func IncrementState(state *engine.GameState, nextTimestamp time.Time) *engine.GameState {
 
 	newState := engine.CopyGameState(nextTimestamp, state)
-	increment := nextTimestamp.UnixMilli() - state.Timestamp.UnixMilli()
+	increment := int(nextTimestamp.UnixMilli() - state.Timestamp.UnixMilli())
 
 	for i := 0; i < len(state.Zone); i++ {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
-			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
-				if state.AbilitySPD[j]-increment < state.AbilityCharge[j] { // we've reached past the charge
-					newState.AbilityCharge[j] = newState.AbilitySPD[j]
-				} else {
-					newState.AbilityCharge[j] += increment
+			for j := state.FunctionStartIdx[i]; j < state.FunctionStartIdx[i]+state.FunctionCount[i]; j++ {
+				if state.FunctionType[j] == 0 {
+					if state.FunctionSPD[j]-increment < state.FunctionCharge[j] { // we've reached past the charge
+						newState.FunctionCharge[j] = newState.FunctionSPD[j]
+					} else {
+						newState.FunctionCharge[j] += increment
+					}
 				}
 			}
 		}
@@ -260,12 +308,13 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 
 	for i := 0; i < len(state.Zone); i++ {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
-			for j := state.AbilityStartIdx[i]; j < state.AbilityStartIdx[i]+state.AbilityCount[i]; j++ {
-				timeLeft := int(state.AbilitySPD[j] - state.AbilityCharge[j])
-				if timeLeft < timeToAutoEvent && CheckValidAbility(state, i, state.Abilities[j]) {
-					timeToAutoEvent = timeLeft
+			for j := state.FunctionStartIdx[i]; j < state.FunctionStartIdx[i]+state.FunctionCount[i]; j++ {
+				if state.FunctionType[i] == 0 { // is an auto function
+					timeLeft := int(state.FunctionSPD[j] - state.FunctionCharge[j])
+					if timeLeft < timeToAutoEvent && CheckValidFunction(state, i, state.Functions[j]) {
+						timeToAutoEvent = timeLeft
+					}
 				}
-
 			}
 		}
 	}
@@ -275,7 +324,6 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 	}
 
 	return state.Timestamp.Add(time.Millisecond * time.Duration(timeToAutoEvent)), true
-
 }
 
 func (match *Match) setPQTimer() {
@@ -308,12 +356,12 @@ func (match *Match) setPQTimer() {
 
 }
 
-func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueAbilities []int) (*engine.GameState, bool) {
+func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueAbilities []int) (*engine.GameState, bool) {
 
 	newState := engine.CopyGameState(incrementedState.Timestamp, incrementedState)
 	modified := false
 
-	prio := sortAbilitiesByPrio(incrementedState, dueAbilities)
+	prio := sortFunctionsByPrio(incrementedState, dueAbilities)
 
 	for i := 0; i < len(prio); i++ {
 
@@ -321,43 +369,71 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 
 		dueUnit := dueUnits[idx]
 		dueAbility := dueAbilities[idx]
-		abilityNo := newState.Abilities[dueAbility]
+		abilityNo := newState.Functions[dueAbility]
 
 		// could use an array of functions but will use a switch statement for now
 		switch abilityNo {
 		case 0:
-			occurred := abilities.A00000(newState, dueUnit)
+			occurred := functions.A00000(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				newState.FunctionCharge[dueAbility] = 0
 			}
 		case 1:
-			occurred := abilities.A00001(newState, dueUnit)
+			occurred := functions.A00001(newState, dueUnit)
 			if occurred {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
+				newState.FunctionCharge[dueAbility] = 0
+				defenders := []int{}
+				attackers := []int{}
+				functions := []int{}
 				for i := 0; i < len(newState.Zone); i++ {
 					if newState.Zone[i] == 1 {
-						ApplyCounterChain(newState, i, dueUnit, 2)
+						defenders = append(defenders, i)
+						attackers = append(attackers, dueUnit)
+						functions = append(functions, abilityNo)
 					}
 				}
+				ApplyCounterChain(newState, defenders, attackers, functions, 2)
 			}
 		case 2:
-			occurred := abilities.A00002(newState, dueUnit)
+			occurred := functions.A00002(newState, dueUnit)
 			if occurred {
-				newState.AbilityCharge[dueAbility] = 0
+				newState.FunctionCharge[dueAbility] = 0
 				modified = true
 			}
 		case 3:
-			targetIdx := abilities.A00003(newState, dueUnit)
+			targetIdx := functions.A00003(newState, dueUnit)
 			if targetIdx >= 0 {
 				modified = true
-				newState.AbilityCharge[dueAbility] = 0
-				ApplyCounterChain(newState, targetIdx, dueUnit, 34)
+				newState.FunctionCharge[dueAbility] = 0
+				defenders := []int{targetIdx}
+				attackers := []int{dueUnit}
+				functions := []int{abilityNo}
+				ApplyCounterChain(newState, defenders, attackers, functions, 50)
 			}
 		case 4:
 			fmt.Println("cannot handle counterattack here, there is a bug")
-
+		case 5:
+			targetIdx := functions.A00005(newState, dueUnit)
+			if targetIdx >= 0 {
+				modified = true
+				newState.FunctionCharge[dueAbility] = 0
+				defenders := []int{targetIdx}
+				attackers := []int{dueUnit}
+				functions := []int{abilityNo}
+				ApplyCounterChain(newState, defenders, attackers, functions, 50)
+			}
+		case 6:
+			targetIdx := functions.A00006(newState, dueUnit)
+			if targetIdx >= 0 {
+				modified = true
+				newState.FunctionCharge[dueAbility] = 0
+				defenders := []int{targetIdx}
+				attackers := []int{dueUnit}
+				functions := []int{abilityNo}
+				ApplyCounterChain(newState, defenders, attackers, functions, 50)
+			}
 		}
 
 	}
@@ -372,18 +448,18 @@ func HandleDueAbilities(incrementedState *engine.GameState, dueUnits []int, dueA
 	return newState, modified
 }
 
-func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
+func sortFunctionsByPrio(state *engine.GameState, dueFunctions []int) []int {
 
-	abilityNo := make([]int, len(dueAbilities))
-	for i := 0; i < len(dueAbilities); i++ {
-		abilityNo[i] = state.Abilities[dueAbilities[i]]
+	funcNo := make([]int, len(dueFunctions))
+	for i := 0; i < len(dueFunctions); i++ {
+		funcNo[i] = state.Functions[dueFunctions[i]]
 	}
 
-	prio := make([]int, len(abilityNo))
+	prio := make([]int, len(funcNo))
 
 	// heal has prio over damage
-	for i := 0; i < len(abilityNo); i++ {
-		switch abilityNo[i] {
+	for i := 0; i < len(funcNo); i++ {
+		switch funcNo[i] {
 		case 0:
 			prio[i] = 0
 		case 1:
@@ -394,6 +470,10 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 			prio[i] = 1
 		case 4: // counter, should not be sorted because cannot be activated by itself
 			prio[i] = 2
+		case 5:
+			prio[i] = 1
+		case 6:
+			prio[i] = 1
 		}
 	}
 
@@ -403,18 +483,22 @@ func sortAbilitiesByPrio(state *engine.GameState, dueAbilities []int) []int {
 
 }
 
-func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bool {
-	switch abilityNo {
+func CheckValidFunction(state *engine.GameState, casterIdx int, funcNo int) bool {
+	switch funcNo {
 	case 0:
-		return abilities.A00000Valid(state, casterIdx)
+		return functions.A00000Valid(state, casterIdx)
 	case 1:
-		return abilities.A00001Valid(state, casterIdx)
+		return functions.A00001Valid(state, casterIdx)
 	case 2:
-		return abilities.A00002Valid(state, casterIdx)
+		return functions.A00002Valid(state, casterIdx)
 	case 3:
-		return abilities.A00003Valid(state, casterIdx)
+		return functions.A00003Valid(state, casterIdx)
 	case 4: // counter, should never be valid to be initiated by itself
 		return false
+	case 5:
+		return functions.A00005Valid(state, casterIdx)
+	case 6:
+		return functions.A00006Valid(state, casterIdx)
 	}
 	return false
 }
@@ -422,34 +506,53 @@ func CheckValidAbility(state *engine.GameState, casterIdx int, abilityNo int) bo
 // three types of implementations
 // (1) reflect and mult, (2) cancel and return a fixed amount, (3) reflect only up to a certain amount
 // actually, you can think of a bunch more, reflect and boost, reflect to a teammate, etc
-func ApplyCounterChain(state *engine.GameState, defenderIdx int, attackerIdx int, dmg int) {
+func ApplyCounterChain(state *engine.GameState, defenderArr []int, attackerArr []int, functionArr []int, dmg int) {
 
-	defenderQueue := []int{defenderIdx}
-	attackerQueue := []int{attackerIdx}
 	currentDmg := dmg
 
-	for len(defenderQueue) > 0 {
+	for j := 0; j < len(defenderArr); j++ {
 
-		// pop next attacker and defender
-		currDefender := defenderQueue[0]
-		defenderQueue = defenderQueue[1:]
-		currAttacker := attackerQueue[0]
-		attackerQueue = attackerQueue[1:]
+		currDefender := defenderArr[j]
+		currAttacker := attackerArr[j]
+		currFunction := functionArr[j]
+
+		success := true
 
 		// check all abilities for this unit
-		for i := state.AbilityStartIdx[currDefender]; i < state.AbilityStartIdx[currDefender]+state.AbilityCount[currDefender]; i++ {
-			switch state.Abilities[i] {
+		for i := state.FunctionStartIdx[currDefender]; i < state.FunctionStartIdx[currDefender]+state.FunctionCount[currDefender]; i++ {
+			switch state.Functions[i] {
 			case 4: // reflect and mult 1x
-				if abilities.A00004CounterValid(state, i) {
-					currentDmg = abilities.A00004(state, currDefender, currAttacker, currentDmg)
-					state.AbilityCharge[i] = 0
-					defenderQueue = append(defenderQueue, currAttacker)
-					attackerQueue = append(attackerQueue, currDefender)
+				if functions.A00004CounterValid(state, i) {
+					currentDmg = functions.A00004(state, currDefender, currAttacker, currentDmg)
+					state.FunctionCharge[i] = 0
+					defenderArr = append(defenderArr, currAttacker)
+					attackerArr = append(attackerArr, currDefender)
+					functionArr = append(functionArr, 4)
+					success = false
 				}
 			default:
-				// do nothing
 			}
 		}
+
+		//
+		if success {
+			HandlePostEffect(state, defenderArr, attackerArr, functionArr, currAttacker, currDefender, currFunction)
+		}
+
+	}
+
+}
+
+func HandlePostEffect(state *engine.GameState, defenderArr []int, attackerArr []int, functionArr []int, attackerIdx int, defenderIdx int, functionIdx int) {
+
+	functionNo := state.Functions[functionIdx]
+
+	switch functionNo {
+	case 5:
+		functions.A00005Success(state, attackerIdx)
+	case 6:
+		functions.A00005Success(state, attackerIdx)
+	default:
 	}
 
 }
