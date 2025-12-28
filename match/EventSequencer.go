@@ -309,7 +309,7 @@ func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
 	for i := 0; i < len(state.Zone); i++ {
 		if state.HP[i] > 0 && state.Zone[i] == 1 {
 			for j := state.FunctionStartIdx[i]; j < state.FunctionStartIdx[i]+state.FunctionCount[i]; j++ {
-				if state.FunctionType[i] == 0 { // is an auto function
+				if state.FunctionType[j] == 0 { // is an auto function
 					timeLeft := int(state.FunctionSPD[j] - state.FunctionCharge[j])
 					if timeLeft < timeToAutoEvent && CheckValidFunction(state, i, state.Functions[j]) {
 						timeToAutoEvent = timeLeft
@@ -391,7 +391,7 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 					if newState.Zone[i] == 1 {
 						defenders = append(defenders, i)
 						attackers = append(attackers, dueUnit)
-						functions = append(functions, abilityNo)
+						functions = append(functions, dueAbility)
 					}
 				}
 				ApplyCounterChain(newState, defenders, attackers, functions, 2)
@@ -409,7 +409,7 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 				newState.FunctionCharge[dueAbility] = 0
 				defenders := []int{targetIdx}
 				attackers := []int{dueUnit}
-				functions := []int{abilityNo}
+				functions := []int{dueAbility}
 				ApplyCounterChain(newState, defenders, attackers, functions, 50)
 			}
 		case 4:
@@ -421,7 +421,7 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 				newState.FunctionCharge[dueAbility] = 0
 				defenders := []int{targetIdx}
 				attackers := []int{dueUnit}
-				functions := []int{abilityNo}
+				functions := []int{dueAbility}
 				ApplyCounterChain(newState, defenders, attackers, functions, 50)
 			}
 		case 6:
@@ -431,7 +431,7 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 				newState.FunctionCharge[dueAbility] = 0
 				defenders := []int{targetIdx}
 				attackers := []int{dueUnit}
-				functions := []int{abilityNo}
+				functions := []int{dueAbility}
 				ApplyCounterChain(newState, defenders, attackers, functions, 50)
 			}
 		}
@@ -527,7 +527,7 @@ func ApplyCounterChain(state *engine.GameState, defenderArr []int, attackerArr [
 					state.FunctionCharge[i] = 0
 					defenderArr = append(defenderArr, currAttacker)
 					attackerArr = append(attackerArr, currDefender)
-					functionArr = append(functionArr, 4)
+					functionArr = append(functionArr, i)
 					success = false
 				}
 			default:
