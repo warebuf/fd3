@@ -9,6 +9,7 @@ import (
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/functions"
 	"github.com/warebuf/fd3/engine/summon"
+	"github.com/warebuf/fd3/engine/target"
 	"github.com/warebuf/fd3/utility/sort"
 )
 
@@ -113,6 +114,9 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 			fmt.Println("ie", ie)
 
+			// TODO: maybe input should be validated here, before we deconstruct and reconstruct the autoscheduler
+			// notably there is little to no validation in my functions lol
+
 			// remove all autoscheduler events (at most only 1 exists in current design)
 			match.EventPQueue.RemoveFirstAutoScheduler()
 
@@ -138,9 +142,9 @@ func (match *Match) handleDuePQEvents() {
 
 				// check whether the active is truly due, otherwise we can skip
 				dueUnits := []int{} // matches length of dueAbilities
-				dueFunc := []int{}
+				dueFuncs := []int{}
 				if CheckValidFunction(incrementedState, ie.UnitIdx, ie.FuncIdx) {
-					dueFunc = append(dueFunc, ie.FuncIdx)
+					dueFuncs = append(dueFuncs, ie.FuncIdx)
 					dueUnits = append(dueUnits, ie.UnitIdx)
 				} else {
 					continue
@@ -153,15 +157,18 @@ func (match *Match) handleDuePQEvents() {
 						if incrementedState.FunctionType[funcIdx] == 0 { // only check auto functions
 							isValid := CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
 							if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
-								dueFunc = append(dueFunc, funcIdx)
+								dueFuncs = append(dueFuncs, funcIdx)
 								dueUnits = append(dueUnits, i)
 							}
 						}
 					}
 				}
 
+				fmt.Println("dueUnits", dueUnits)
+				fmt.Println("dueFuncs", dueFuncs)
+
 				// activate abilities
-				abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFunc)
+				abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFuncs)
 				if modified {
 					match.GameStates = append(match.GameStates, abilityState)
 					match.BroadcastGameState(abilityState)
@@ -174,6 +181,19 @@ func (match *Match) handleDuePQEvents() {
 					pushAutoScheduler(match, nextAutoEventTime)
 				}
 
+			} else if ie.Type == "Target" {
+				// can change this to an event instead of full gamestate
+				modifiedState, modified := target.SetTargets(incrementedState, nextTimestamp, ie.UnitIdx, ie.FuncIdx, ie.Target1, ie.Target2)
+				if modified {
+					match.GameStates = append(match.GameStates, modifiedState)
+					match.BroadcastGameState(modifiedState)
+					pushCurrentEvent(match, nextTimestamp)
+				}
+				// schedule autoscheduler
+				nextAutoEventTime, success := CalcNextAutoEvent(modifiedState)
+				if success {
+					pushAutoScheduler(match, nextAutoEventTime)
+				}
 			}
 
 		case "NewRound":
@@ -432,7 +452,7 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 				defenders := []int{targetIdx}
 				attackers := []int{dueUnit}
 				functions := []int{dueAbility}
-				ApplyCounterChain(newState, defenders, attackers, functions, 50)
+				ApplyCounterChain(newState, defenders, attackers, functions, 100)
 			}
 		}
 
@@ -442,6 +462,15 @@ func HandleDueFunctions(incrementedState *engine.GameState, dueUnits []int, dueA
 	for i := 0; i < len(newState.HP); i++ {
 		if newState.HP[i] <= 0 {
 			newState.Zone[i] = 2
+		}
+	}
+
+	// iterate through targets, if dead, reset target
+	for i := 0; i < len(newState.FunctionTarget); i++ {
+		if newState.FunctionTarget[i] >= 0 {
+			if newState.Zone[newState.FunctionTarget[i]] == 2 {
+				newState.FunctionTarget[i] = -1
+			}
 		}
 	}
 

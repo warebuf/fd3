@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-func ScheduleSummonEvent(timestamp time.Time, match *Match, clientID string, unitIdx int) {
+func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, unitIdx int, funcIdx int, target1 int, target2 int) {
 
 	// check if client is in the whitelist
 	clientIdx, ok := match.Whitelist[clientID]
@@ -21,35 +21,12 @@ func ScheduleSummonEvent(timestamp time.Time, match *Match, clientID string, uni
 
 	ie := &InputEvent{
 		T:       timestamp,
-		Type:    "Summon",
-		TeamIdx: int(clientIdx),
-		UnitIdx: unitIdx,
-		FuncIdx: -1,
-	}
-
-	match.InputEventChan <- ie
-
-}
-
-func ActiveFunctionEvent(timestamp time.Time, match *Match, clientID string, unitIdx int, funcIdx int) {
-
-	// check if client is in the whitelist
-	clientIdx, ok := match.Whitelist[clientID]
-	if !ok {
-		return
-	}
-
-	// can check that unitIdx is non negative
-	if unitIdx < 0 || funcIdx < 0 {
-		return
-	}
-
-	ie := &InputEvent{
-		T:       timestamp,
-		Type:    "Active",
+		Type:    eventType,
 		TeamIdx: int(clientIdx),
 		UnitIdx: unitIdx,
 		FuncIdx: funcIdx,
+		Target1: target1,
+		Target2: target2,
 	}
 
 	match.InputEventChan <- ie

@@ -34,6 +34,7 @@ type GameState struct {
 	FunctionCount    []int // how many functions belong to each unit
 	FunctionCharge   []int // flattened, saved in millisconds
 	FunctionSPD      []int // flattened, in milliseconds
+	FunctionTarget   []int // on init set to -1, each function gets 2 fixed elements, can be 1-6
 
 	SummonCondition []SummonType
 }
@@ -62,6 +63,7 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 		FunctionCount:    make([]int, 0),
 		FunctionCharge:   make([]int, 0),
 		FunctionSPD:      make([]int, 0),
+		FunctionTarget:   make([]int, 0),
 		SummonCondition:  make([]SummonType, 0),
 	}
 	return gm
@@ -89,6 +91,7 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState.FunctionCount = shallowCopy.IntSlice(prevState.FunctionCount)
 	newState.FunctionCharge = shallowCopy.IntSlice(prevState.FunctionCharge)
 	newState.FunctionSPD = shallowCopy.IntSlice(prevState.FunctionSPD)
+	newState.FunctionTarget = shallowCopy.IntSlice(prevState.FunctionTarget)
 	newState.SummonCondition = CopySummonTypeSlice(prevState.SummonCondition)
 
 	return newState

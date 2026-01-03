@@ -14,6 +14,8 @@ type InputEvent struct {
 	TeamIdx int
 	UnitIdx int
 	FuncIdx int
+	Target1 int
+	Target2 int
 }
 
 func (e *InputEvent) Timestamp() time.Time { return e.T }

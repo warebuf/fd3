@@ -17,6 +17,7 @@ type Model struct {
 type Function struct {
 	FunctionID  int    `json:"FunctionID"`
 	Type        string `json:"Type"`
+	Target      string `json:"Target"`
 	Name        string `json:"Name"`
 	CD          int    `json:"CD"`
 	Description string `json:"Description"`

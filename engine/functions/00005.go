@@ -36,7 +36,7 @@ func A00006(state *engine.GameState, casterIdx int) int {
 	if !ok {
 		return -1
 	}
-	functionHelpers.DamageOne(state, targetIdx, 50)
+	functionHelpers.DamageOne(state, targetIdx, 100)
 
 	// reset all CDs
 	startIndex := state.FunctionStartIdx[casterIdx]

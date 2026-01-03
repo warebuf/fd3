@@ -30,6 +30,10 @@ func DrawUnit(unitModels []engine.Model, prevState *engine.GameState, timestamp 
 		newState.FunctionSPD = append(newState.FunctionSPD, model.Functions[i].CD*1000)
 		newState.FunctionCharge = append(newState.FunctionCharge, 0)
 
+		// each function gets 2 elements for targets
+		newState.FunctionTarget = append(newState.FunctionTarget, -1)
+		newState.FunctionTarget = append(newState.FunctionTarget, -1)
+
 		// push FunctionType as int
 		switch model.Functions[i].Type {
 		case "Auto":
