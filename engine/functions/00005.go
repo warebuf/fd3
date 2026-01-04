@@ -36,7 +36,17 @@ func A00006(state *engine.GameState, casterIdx int) int {
 	if !ok {
 		return -1
 	}
-	functionHelpers.DamageOne(state, targetIdx, 100)
+
+	funcStart := state.FunctionStartIdx[casterIdx]
+	funcStart += 1 // increment by 1 because the second func is the manual one
+	selectedTarget := state.FunctionTarget[funcStart*2]
+
+	// if no selected target, dead unit, or not in active zone, choose random enemy
+	if selectedTarget < 0 || state.HP[selectedTarget] <= 0 || state.Zone[selectedTarget] != 1 {
+		selectedTarget = targetIdx
+	}
+
+	functionHelpers.DamageOne(state, selectedTarget, 100)
 
 	// reset all CDs
 	startIndex := state.FunctionStartIdx[casterIdx]
@@ -48,7 +58,7 @@ func A00006(state *engine.GameState, casterIdx int) int {
 	// spend 75 exp
 	state.EXP[casterIdx] -= 75
 
-	return targetIdx
+	return selectedTarget
 }
 
 // can reuse A00005 for success
@@ -60,6 +70,7 @@ func A00006Valid(state *engine.GameState, casterIdx int) bool {
 	if state.EXP[casterIdx] < 75 {
 		return false
 	}
+
 	teamIdx := state.Team[casterIdx]
 	return functionHelpers.RandomEnemyCheck(state, teamIdx)
 }

@@ -143,7 +143,7 @@ func (match *Match) handleDuePQEvents() {
 				// check whether the active is truly due, otherwise we can skip
 				dueUnits := []int{} // matches length of dueAbilities
 				dueFuncs := []int{}
-				if CheckValidFunction(incrementedState, ie.UnitIdx, ie.FuncIdx) {
+				if CheckValidFunction(incrementedState, ie.UnitIdx, incrementedState.Functions[ie.FuncIdx]) {
 					dueFuncs = append(dueFuncs, ie.FuncIdx)
 					dueUnits = append(dueUnits, ie.UnitIdx)
 				} else {

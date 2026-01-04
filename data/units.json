@@ -65,7 +65,7 @@
           "FunctionID": 4,
           "Type": "Auto",
           "Target": "RE",
-          "Name": "Counterattack",
+          "Name": "Against Effect",
           "CD": 5,
           "Description": "If attacked, reflect the attack back to the attacker"
         }
