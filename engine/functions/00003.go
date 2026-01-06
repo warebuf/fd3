@@ -14,7 +14,6 @@ func A00003(state *engine.GameState, casterIdx int) int {
 	if !ok {
 		return -1
 	}
-	//fmt.Println(casterIdx, "Atk", targetIdx)
 	functionHelpers.DamageOne(state, targetIdx, 50)
 	return targetIdx
 }

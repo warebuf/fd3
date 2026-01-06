@@ -21,6 +21,26 @@ import (
 // this one loop handles pushing inputs into a priority queue
 // and taking out Events, Inputs, and AutoSchedulers from it
 
+// in my mind,
+// previously the design was only intended for one future game state
+// and that future state is only created when it is confirmed proven to occur
+// with freeze time, now instead of multiple events being condensed to 1 state
+// it is now being split into multiple, each occurring at different times
+// due to animation time
+// this means that if an input occurs between these states,
+// the input will force a resim of subsequent events
+// however since we cannot easily tell which events occurred from a single state,
+// we must serialize the events/functions
+
+// now we must maintain two data structures
+// GameStates & SerializedFuncs
+// we create a SerializedFuncs array
+// we follow that array, when it is time for a SerializedFunc,
+// it can create the GameState and share the results
+// therefore, we do not need to manage an array of GameStates anymore
+// we just need a single one
+// we do need an array of SerializedFuncResults however
+
 func (match *Match) EventScheduler() {
 
 	// on init
@@ -163,9 +183,6 @@ func (match *Match) handleDuePQEvents() {
 						}
 					}
 				}
-
-				fmt.Println("dueUnits", dueUnits)
-				fmt.Println("dueFuncs", dueFuncs)
 
 				// activate abilities
 				abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFuncs)
