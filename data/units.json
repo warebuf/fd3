@@ -41,7 +41,7 @@
     },
     { 
       "Number": 2, 
-      "Name": "Attacker", 
+      "Name": "Iago", 
       "HP": 150, 
       "SummonCondition": 1,
       "Functions": [
@@ -57,7 +57,7 @@
     },
     { 
       "Number": 3, 
-      "Name": "Counter", 
+      "Name": "False Hero", 
       "HP": 150, 
       "SummonCondition": 1,
       "Functions": [
