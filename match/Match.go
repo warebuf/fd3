@@ -41,6 +41,14 @@ func (match *Match) DrawCard(team int, modelNo int) {
 	// some work here on incredmenting currentState on time
 }
 
+func (match *Match) CreateStructure(team int, HP int) {
+	timestamp := time.Now()
+	newState := engine.CopyGameState(timestamp, match.GameStates[len(match.GameStates)-1])
+	newState.StructureHP = append(newState.StructureHP, HP)
+	newState.StructureTeam = append(newState.StructureTeam, team)
+	match.GameStates = append(match.GameStates, newState)
+}
+
 // TODO: needs to be censored per client
 func (match *Match) BroadcastGameState(state *engine.GameState) {
 

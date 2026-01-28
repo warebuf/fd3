@@ -18,6 +18,10 @@ type GameState struct {
 	// additional info on the state
 	Round int
 
+	// structure data
+	StructureHP   []int
+	StructureTeam []int
+
 	// team sets: index (unitID) ->  team index
 	Team []int
 	Zone []int // 0: Bench, 1: Field, 2: Dead, 3: QueuedSummon
@@ -41,19 +45,14 @@ type GameState struct {
 	SummonCondition []SummonType
 }
 
-type Telemetry struct {
-	TimesAttacked  []int64 // index (unitID) -> val
-	TimesDefended  []int64
-	DamageDealt    []int64
-	DamageReceived []int64
-}
-
 // CreateGameState initializes an empty game state with outer slices ready
 func CreateFirstGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
 		GameStateID:      GSID,
 		Timestamp:        t,
 		Round:            0,
+		StructureHP:      make([]int, 0),
+		StructureTeam:    make([]int, 0),
 		Team:             make([]int, 0),
 		Zone:             make([]int, 0),
 		ModelNo:          make([]int, 0),
@@ -81,6 +80,9 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		Timestamp:   timestamp,
 		Round:       prevState.Round,
 	}
+
+	newState.StructureHP = shallowCopy.IntSlice(prevState.StructureHP)
+	newState.StructureTeam = shallowCopy.IntSlice(prevState.StructureTeam)
 
 	newState.Team = shallowCopy.IntSlice(prevState.Team)
 	newState.Zone = shallowCopy.IntSlice(prevState.Zone)
