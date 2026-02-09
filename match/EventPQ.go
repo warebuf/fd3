@@ -2,7 +2,6 @@ package match
 
 import (
 	"container/heap"
-	"fmt"
 )
 
 // Priority Queue stuff
@@ -57,8 +56,7 @@ func (pq *EventPQ) RemoveFirstAutoScheduler() {
 	for i, item := range *pq {
 		// Type assertion check for InputEvent
 		if _, ok := item.Event.(*AutoScheduler); ok {
-			removed := heap.Remove(pq, i).(*EventItem)
-			fmt.Println("removed", removed)
+			heap.Remove(pq, i)
 			return
 		}
 	}
