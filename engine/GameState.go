@@ -69,6 +69,7 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 }
 
 func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
+
 	if prevState == nil {
 		return nil
 	}
