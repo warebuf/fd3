@@ -3,7 +3,6 @@
       "Number": 0, 
       "Name": "Generic", 
       "HP": 150,  
-      "SummonCondition": 0,
       "Functions": [
         {
           "FunctionID": 0,
@@ -27,7 +26,6 @@
       "Number": 1, 
       "Name": "Healer", 
       "HP": 150, 
-      "SummonCondition": 1,
       "Functions": [
         {
           "FunctionID": 2,
@@ -43,7 +41,6 @@
       "Number": 2, 
       "Name": "Iago", 
       "HP": 150, 
-      "SummonCondition": 1,
       "Functions": [
         {
           "FunctionID": 3,
@@ -59,7 +56,6 @@
       "Number": 3, 
       "Name": "False Hero", 
       "HP": 150, 
-      "SummonCondition": 1,
       "Functions": [
         {
           "FunctionID": 4,
@@ -75,7 +71,6 @@
       "Number": 4, 
       "Name": "Guinsoo", 
       "HP": 150, 
-      "SummonCondition": 1,
       "Functions": [
         {
           "FunctionID": 5,

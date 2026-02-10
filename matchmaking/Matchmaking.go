@@ -153,7 +153,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 
 		GameStates:    make([]*engine.GameState, 0),
 		CurrentState:  0,
-		NextRoundTime: time.Now().Add(20 * time.Second),
+		NextRoundTime: time.Now().Add(20 * time.Second), // 20s
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,
@@ -167,7 +167,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 
 	m.CreateStructure(0, 10000)
 	m.CreateStructure(1, 10000)
-	
+
 	m.DrawCard(0, 1)
 	m.DrawCard(0, 1)
 	m.DrawCard(0, 1)
