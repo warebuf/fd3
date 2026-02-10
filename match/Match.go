@@ -17,6 +17,8 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
+	ActionList []Action
+
 	GameStates    []*engine.GameState
 	CurrentState  int
 	NextRoundTime time.Time
