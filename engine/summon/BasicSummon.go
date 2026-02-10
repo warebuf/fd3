@@ -11,9 +11,7 @@ func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timesta
 
 	newState := engine.CopyGameState(timestamp, prevState)
 
-	summonType := newState.SummonCondition[unitIdx]
-
-	if newState.Round == 0 && newState.Team[unitIdx] == team && (summonType == engine.SummonTypeNormal || summonType == engine.SummonTypeStart) { // toggle preround summon
+	if newState.Round == 0 && newState.Team[unitIdx] == team { // toggle preround summon
 		if newState.Zone[unitIdx] == 0 {
 			newState.Zone[unitIdx] = 3
 		} else if newState.Zone[unitIdx] == 3 {

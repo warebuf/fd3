@@ -19,7 +19,6 @@ func SpawnSummon(unitModels []engine.Model, prevState *engine.GameState, team in
 	newState.ModelNo = append(newState.ModelNo, modelNo)
 	newState.HP = append(newState.HP, model.HP)
 	newState.EXP = append(newState.EXP, 0)
-	newState.SummonCondition = append(newState.SummonCondition, model.SummonCondition)
 
 	newState.FunctionStartIdx = append(newState.FunctionStartIdx, len(newState.Functions))
 	newState.FunctionCount = append(newState.FunctionCount, len(model.Functions))

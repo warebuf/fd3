@@ -7,11 +7,10 @@ import (
 )
 
 type Model struct {
-	Number          uint       `json:"Number"`
-	Name            string     `json:"Name"`
-	HP              int        `json:"HP"`
-	SummonCondition SummonType `json:"SummonCondition"`
-	Functions       []Function `json:"Functions"`
+	Number    uint       `json:"Number"`
+	Name      string     `json:"Name"`
+	HP        int        `json:"HP"`
+	Functions []Function `json:"Functions"`
 }
 
 type Function struct {
