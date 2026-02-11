@@ -1,5 +1,7 @@
 package match
 
+import "time"
+
 type Action struct {
-	id int
+	Timestamp time.Time
 }

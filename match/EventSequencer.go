@@ -21,33 +21,12 @@ import (
 // this one loop handles pushing inputs into a priority queue
 // and taking out Events, Inputs, and AutoSchedulers from it
 
-// in my mind,
-// previously the design was only intended for one future game state
-// and that future state is only created when it is confirmed proven to occur
-// with freeze time, now instead of multiple events being condensed to 1 state
-// it is now being split into multiple, each occurring at different times
-// due to animation time
-// this means that if an input occurs between these states,
-// the input will force a resim of subsequent events
-// however since we cannot easily tell which events occurred from a single state,
-// we must serialize the events/functions
-
-// now we must maintain two data structures
-// GameStates & SerializedFuncs
-// we create a SerializedFuncs array
-// we follow that array, when it is time for a SerializedFunc,
-// it can create the GameState and share the results
-// therefore, we do not need to manage an array of GameStates anymore
-// we just need a single one
-// we do need an array of SerializedFuncResults however
-
 func (match *Match) EventScheduler() {
 
 	// on init
 	match.SetCurrentState()
 
 	for {
-
 		// clear due PQ events
 		match.handleDuePQEvents()
 
@@ -147,6 +126,7 @@ func (match *Match) handleDuePQEvents() {
 			if ie.Type == "Summon" {
 
 				// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
+				// pass the arr of actions
 				newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
 				match.GameStates = append(match.GameStates, newState)
 				match.BroadcastGameState(newState)
