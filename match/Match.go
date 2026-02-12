@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/actions"
 	"github.com/warebuf/fd3/engine/draw"
-	"github.com/warebuf/fd3/engine/summon"
 )
 
 type Match struct {
@@ -17,7 +17,7 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	ActionList []Action
+	ActionList []actions.Action
 
 	GameStates    []*engine.GameState
 	CurrentState  int
@@ -27,13 +27,6 @@ type Match struct {
 	EventPQueue    EventPQ
 	EventPQTimer   *time.Timer
 	NextSeq        int
-}
-
-func (match *Match) SummonUnit(team int, modelNo int) {
-	t := time.Now()
-	newState := summon.BasicSummon(match.UnitModels, match.GameStates[len(match.GameStates)-1], t, team, modelNo)
-	match.GameStates = append(match.GameStates, newState)
-	// maybe some work here around incrementing currentState on time
 }
 
 func (match *Match) DrawCard(team int, modelNo int) {

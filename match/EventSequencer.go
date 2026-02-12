@@ -127,7 +127,8 @@ func (match *Match) handleDuePQEvents() {
 
 				// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
 				// pass the arr of actions
-				newState := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
+				newState, newActions := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
+				fmt.Println("newActions", newActions)
 				match.GameStates = append(match.GameStates, newState)
 				match.BroadcastGameState(newState)
 				pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ

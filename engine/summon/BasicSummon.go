@@ -5,11 +5,14 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/actions"
 )
 
-func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timestamp time.Time, team int, unitIdx int) *engine.GameState {
+func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timestamp time.Time, team int, unitIdx int) (*engine.GameState, []actions.Action) {
 
 	newState := engine.CopyGameState(timestamp, prevState)
+
+	var ActionList []actions.Action
 
 	if newState.Round == 0 && newState.Team[unitIdx] == team { // toggle preround summon
 		if newState.Zone[unitIdx] == 0 {
@@ -23,10 +26,10 @@ func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timesta
 		newState.Zone[unitIdx] = 1
 	} else {
 		fmt.Println("invalid BasicSummon", unitIdx, team, newState.Team[unitIdx], newState.Zone[unitIdx])
-		return newState
+		return newState, ActionList
 	}
 
 	// trigger any effects
 
-	return newState
+	return newState, ActionList
 }
