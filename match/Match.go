@@ -17,10 +17,10 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	ActionList []actions.Action
+	GameState      *engine.GameState // what the game state should be 200 ms from now
+	PublishedState *engine.GameState // a copy of GameState that the players can read
+	ActionLog      []actions.Action  // a log of all events that have occurred
 
-	GameStates    []*engine.GameState
-	CurrentState  int
 	NextRoundTime time.Time
 
 	InputEventChan chan *InputEvent

@@ -52,12 +52,12 @@ func (pq EventPQ) Peek() (*EventItem, bool) {
 	return pq[0], true
 }
 
-func (pq *EventPQ) RemoveFirstAutoScheduler() {
-	for i, item := range *pq {
-		// Type assertion check for InputEvent
+func (pq *EventPQ) RemoveAllAutoSchedulers() {
+	for i := pq.Len() - 1; i >= 0; i-- {
+		item := (*pq)[i]
+
 		if _, ok := item.Event.(*AutoScheduler); ok {
 			heap.Remove(pq, i)
-			return
 		}
 	}
 }

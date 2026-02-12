@@ -72,7 +72,7 @@ func (match *Match) handleDuePQEvents() {
 
 			//increment
 			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
-			incrementedState := IncrementState(match.GameStates[len(match.GameStates)-1], autoEventTime)
+			incrementedState := IncrementState(&match.GameState, autoEventTime)
 
 			// figure out which abilities are due
 			dueUnits := []int{} // matches length of dueAbilities
@@ -104,20 +104,15 @@ func (match *Match) handleDuePQEvents() {
 				pushAutoScheduler(match, nextAutoEventTime)
 			}
 
-		case "Current":
-			match.CurrentState += 1
-			fmt.Println("moved to Current State", match.CurrentState, "/", len(match.GameStates)-1)
-
 		case "Input":
 			fmt.Println("received Input")
 			ie := next.Event.(*InputEvent)
 			fmt.Println("ie", ie)
 
-			// TODO: maybe input should be validated here, before we deconstruct and reconstruct the autoscheduler
-			// notably there is little to no validation in my functions lol
+			// TODO: notably there is little to no validation
 
 			// remove all autoscheduler events (at most only 1 exists in current design)
-			match.EventPQueue.RemoveFirstAutoScheduler()
+			match.EventPQueue.RemoveAllAutoSchedulers()
 
 			// increment the state from the last confirmed GameState
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
@@ -125,13 +120,15 @@ func (match *Match) handleDuePQEvents() {
 
 			if ie.Type == "Summon" {
 
-				// apply the event and create a new GameState (TODO: broadcast an event instead of a full GameState)
-				// pass the arr of actions
+				// apply the event
 				newState, newActions := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
 				fmt.Println("newActions", newActions)
-				match.GameStates = append(match.GameStates, newState)
-				match.BroadcastGameState(newState)
-				pushCurrentEvent(match, nextTimestamp) // add the currentEvent to the PQ
+
+				// set the match game state to newState
+
+				// append the new action / schedule the action resolution
+
+				// share the new action
 
 				// schedule autoscheduler
 				nextAutoEventTime, success := CalcNextAutoEvent(newState)
@@ -197,8 +194,8 @@ func (match *Match) handleDuePQEvents() {
 		case "NewRound":
 			fmt.Println("received NewRound")
 
-			// remove all autoscheduler events (at most only 1 exists in current design)
-			match.EventPQueue.RemoveFirstAutoScheduler()
+			// remove all autoscheduler events
+			match.EventPQueue.RemoveAllAutoSchedulers()
 
 			// copy state
 			roundTimestamp := next.Event.Timestamp().Add(200 * time.Millisecond)

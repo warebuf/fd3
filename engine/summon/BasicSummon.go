@@ -12,7 +12,7 @@ func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timesta
 
 	newState := engine.CopyGameState(timestamp, prevState)
 
-	var ActionList []actions.Action
+	var logs []actions.Action
 
 	if newState.Round == 0 && newState.Team[unitIdx] == team { // toggle preround summon
 		if newState.Zone[unitIdx] == 0 {
@@ -26,10 +26,10 @@ func BasicSummon(unitModels []engine.Model, prevState *engine.GameState, timesta
 		newState.Zone[unitIdx] = 1
 	} else {
 		fmt.Println("invalid BasicSummon", unitIdx, team, newState.Team[unitIdx], newState.Zone[unitIdx])
-		return newState, ActionList
+		return newState, logs
 	}
 
 	// trigger any effects
 
-	return newState, ActionList
+	return newState, logs
 }
