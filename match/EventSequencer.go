@@ -72,7 +72,7 @@ func (match *Match) handleDuePQEvents() {
 
 			//increment
 			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond)
-			incrementedState := IncrementState(&match.GameState, autoEventTime)
+			incrementedState := IncrementState(match.GameState, autoEventTime)
 
 			// figure out which abilities are due
 			dueUnits := []int{} // matches length of dueAbilities
@@ -116,7 +116,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// increment the state from the last confirmed GameState
 			nextTimestamp := ie.T.Add(200 * time.Millisecond)
-			incrementedState := IncrementState(match.GameStates[len(match.GameStates)-1], nextTimestamp)
+			incrementedState := IncrementState(match.GameState, nextTimestamp)
 
 			if ie.Type == "Summon" {
 
@@ -127,6 +127,8 @@ func (match *Match) handleDuePQEvents() {
 				// set the match game state to newState
 
 				// append the new action / schedule the action resolution
+
+				// update shared state
 
 				// share the new action
 
