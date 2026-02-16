@@ -2,7 +2,7 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functionHelpers"
+	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // deal 50 damage to a random enemy
@@ -10,11 +10,11 @@ import (
 // return target index
 func A00003(state *engine.GameState, casterIdx int) int {
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := functionHelpers.RandomEnemy(state, teamIdx)
+	targetIdx, ok := functions_shared.RandomEnemy(state, teamIdx)
 	if !ok {
 		return -1
 	}
-	functionHelpers.DamageOne(state, targetIdx, 50)
+	functions_shared.DamageOne(state, targetIdx, 50)
 	return targetIdx
 }
 
@@ -23,5 +23,5 @@ func A00003Valid(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	teamIdx := state.Team[casterIdx]
-	return functionHelpers.RandomEnemyCheck(state, teamIdx)
+	return functions_shared.RandomEnemyCheck(state, teamIdx)
 }

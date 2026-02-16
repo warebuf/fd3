@@ -45,7 +45,7 @@ func (match *Match) CreateStructure(team int, HP int) {
 }
 
 // TODO: needs to be censored per client
-func (match *Match) BroadcastGameState(state *engine.GameState) {
+func (match *Match) BroadcastPublishedState() {
 
 	// serialize game state
 	wrapper := struct {
@@ -53,7 +53,7 @@ func (match *Match) BroadcastGameState(state *engine.GameState) {
 		Data interface{} `json:"data"`
 	}{
 		Type: "fullState",
-		Data: state,
+		Data: match.PublishedState,
 	}
 	gameStateJSON, err := json.Marshal(wrapper)
 	if err != nil {
@@ -65,6 +65,32 @@ func (match *Match) BroadcastGameState(state *engine.GameState) {
 	for key, client := range match.ByUser {
 		select {
 		case client.LowPrio <- gameStateJSON:
+		default:
+			fmt.Println("dropped packet to", key)
+		}
+	}
+}
+
+func (match *Match) BroadcastActions(acts []actions.Action) {
+	// serialize actions
+	wrapper := struct {
+		Type string `json:"type"`
+		Data any    `json:"data"`
+	}{
+		Type: "actions",
+		Data: acts,
+	}
+
+	payload, err := json.Marshal(wrapper)
+	if err != nil {
+		fmt.Println("problem marshaling actions:", err)
+		return
+	}
+
+	// send to all clients
+	for key, client := range match.ByUser {
+		select {
+		case client.LowPrio <- payload:
 		default:
 			fmt.Println("dropped packet to", key)
 		}

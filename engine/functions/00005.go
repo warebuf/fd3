@@ -2,17 +2,17 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functionHelpers"
+	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // deal 50 damage to a random unit, gain 25 exp
 func A00005(state *engine.GameState, casterIdx int) int {
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := functionHelpers.RandomEnemy(state, teamIdx)
+	targetIdx, ok := functions_shared.RandomEnemy(state, teamIdx)
 	if !ok {
 		return -1
 	}
-	functionHelpers.DamageOne(state, targetIdx, 50)
+	functions_shared.DamageOne(state, targetIdx, 50)
 	return targetIdx
 }
 
@@ -25,14 +25,14 @@ func A00005Valid(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	teamIdx := state.Team[casterIdx]
-	return functionHelpers.RandomEnemyCheck(state, teamIdx)
+	return functions_shared.RandomEnemyCheck(state, teamIdx)
 }
 
 // deal 100 to a random unit, reset all CDs
 func A00006(state *engine.GameState, casterIdx int) int {
 	// deal 100 damage
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := functionHelpers.RandomEnemy(state, teamIdx)
+	targetIdx, ok := functions_shared.RandomEnemy(state, teamIdx)
 	if !ok {
 		return -1
 	}
@@ -46,7 +46,7 @@ func A00006(state *engine.GameState, casterIdx int) int {
 		selectedTarget = targetIdx
 	}
 
-	functionHelpers.DamageOne(state, selectedTarget, 100)
+	functions_shared.DamageOne(state, selectedTarget, 100)
 
 	// reset all CDs
 	startIndex := state.FunctionStartIdx[casterIdx]
@@ -72,5 +72,5 @@ func A00006Valid(state *engine.GameState, casterIdx int) bool {
 	}
 
 	teamIdx := state.Team[casterIdx]
-	return functionHelpers.RandomEnemyCheck(state, teamIdx)
+	return functions_shared.RandomEnemyCheck(state, teamIdx)
 }
