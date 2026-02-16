@@ -2,7 +2,7 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functionHelpers"
+	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // TODO: add the summon draw and target (?) functions
@@ -10,10 +10,10 @@ import (
 // summon a unit
 func A99999(state *engine.GameState, casterIdx int) int {
 	teamIdx := state.Team[casterIdx]
-	targetIdx, ok := functionHelpers.RandomEnemy(state, teamIdx)
+	targetIdx, ok := functions_shared.RandomEnemy(state, teamIdx)
 	if !ok {
 		return -1
 	}
-	functionHelpers.DamageOne(state, targetIdx, 50)
+	functions_shared.DamageOne(state, targetIdx, 50)
 	return targetIdx
 }

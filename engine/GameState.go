@@ -1,19 +1,18 @@
 package engine
 
 import (
-	"fmt"
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/warebuf/fd3/utility/shallowCopy"
 )
 
 type GameState struct {
-	// time the state is set for
+
+	//
 	GameStateID int
-	Timestamp   time.Time
+
+	// time the state is set for
+	Timestamp time.Time
 
 	// additional info on the state
 	Round int
@@ -33,10 +32,13 @@ type GameState struct {
 	HP  []int
 	EXP []int
 
+	// summon resolution
+	SummonCharge []int // in milliseconds
+
 	// functions
+	FunctionStartIdx []int // the starting index in Functions[] for this unit
 	Functions        []int // abilities are flattened for each unit
 	FunctionType     []int // 0 is auto, 1 is manual, 2 is passive
-	FunctionStartIdx []int // the starting index in Functions[] for this unit
 	FunctionCount    []int // how many functions belong to each unit
 	FunctionCharge   []int // flattened, saved in millisconds
 	FunctionSPD      []int // flattened, in milliseconds
@@ -57,6 +59,7 @@ func CreateFirstGameState(t time.Time, GSID int) *GameState {
 		ModelNo:          make([]int, 0),
 		HP:               make([]int, 0),
 		EXP:              make([]int, 0),
+		SummonCharge:     make([]int, 0),
 		Functions:        make([]int, 0),
 		FunctionType:     make([]int, 0),
 		FunctionStartIdx: make([]int, 0),
@@ -85,9 +88,18 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 
 	newState.Team = shallowCopy.IntSlice(prevState.Team)
 	newState.Zone = shallowCopy.IntSlice(prevState.Zone)
+
+	//
 	newState.ModelNo = shallowCopy.IntSlice(prevState.ModelNo)
+
+	//
 	newState.HP = shallowCopy.IntSlice(prevState.HP)
 	newState.EXP = shallowCopy.IntSlice(prevState.EXP)
+
+	//
+	newState.SummonCharge = shallowCopy.IntSlice(prevState.SummonCharge)
+
+	//
 	newState.Functions = shallowCopy.IntSlice(prevState.Functions)
 	newState.FunctionType = shallowCopy.IntSlice(prevState.FunctionType)
 	newState.FunctionStartIdx = shallowCopy.IntSlice(prevState.FunctionStartIdx)
@@ -97,87 +109,4 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState.FunctionTarget = shallowCopy.IntSlice(prevState.FunctionTarget)
 
 	return newState
-}
-
-func PrintState(state *GameState) {
-	for i := 0; i < len(state.HP); i++ {
-		if state.Team[i] == 0 {
-			fmt.Printf(strconv.Itoa(state.ModelNo[i]) + ":" + strconv.Itoa(state.HP[i]) + " ")
-		}
-	}
-	fmt.Println("")
-	for i := 0; i < len(state.HP); i++ {
-		if state.Team[i] == 1 {
-			fmt.Printf(strconv.Itoa(state.ModelNo[i]) + ":" + strconv.Itoa(state.HP[i]) + " ")
-		}
-	}
-	fmt.Println("")
-}
-
-// each unit retains order, simply save HP
-func ConvertStateToHPKey(state *GameState) string {
-
-	teamStrings := []string{}
-
-	i := 0
-	for {
-		currentString := ""
-		for j := 0; j < len(state.HP); j++ {
-			if state.Team[j] == i {
-				currentString += strconv.Itoa(state.ModelNo[j])
-				currentString += ":"
-				currentString += strconv.Itoa(state.HP[j])
-				currentString += " "
-			}
-		}
-
-		if len(currentString) == 0 {
-			break
-		}
-
-		teamStrings = append(teamStrings, currentString)
-		i += 1
-
-	}
-
-	return strings.Join(teamStrings, ";")
-}
-
-// sort by ID
-func ConvertStateToModelNoKey(state *GameState) string {
-
-	teamStrings := []string{}
-
-	i := 0
-	found := false
-	for {
-		units := []int{}
-		for j := 0; j < len(state.ModelNo); j++ {
-			if state.Team[j] == i {
-				found = true
-				if state.HP[j] > 0 {
-					units = append(units, state.ModelNo[j])
-				}
-			}
-		}
-
-		if !found {
-			break
-		}
-
-		// sort
-		sort.Ints(units)
-
-		// convert to strings
-		unitStrings := make([]string, len(units))
-		for a, b := range units {
-			unitStrings[a] = strconv.Itoa(b)
-		}
-
-		teamStrings = append(teamStrings, strings.Join(unitStrings, ","))
-		i += 1
-		found = false
-	}
-
-	return strings.Join(teamStrings, ";")
 }

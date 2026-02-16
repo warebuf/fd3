@@ -2,12 +2,12 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functionHelpers"
+	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // deal 2 damage to all
 func A00001(state *engine.GameState, casterIdx int) bool {
-	functionHelpers.DamageAll(state, 2)
+	functions_shared.DamageAll(state, 2)
 	return true
 }
 
