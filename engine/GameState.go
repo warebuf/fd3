@@ -37,9 +37,9 @@ type GameState struct {
 
 	// functions
 	FunctionStartIdx []int // the starting index in Functions[] for this unit
+	FunctionCount    []int // how many functions belong to each unit
 	Functions        []int // abilities are flattened for each unit
 	FunctionType     []int // 0 is auto, 1 is manual, 2 is passive
-	FunctionCount    []int // how many functions belong to each unit
 	FunctionCharge   []int // flattened, saved in millisconds
 	FunctionSPD      []int // flattened, in milliseconds
 	FunctionTarget   []int // on init set to -1, each function gets 2 fixed elements, can be 1-6

@@ -6,8 +6,9 @@ import (
 )
 
 // deal 2 damage to all
-func A00001(state *engine.GameState, casterIdx int) bool {
+func A00001(state *engine.GameState, functionIndex int) bool {
 	functions_shared.DamageAll(state, 2)
+	state.FunctionCharge[functionIndex] = 0
 	return true
 }
 

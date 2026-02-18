@@ -1,5 +1,0 @@
-package simulate
-
-func getDue() {
-
-}

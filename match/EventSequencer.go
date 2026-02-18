@@ -7,11 +7,9 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functions"
 	"github.com/warebuf/fd3/engine/simulate"
 	"github.com/warebuf/fd3/engine/summon"
 	"github.com/warebuf/fd3/engine/target"
-	"github.com/warebuf/fd3/utility/sort"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -93,7 +91,6 @@ func (match *Match) handleDuePQEvents() {
 			if modified {
 				match.GameStates = append(match.GameStates, abilityState)
 				match.BroadcastGameState(abilityState)
-				pushCurrentEvent(match, autoEventTime)
 			}
 
 			// schedule next AutoScheduler
@@ -169,7 +166,6 @@ func (match *Match) handleDuePQEvents() {
 				if modified {
 					match.GameStates = append(match.GameStates, abilityState)
 					match.BroadcastGameState(abilityState)
-					pushCurrentEvent(match, nextTimestamp)
 				}
 
 				// schedule next AutoScheduler
@@ -184,7 +180,6 @@ func (match *Match) handleDuePQEvents() {
 				if modified {
 					match.GameStates = append(match.GameStates, modifiedState)
 					match.BroadcastGameState(modifiedState)
-					pushCurrentEvent(match, nextTimestamp)
 				}
 				// schedule autoscheduler
 				nextAutoEventTime, success := CalcNextAutoEvent(modifiedState)
@@ -367,94 +362,5 @@ func (match *Match) setPQTimer() {
 		delay = 0
 	}
 	match.EventPQTimer = time.NewTimer(delay)
-
-}
-
-func sortFunctionsByPrio(state *engine.GameState, dueFunctions []int) []int {
-
-	funcNo := make([]int, len(dueFunctions))
-	for i := 0; i < len(dueFunctions); i++ {
-		funcNo[i] = state.Functions[dueFunctions[i]]
-	}
-
-	prio := make([]int, len(funcNo))
-
-	// heal has prio over damage
-	for i := 0; i < len(funcNo); i++ {
-		switch funcNo[i] {
-		case 0:
-			prio[i] = 0
-		case 1:
-			prio[i] = 1
-		case 2:
-			prio[i] = 0
-		case 3:
-			prio[i] = 1
-		case 4: // counter, should not be sorted because cannot be activated by itself
-			prio[i] = 2
-		case 5:
-			prio[i] = 1
-		case 6:
-			prio[i] = 1
-		}
-	}
-
-	sorted := sort.SortedIndexes(prio)
-
-	return sorted
-
-}
-
-// three types of implementations
-// (1) reflect and mult, (2) cancel and return a fixed amount, (3) reflect only up to a certain amount
-// actually, you can think of a bunch more, reflect and boost, reflect to a teammate, etc
-func ApplyCounterChain(state *engine.GameState, defenderArr []int, attackerArr []int, functionArr []int, dmg int) {
-
-	currentDmg := dmg
-
-	for j := 0; j < len(defenderArr); j++ {
-
-		currDefender := defenderArr[j]
-		currAttacker := attackerArr[j]
-		currFunction := functionArr[j]
-
-		success := true
-
-		// check all abilities for this unit
-		for i := state.FunctionStartIdx[currDefender]; i < state.FunctionStartIdx[currDefender]+state.FunctionCount[currDefender]; i++ {
-			switch state.Functions[i] {
-			case 4: // reflect and mult 1x
-				if functions.A00004CounterValid(state, i) {
-					currentDmg = functions.A00004(state, currDefender, currAttacker, currentDmg)
-					state.FunctionCharge[i] = 0
-					defenderArr = append(defenderArr, currAttacker)
-					attackerArr = append(attackerArr, currDefender)
-					functionArr = append(functionArr, i)
-					success = false
-				}
-			default:
-			}
-		}
-
-		//
-		if success {
-			HandlePostEffect(state, defenderArr, attackerArr, functionArr, currAttacker, currDefender, currFunction)
-		}
-
-	}
-
-}
-
-func HandlePostEffect(state *engine.GameState, defenderArr []int, attackerArr []int, functionArr []int, attackerIdx int, defenderIdx int, functionIdx int) {
-
-	functionNo := state.Functions[functionIdx]
-
-	switch functionNo {
-	case 5:
-		functions.A00005Success(state, attackerIdx)
-	case 6:
-		functions.A00005Success(state, attackerIdx)
-	default:
-	}
 
 }

@@ -4,88 +4,78 @@ import (
 	"fmt"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/actions"
 	"github.com/warebuf/fd3/engine/functions"
+	"github.com/warebuf/fd3/engine/summon"
 )
 
-func Simulate(state *engine.GameState, dueUnits []int, dueAbilities []int) (*engine.GameState, bool) {
+func Simulate(state *engine.GameState, due []Due) []actions.Action {
 
-	modified := false
+	var logs []actions.Action
 
-	prio := sortFunctionsByPrio(state, dueAbilities)
+	prio := sortDue(state, due)
 
+	// iterate through sorted, applying actions to the state
 	for i := 0; i < len(prio); i++ {
 
-		idx := prio[i]
+		if due[i].kind == "summon" {
+			newLogs := summon.SummonResolution(state, prio[i].unitIndex)
+			logs = append(logs, newLogs...)
+		} else if due[i].kind == "function" {
+			abilityNo := state.Functions[due[i].abilityIndex]
+			switch abilityNo {
+			case 0:
+				logs = functions.A00000(state, due[i].unitIndex, due[i].abilityIndex, logs)
+			case 1:
+				if functions.A00001(state, due[i].abilityIndex) {
+					logs = append(logs, actions.Action{
+						Timestamp:     state.Timestamp,
+						Type:          "function",
+						UnitIndex:     due[i].unitIndex,
+						FunctionIndex: due[i].abilityIndex,
+						FunctionNo:    abilityNo,
+					})
 
-		dueUnit := dueUnits[idx]
-		dueAbility := dueAbilities[idx]
-		abilityNo := state.Functions[dueAbility]
-
-		// could use an array of functions but will use a switch statement for now
-		switch abilityNo {
-		case 0:
-			occurred := functions.A00000(state, dueUnit)
-			if occurred {
-				modified = true
-				state.FunctionCharge[dueAbility] = 0
-			}
-		case 1:
-			occurred := functions.A00001(state, dueUnit)
-			if occurred {
-				modified = true
-				state.FunctionCharge[dueAbility] = 0
-				defenders := []int{}
-				attackers := []int{}
-				functions := []int{}
-				for i := 0; i < len(state.Zone); i++ {
-					if state.Zone[i] == 1 {
-						defenders = append(defenders, i)
-						attackers = append(attackers, dueUnit)
-						functions = append(functions, dueAbility)
+					defenders := []int{}
+					attackers := []int{}
+					functions := []int{}
+					for i := 0; i < len(state.Zone); i++ {
+						if state.Zone[i] == 1 {
+							defenders = append(defenders, i)
+							attackers = append(attackers, due[i].unitIndex)
+							functions = append(functions, due[i].abilityIndex)
+						}
 					}
+					ApplyCounterChain(state, defenders, attackers, functions, 2)
 				}
-				ApplyCounterChain(state, defenders, attackers, functions, 2)
+			case 2:
+				occurred := functions.A00002(state, dueUnit)
+				if occurred {
+					state.FunctionCharge[dueAbility] = 0
+				}
+			case 3:
+				targetIdx := functions.A00003(state, dueUnit)
+				if targetIdx >= 0 {
+					state.FunctionCharge[dueAbility] = 0
+					ApplyCounterChain(state, []int{targetIdx}, []int{dueUnit}, []int{dueAbility}, 50)
+				}
+			case 4:
+				fmt.Println("cannot handle counterattack here, there is a bug")
+			case 5:
+				targetIdx := functions.A00005(state, dueUnit)
+				if targetIdx >= 0 {
+					state.FunctionCharge[dueAbility] = 0
+					ApplyCounterChain(state, []int{targetIdx}, []int{dueUnit}, []int{dueAbility}, 50)
+				}
+			case 6:
+				targetIdx := functions.A00006(state, dueUnit)
+				if targetIdx >= 0 {
+					state.FunctionCharge[dueAbility] = 0
+					ApplyCounterChain(state, []int{targetIdx}, []int{dueUnit}, []int{dueAbility}, 100)
+				}
 			}
-		case 2:
-			occurred := functions.A00002(state, dueUnit)
-			if occurred {
-				state.FunctionCharge[dueAbility] = 0
-				modified = true
-			}
-		case 3:
-			targetIdx := functions.A00003(state, dueUnit)
-			if targetIdx >= 0 {
-				modified = true
-				state.FunctionCharge[dueAbility] = 0
-				defenders := []int{targetIdx}
-				attackers := []int{dueUnit}
-				functions := []int{dueAbility}
-				ApplyCounterChain(state, defenders, attackers, functions, 50)
-			}
-		case 4:
-			fmt.Println("cannot handle counterattack here, there is a bug")
-		case 5:
-			targetIdx := functions.A00005(state, dueUnit)
-			if targetIdx >= 0 {
-				modified = true
-				state.FunctionCharge[dueAbility] = 0
-				defenders := []int{targetIdx}
-				attackers := []int{dueUnit}
-				functions := []int{dueAbility}
-				ApplyCounterChain(state, defenders, attackers, functions, 50)
-			}
-		case 6:
-			targetIdx := functions.A00006(state, dueUnit)
-			if targetIdx >= 0 {
-				modified = true
-				state.FunctionCharge[dueAbility] = 0
-				defenders := []int{targetIdx}
-				attackers := []int{dueUnit}
-				functions := []int{dueAbility}
-				ApplyCounterChain(state, defenders, attackers, functions, 100)
-			}
-		}
 
+		}
 	}
 
 	// mark dead as dead
@@ -104,5 +94,5 @@ func Simulate(state *engine.GameState, dueUnits []int, dueAbilities []int) (*eng
 		}
 	}
 
-	return state, modified
+	return logs
 }
