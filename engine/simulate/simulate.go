@@ -9,6 +9,24 @@ import (
 	"github.com/warebuf/fd3/engine/summon"
 )
 
+func Simulate2(state *engine.GameState, due []Due) []actions.Action {
+
+	var logs []actions.Action
+
+	prio := sortDue(state, due)
+
+	for i := 0; i < len(prio); i++ {
+
+		if due[i].kind == "summon" {
+		} else if due[i].kind == "function" {
+		}
+
+	}
+
+	return logs
+
+}
+
 func Simulate(state *engine.GameState, due []Due) []actions.Action {
 
 	var logs []actions.Action
@@ -27,36 +45,23 @@ func Simulate(state *engine.GameState, due []Due) []actions.Action {
 			case 0:
 				logs = functions.A00000(state, due[i].unitIndex, due[i].abilityIndex, logs)
 			case 1:
-				if functions.A00001(state, due[i].abilityIndex) {
-					logs = append(logs, actions.Action{
-						Timestamp:     state.Timestamp,
-						Type:          "function",
-						UnitIndex:     due[i].unitIndex,
-						FunctionIndex: due[i].abilityIndex,
-						FunctionNo:    abilityNo,
-					})
-
-					defenders := []int{}
-					attackers := []int{}
-					functions := []int{}
-					for i := 0; i < len(state.Zone); i++ {
-						if state.Zone[i] == 1 {
-							defenders = append(defenders, i)
-							attackers = append(attackers, due[i].unitIndex)
-							functions = append(functions, due[i].abilityIndex)
-						}
+				logs = functions.A00001(state, due[i].unitIndex, due[i].abilityIndex, logs)
+				defenders := []int{}
+				attackers := []int{}
+				functions := []int{}
+				for i := 0; i < len(state.Zone); i++ {
+					if state.Zone[i] == 1 {
+						defenders = append(defenders, i)
+						attackers = append(attackers, due[i].unitIndex)
+						functions = append(functions, due[i].abilityIndex)
 					}
-					ApplyCounterChain(state, defenders, attackers, functions, 2)
 				}
+				ApplyCounterChain(state, defenders, attackers, functions, 2)
 			case 2:
-				occurred := functions.A00002(state, dueUnit)
-				if occurred {
-					state.FunctionCharge[dueAbility] = 0
-				}
+				logs = functions.A00002(state, due[i].unitIndex, due[i].abilityIndex, logs)
 			case 3:
-				targetIdx := functions.A00003(state, dueUnit)
+				targetIdx := functions.A00003(state, due[i].unitIndex, due[i].abilityIndex, logs)
 				if targetIdx >= 0 {
-					state.FunctionCharge[dueAbility] = 0
 					ApplyCounterChain(state, []int{targetIdx}, []int{dueUnit}, []int{dueAbility}, 50)
 				}
 			case 4:

@@ -13,9 +13,6 @@ func ApplyCounterChain(state *engine.GameState, defenderArr []int, attackerArr [
 
 		currDefender := defenderArr[j]
 		currAttacker := attackerArr[j]
-		currFunction := functionArr[j]
-
-		success := true
 
 		// check all abilities for this unit
 		for i := state.FunctionStartIdx[currDefender]; i < state.FunctionStartIdx[currDefender]+state.FunctionCount[currDefender]; i++ {
@@ -27,15 +24,9 @@ func ApplyCounterChain(state *engine.GameState, defenderArr []int, attackerArr [
 					defenderArr = append(defenderArr, currAttacker)
 					attackerArr = append(attackerArr, currDefender)
 					functionArr = append(functionArr, i)
-					success = false
 				}
 			default:
 			}
-		}
-
-		//
-		if success {
-			HandlePostEffect(state, defenderArr, attackerArr, functionArr, currAttacker, currDefender, currFunction)
 		}
 
 	}
