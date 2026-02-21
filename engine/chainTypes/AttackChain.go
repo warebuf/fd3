@@ -2,7 +2,7 @@ package chainTypes
 
 // Declaration -> Reaction -> Resolution
 
-type AttackDeclaration struct {
+type ConcurrentAttackDeclaration struct {
 	AttackerIndex int
 	Damage        int
 	TargetIndexes []int
@@ -10,13 +10,13 @@ type AttackDeclaration struct {
 	Cancelled bool // group level
 }
 
-type AttackWindow struct {
-	Parent      *AttackDeclaration
+type ConcurrentAttackWindow struct {
+	Parent      *ConcurrentAttackDeclaration
 	TargetIndex int
 }
 
-type AttackResolution struct {
-	Parent      *AttackWindow
+type ConcurrentAttackResolution struct {
+	Parent      *ConcurrentAttackWindow
 	DamageDealt int
 
 	Negated bool // individual level
@@ -41,9 +41,3 @@ type SequentialAttackResolution struct {
 
 	Negated bool
 }
-
-// summon
-
-// summon reaction
-
-// summon resolution
