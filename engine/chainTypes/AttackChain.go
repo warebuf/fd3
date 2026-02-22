@@ -10,10 +10,14 @@ type ConcurrentAttackDeclaration struct {
 	Cancelled bool // group level
 }
 
+func (ConcurrentAttackDeclaration) Kind() string { return "ConcurrentAttackDeclaration" }
+
 type ConcurrentAttackWindow struct {
 	Parent      *ConcurrentAttackDeclaration
 	TargetIndex int
 }
+
+func (ConcurrentAttackWindow) Kind() string { return "ConcurrentAttackWindow" }
 
 type ConcurrentAttackResolution struct {
 	Parent      *ConcurrentAttackWindow
@@ -21,6 +25,8 @@ type ConcurrentAttackResolution struct {
 
 	Negated bool // individual level
 }
+
+func (ConcurrentAttackResolution) Kind() string { return "ConcurrentAttackResolution" }
 
 type SequentialAttackDeclaration struct {
 	AttackerIndex int
@@ -30,10 +36,14 @@ type SequentialAttackDeclaration struct {
 	Cancelled bool
 }
 
+func (SequentialAttackDeclaration) Kind() string { return "SequentialAttackDeclaration" }
+
 type SequentialAttackWindow struct {
 	Parent      *SequentialAttackDeclaration
 	TargetIndex int
 }
+
+func (SequentialAttackWindow) Kind() string { return "SequentialAttackWindow" }
 
 type SequentialAttackResolution struct {
 	Parent      *SequentialAttackWindow
@@ -41,3 +51,5 @@ type SequentialAttackResolution struct {
 
 	Negated bool
 }
+
+func (SequentialAttackResolution) Kind() string { return "SequentialAttackResolution" }
