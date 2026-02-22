@@ -1,4 +1,4 @@
-package functions_shared
+package helpers
 
 import "github.com/warebuf/fd3/engine"
 
