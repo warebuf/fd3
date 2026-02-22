@@ -32,7 +32,10 @@ func Simulate(state *engine.GameState, activatedAbilities []int) {
 		// check if they want to be summoned
 		if state.HP[unitIndex] > 0 && state.Zone[unitIndex] == 3 { // presummon zone
 			if state.SummonCharge[unitIndex] >= 2000 { // HARDCODED to 2 seconds
-				timeToAutoEvent = timeLeft
+				startingNodes = append(startingNodes, &chainTypes.SummonDeclaration{
+					SummonedIndex: unitIndex,
+					Cancelled:     false, // always false at start
+				})
 			}
 		}
 

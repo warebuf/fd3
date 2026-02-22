@@ -32,8 +32,8 @@ type HPChangeWindow struct {
 func (HPChangeWindow) Kind() string { return "HPChangeWindow" }
 
 type HPChangeResolution struct {
-	Parent      *HPChangeWindow
-	DamageDealt int
+	Parent *HPChangeWindow
+	Amount int
 
 	Negated bool // individual level
 }

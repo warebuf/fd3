@@ -3,11 +3,13 @@ package functions
 import (
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/actions"
+	"github.com/warebuf/fd3/engine/chainTypes"
 	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // deal 2 damage to all
-func A00001(state *engine.GameState, casterIndex int, functionIndex int, logs []actions.Action) []actions.Action {
+func A00001(state *engine.GameState, casterIndex int) *chainTypes.HPChangeDeclaration {
+
 	functions_shared.DamageAll(state, 2)
 	state.FunctionCharge[functionIndex] = 0
 
