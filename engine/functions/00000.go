@@ -9,7 +9,7 @@ import (
 // heal 1 random on same team
 func A00000(state *engine.GameState, casterIndex int) *chainTypes.HPChangeDeclaration {
 
-	if A00000Valid(state, casterIndex) {
+	if !A00000Valid(state, casterIndex) {
 		return nil
 	}
 

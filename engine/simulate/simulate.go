@@ -70,6 +70,18 @@ func createStartingAbilityNode(state *engine.GameState, casterIndex int, ability
 	switch abilityNo {
 	case 0:
 		return functions.A00000(state, casterIndex)
+	case 1:
+		return functions.A00001(state, casterIndex)
+	case 2:
+		return functions.A00002(state, casterIndex)
+	case 3:
+		return functions.A00003(state, casterIndex)
+	case 4:
+		return nil
+	case 5:
+		return functions.A00005(state, casterIndex)
+	case 6:
+		return functions.A00006(state, casterIndex)
 	}
 
 	return nil

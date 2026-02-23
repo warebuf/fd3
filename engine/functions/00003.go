@@ -2,35 +2,40 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/actions"
-	"github.com/warebuf/fd3/engine/functions_shared"
+	"github.com/warebuf/fd3/engine/chainTypes"
+	"github.com/warebuf/fd3/engine/functions/helpers"
 )
 
 // deal 50 damage to a random enemy
 
 // return target index
-func A00003(state *engine.GameState, casterIndex int, functionIndex int, logs []actions.Action) ([]actions.Action, int) {
-	teamIdx := state.Team[casterIndex]
-	targetIdx, ok := functions_shared.RandomEnemy(state, teamIdx)
-	if !ok {
-		return -1
+func A00003(state *engine.GameState, casterIndex int) *chainTypes.HPChangeDeclaration {
+
+	if !A00003Valid(state, casterIndex) {
+		return nil
 	}
 
-	functions_shared.DamageOne(state, targetIdx, 50)
+	return &chainTypes.HPChangeDeclaration{
 
-	//
-	logs = append(logs, actions.Action{
-		Timestamp:     state.Timestamp,
-		Type:          "function",
-		UnitIndex:     casterIndex,
-		FunctionIndex: functionIndex,
-		FunctionNo:    3,
-	})
+		// base info
+		CasterIndex: casterIndex,
+		Amount:      50,
 
-	//
-	state.FunctionCharge[functionIndex] = 0
+		// type
+		Heal:       false,
+		Sequential: true, // does not matter in this case
 
-	return targetIdx
+		// target related
+		TargetType:    "enemy", // all units in the same team as the caster
+		All:           false,
+		TargetCount:   1,
+		TargetIndexes: []int{}, // only set if custom
+
+		// status
+		Cancelled: false, // always set to false at start
+
+	}
+
 }
 
 func A00003Valid(state *engine.GameState, casterIdx int) bool {
@@ -38,5 +43,5 @@ func A00003Valid(state *engine.GameState, casterIdx int) bool {
 		return false
 	}
 	teamIdx := state.Team[casterIdx]
-	return functions_shared.RandomEnemyCheck(state, teamIdx)
+	return helpers.RandomEnemyCheck(state, teamIdx)
 }

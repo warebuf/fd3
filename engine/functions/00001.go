@@ -2,30 +2,41 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/actions"
 	"github.com/warebuf/fd3/engine/chainTypes"
-	"github.com/warebuf/fd3/engine/functions_shared"
 )
 
 // deal 2 damage to all
 func A00001(state *engine.GameState, casterIndex int) *chainTypes.HPChangeDeclaration {
 
-	functions_shared.DamageAll(state, 2)
-	state.FunctionCharge[functionIndex] = 0
+	if !A00001Valid(state, casterIndex) {
+		return nil
+	}
 
-	logs = append(logs, actions.Action{
-		Timestamp:     state.Timestamp,
-		Type:          "function",
-		UnitIndex:     casterIndex,
-		FunctionIndex: functionIndex,
-		FunctionNo:    1,
-	})
+	return &chainTypes.HPChangeDeclaration{
 
-	return logs
+		// base info
+		CasterIndex: casterIndex,
+		Amount:      2,
+
+		// type
+		Heal:       false,
+		Sequential: false, // concurrent
+
+		// target related
+		TargetType:    "all",   // all units
+		All:           true,    // apply damage to all
+		TargetCount:   0,       // doesn't matter what this is
+		TargetIndexes: []int{}, // only set if custom
+
+		// status
+		Cancelled: false, // always set to false at start
+
+	}
+
 }
 
-func A00001Valid(state *engine.GameState, casterIdx int) bool {
-	if state.Zone[casterIdx] != 1 {
+func A00001Valid(state *engine.GameState, casterIndex int) bool {
+	if state.Zone[casterIndex] != 1 {
 		return false
 	}
 	return true
