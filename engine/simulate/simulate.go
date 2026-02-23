@@ -1,8 +1,6 @@
 package simulate
 
 import (
-	"fmt"
-
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/chainTypes"
 	"github.com/warebuf/fd3/engine/functions"
@@ -11,9 +9,8 @@ import (
 func Simulate(state *engine.GameState, activatedAbilities []int) {
 
 	var startingNodes []chainTypes.ChainNodes
-	fmt.Println(len(startingNodes))
 
-	// go through active abilities, add them to the StartingEvents
+	// go through active abilities, add them to the startingNodes
 	for i := 0; i < len(activatedAbilities); i++ {
 
 		// given the abilityIndex, get the unitIndex
@@ -58,8 +55,9 @@ func Simulate(state *engine.GameState, activatedAbilities []int) {
 	// sort the starting nodes by priority
 
 	// process the starting nodes
-	var nodes []chainTypes.ChainNodes
-	fmt.Println(len(nodes))
+	for i := 0; i < len(startingNodes); i++ {
+
+	}
 
 	// somehow return the results so we can communicate it with the frontend
 
