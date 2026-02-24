@@ -1,4 +1,4 @@
-package functions_shared
+package helpers
 
 import (
 	"math/rand"

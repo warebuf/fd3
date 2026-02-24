@@ -35,15 +35,21 @@ type GameState struct {
 	// summon resolution
 	SummonCharge []int // in milliseconds
 
-	// functions
-	FunctionStartIdx []int // the starting index in Functions[] for this unit
-	FunctionCount    []int // how many functions belong to each unit
-	Functions        []int // abilities are flattened for each unit
-	FunctionType     []int // 0 is auto, 1 is manual, 2 is passive
-	FunctionCharge   []int // flattened, saved in millisconds
-	FunctionSPD      []int // flattened, in milliseconds
-	FunctionTarget   []int // on init set to -1, each function gets 2 fixed elements, can be 1-6
+	// abilities
+	Abilities       []Ability // abilities are flattened for each unit
+	AbilityCount    []int     // how many functions belong to each unit
+	AbilityStartIdx []int     // the starting index in Functions[] for this unit
 
+}
+
+type Ability struct {
+	AbilityNo int
+	Type      int // 0: auto, 1: manual, 2: passive
+	UnitIndex int
+
+	Charge int // in milliseconds
+	SPD    int // in milliseconds
+	Target [5]int16
 }
 
 // CreateGameState initializes an empty game state with outer slices ready

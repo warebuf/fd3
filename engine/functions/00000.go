@@ -2,35 +2,44 @@ package functions
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/actions"
-	"github.com/warebuf/fd3/engine/functions_shared"
+	"github.com/warebuf/fd3/engine/chainTypes"
+	"github.com/warebuf/fd3/engine/functions/helpers"
 )
 
 // heal 1 random on same team
-func A00000(state *engine.GameState, casterIndex int, functionIndex int, logs []actions.Action) []actions.Action {
-	teamIdx := state.Team[casterIndex]
-	targetIdx, ok := functions_shared.RandomSameTeam(state, teamIdx)
-	if !ok {
-		return logs
+func A00000(state *engine.GameState, casterIndex int) *chainTypes.HPChangeDeclaration {
+
+	if !A00000Valid(state, casterIndex) {
+		return nil
 	}
-	functions_shared.HealOne(state, targetIdx, 5)
-	state.FunctionCharge[functionIndex] = 0
 
-	logs = append(logs, actions.Action{
-		Timestamp:     state.Timestamp,
-		Type:          "function",
-		UnitIndex:     casterIndex,
-		FunctionIndex: functionIndex,
-		FunctionNo:    0,
-	})
+	return &chainTypes.HPChangeDeclaration{
 
-	return logs
+		// base info
+		CasterIndex: casterIndex,
+		Amount:      5,
+
+		// type
+		Heal:       true,
+		Sequential: true, // does not matter in this case
+
+		// target related
+		TargetType:    "team", // all units in the same team as the caster
+		All:           false,
+		TargetCount:   1,
+		TargetIndexes: []int{}, // only set if custom
+
+		// status
+		Cancelled: false, // always set to false at start
+
+	}
+
 }
 
-func A00000Valid(state *engine.GameState, casterIdx int) bool {
-	if state.Zone[casterIdx] != 1 {
+func A00000Valid(state *engine.GameState, casterIndex int) bool {
+	if state.Zone[casterIndex] != 1 {
 		return false
 	}
-	teamIdx := state.Team[casterIdx]
-	return functions_shared.RandomSameTeamCheck(state, teamIdx)
+	teamIdx := state.Team[casterIndex]
+	return helpers.RandomSameTeamCheck(state, teamIdx)
 }
