@@ -4,6 +4,9 @@ package chainTypes
 
 type HPChangeDeclaration struct {
 
+	// parent
+	Parent ChainNode // an interface is naturally a pointer
+
 	// base info
 	CasterIndex int
 	Amount      int
@@ -18,14 +21,15 @@ type HPChangeDeclaration struct {
 	TargetCount   int    // doesn't matter what this is if All is true
 	TargetIndexes []int  // if custom, which unitIndex
 
-	// status
-	Cancelled bool // group level
+	// reactions
+	Reactions []ChainNode
+	Cancelled bool
 }
 
 func (HPChangeDeclaration) Kind() string { return "HPChangeDeclaration" }
 
 type HPChangeWindow struct {
-	Parent      *HPChangeWindow
+	Parent      *HPChangeDeclaration
 	TargetIndex int
 }
 

@@ -2,8 +2,6 @@ package engine
 
 import (
 	"time"
-
-	"github.com/warebuf/fd3/utility/shallowCopy"
 )
 
 type GameState struct {
@@ -55,24 +53,20 @@ type Ability struct {
 // CreateGameState initializes an empty game state with outer slices ready
 func CreateFirstGameState(t time.Time, GSID int) *GameState {
 	gm := &GameState{
-		GameStateID:      GSID,
-		Timestamp:        t,
-		Round:            0,
-		StructureHP:      make([]int, 0),
-		StructureTeam:    make([]int, 0),
-		Team:             make([]int, 0),
-		Zone:             make([]int, 0),
-		ModelNo:          make([]int, 0),
-		HP:               make([]int, 0),
-		EXP:              make([]int, 0),
-		SummonCharge:     make([]int, 0),
-		Functions:        make([]int, 0),
-		FunctionType:     make([]int, 0),
-		FunctionStartIdx: make([]int, 0),
-		FunctionCount:    make([]int, 0),
-		FunctionCharge:   make([]int, 0),
-		FunctionSPD:      make([]int, 0),
-		FunctionTarget:   make([]int, 0),
+		GameStateID:     GSID,
+		Timestamp:       t,
+		Round:           0,
+		StructureHP:     make([]int, 0),
+		StructureTeam:   make([]int, 0),
+		Team:            make([]int, 0),
+		Zone:            make([]int, 0),
+		ModelNo:         make([]int, 0),
+		HP:              make([]int, 0),
+		EXP:             make([]int, 0),
+		SummonCharge:    make([]int, 0),
+		Abilities:       make([]Ability, 0),
+		AbilityCount:    make([]int, 0),
+		AbilityStartIdx: make([]int, 0),
 	}
 	return gm
 }
@@ -89,30 +83,46 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		Round:       prevState.Round,
 	}
 
-	newState.StructureHP = shallowCopy.IntSlice(prevState.StructureHP)
-	newState.StructureTeam = shallowCopy.IntSlice(prevState.StructureTeam)
+	newState.StructureHP = copyIntSlice(prevState.StructureHP)
+	newState.StructureTeam = copyIntSlice(prevState.StructureTeam)
 
-	newState.Team = shallowCopy.IntSlice(prevState.Team)
-	newState.Zone = shallowCopy.IntSlice(prevState.Zone)
-
-	//
-	newState.ModelNo = shallowCopy.IntSlice(prevState.ModelNo)
+	newState.Team = copyIntSlice(prevState.Team)
+	newState.Zone = copyIntSlice(prevState.Zone)
 
 	//
-	newState.HP = shallowCopy.IntSlice(prevState.HP)
-	newState.EXP = shallowCopy.IntSlice(prevState.EXP)
+	newState.ModelNo = copyIntSlice(prevState.ModelNo)
 
 	//
-	newState.SummonCharge = shallowCopy.IntSlice(prevState.SummonCharge)
+	newState.HP = copyIntSlice(prevState.HP)
+	newState.EXP = copyIntSlice(prevState.EXP)
 
 	//
-	newState.Functions = shallowCopy.IntSlice(prevState.Functions)
-	newState.FunctionType = shallowCopy.IntSlice(prevState.FunctionType)
-	newState.FunctionStartIdx = shallowCopy.IntSlice(prevState.FunctionStartIdx)
-	newState.FunctionCount = shallowCopy.IntSlice(prevState.FunctionCount)
-	newState.FunctionCharge = shallowCopy.IntSlice(prevState.FunctionCharge)
-	newState.FunctionSPD = shallowCopy.IntSlice(prevState.FunctionSPD)
-	newState.FunctionTarget = shallowCopy.IntSlice(prevState.FunctionTarget)
+	newState.SummonCharge = copyIntSlice(prevState.SummonCharge)
+
+	//
+	newState.Abilities = copyAbilitySlice(prevState.Abilities)
+	newState.AbilityCount = copyIntSlice(prevState.AbilityCount)
+	newState.AbilityStartIdx = copyIntSlice(prevState.AbilityStartIdx)
 
 	return newState
+}
+
+// helpers
+
+func copyAbilitySlice(src []Ability) []Ability {
+	if src == nil {
+		return nil
+	}
+	dst := make([]Ability, len(src))
+	copy(dst, src)
+	return dst
+}
+
+func copyIntSlice(src []int) []int {
+	if src == nil {
+		return nil
+	}
+	dst := make([]int, len(src))
+	copy(dst, src)
+	return dst
 }

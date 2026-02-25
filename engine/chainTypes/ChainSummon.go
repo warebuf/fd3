@@ -3,9 +3,16 @@ package chainTypes
 // Declaration -> Reaction -> Resolution
 
 type SummonDeclaration struct {
+
+	// parent
+	Parent ChainNode
+
 	SummonedIndex int
 
 	Cancelled bool // used if the condition no longer exists
+
+	// reactions
+	Reactions []ChainNode
 }
 
 func (SummonDeclaration) Kind() string { return "SummonDeclaration" }
