@@ -10,17 +10,13 @@ func Simulate(state *engine.GameState, activatedAbilities []int) {
 
 	var startingNodes []chainTypes.ChainNodes
 
-	// go through active abilities, add them to the startingNodes
+	// go through activatedAbilities, add them to the startingNodes
 	for i := 0; i < len(activatedAbilities); i++ {
-
-		// given the abilityIndex, get the unitIndex
-		TEMP := 0 // TODO: replace temp
-
-		node := createStartingAbilityNode(state, TEMP, activatedAbilities[i])
+		unitIndex := state.Abilities[activatedAbilities[i]].UnitIndex
+		node := createStartingAbilityNode(state, unitIndex, activatedAbilities[i])
 		if node != nil {
 			startingNodes = append(startingNodes, node)
 		}
-
 	}
 
 	// iterate through the state, find units that are ready to act
@@ -37,17 +33,16 @@ func Simulate(state *engine.GameState, activatedAbilities []int) {
 		}
 
 		// check their abilities, if they can be activated
-		funcStartIndex := state.FunctionStartIdx[unitIndex]
-		for j := 0; j < len(state.FunctionCount); j++ {
+		funcStartIndex := state.AbilityStartIdx[unitIndex]
+		for j := 0; j < len(state.AbilityCount); j++ {
 			functionIndex := funcStartIndex + j
-			abilityNo := state.Functions[functionIndex]
+			abilityNo := state.Abilities[functionIndex].AbilityNo
 			if ValidFunction(state, unitIndex, abilityNo) {
 				node := createStartingAbilityNode(state, unitIndex, abilityNo)
 				if node != nil {
 					startingNodes = append(startingNodes, node)
 				}
 			}
-
 		}
 
 	}
@@ -64,7 +59,6 @@ func Simulate(state *engine.GameState, activatedAbilities []int) {
 }
 
 func createStartingAbilityNode(state *engine.GameState, casterIndex int, abilityNo int) chainTypes.ChainNodes {
-
 	switch abilityNo {
 	case 0:
 		return functions.A00000(state, casterIndex)
@@ -81,7 +75,5 @@ func createStartingAbilityNode(state *engine.GameState, casterIndex int, ability
 	case 6:
 		return functions.A00006(state, casterIndex)
 	}
-
 	return nil
-
 }
