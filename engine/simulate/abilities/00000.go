@@ -43,7 +43,10 @@ func (ability A00000) Resolution(state *engine.GameState) {
 type S00000 struct {
 
 	// base info
-	CasterIndex int
+	SummonedIndex   int
+	DeclarationTime int64
+	Window          int
+	Valid           bool
 
 	//
 
