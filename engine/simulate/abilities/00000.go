@@ -16,6 +16,9 @@ type A00000 struct {
 	// ability level info
 	Target int
 	Amount int
+
+	// phase for simulation
+	phase int
 }
 
 func (A00000) ID() int { return 0 }
@@ -48,8 +51,8 @@ type S00000 struct {
 	Window          int
 	Valid           bool
 
-	//
-
+	// phase for simulation
+	phase int
 }
 
 func (S00000) ID() int { return 0 }
