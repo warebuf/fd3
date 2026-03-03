@@ -114,19 +114,23 @@ func (match *Match) handleDuePQEvents() {
 
 			if ie.Type == "Summon" {
 
-				// apply the event
-				newActions := summon.BasicSummon(match.UnitModels, incrementedState, nextTimestamp, ie.TeamIdx, ie.UnitIdx)
-				fmt.Println("newActions", newActions)
+				// add the summon to the priority queue and modify the game state
+				if simulate.AddSummonToPQ(match.GameState, match.PQ, ie.UnitIdx, nextTimestamp, match.NextEffectIndex) {
 
-				// publish the new state
-				match.PublishedState = engine.CopyGameState(match.GameState.Timestamp, match.GameState)
+					// increment the effect counter
+					match.NextEffectIndex += 1
 
-				// append the new actions
-				match.ActionLog = append(match.ActionLog, newActions...)
+					// publish the new state
+					match.PublishedState = engine.CopyGameState(match.GameState.Timestamp, match.GameState)
 
-				// share the new action
-				if len(newActions) > 0 {
-					match.BroadcastActions(newActions)
+					// append the new actions
+					match.ActionLog = append(match.ActionLog, newActions...)
+
+					// share the new action
+					if len(newActions) > 0 {
+						match.BroadcastActions(newActions)
+					}
+
 				}
 
 				// schedule autoscheduler

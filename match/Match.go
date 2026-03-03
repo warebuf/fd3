@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/actions"
 	"github.com/warebuf/fd3/engine/draw"
+	"github.com/warebuf/fd3/engine/simulate"
 )
 
 type Match struct {
@@ -17,9 +17,11 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameState      *engine.GameState // what the game state should be 200 ms from now
-	PublishedState *engine.GameState // a copy of GameState that the players can read
-	ActionLog      []actions.Action  // a log of all events that have occurred
+	GameState       *engine.GameState      // what the game state should be 200 ms from now
+	PublishedState  *engine.GameState      // a copy of GameState that the players can read
+	PQ              simulate.PriorityQueue // priority queue of chains/stacks
+	NextEffectIndex uint64                 // assign an index to each action/effect
+	ActionLog       []actions.Action       // a log of all events that have occurred
 
 	NextRoundTime time.Time
 
