@@ -8,8 +8,6 @@ import (
 
 	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/simulate"
-	"github.com/warebuf/fd3/engine/summon"
-	"github.com/warebuf/fd3/engine/target"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -115,8 +113,8 @@ func (match *Match) handleDuePQEvents() {
 			if ie.Type == "Summon" {
 
 				// add the summon to the priority queue and modify the game state
-				if simulate.AddSummonToPQ(match.GameState, match.PQ, ie.UnitIdx, nextTimestamp, match.NextEffectIndex) {
-
+				newEvents, success := simulate.AddSummonToPQ(match.GameState, match.PQ, ie.UnitIdx, nextTimestamp, match.NextEffectIndex)
+				if success {
 					// increment the effect counter
 					match.NextEffectIndex += 1
 
@@ -124,13 +122,12 @@ func (match *Match) handleDuePQEvents() {
 					match.PublishedState = engine.CopyGameState(match.GameState.Timestamp, match.GameState)
 
 					// append the new actions
-					match.ActionLog = append(match.ActionLog, newActions...)
+					match.EventLog = append(match.EventLog, newEvents...)
 
 					// share the new action
-					if len(newActions) > 0 {
-						match.BroadcastActions(newActions)
+					if len(newEvents) > 0 {
+						match.BroadcastEventLog(newEvents)
 					}
-
 				}
 
 				// schedule autoscheduler

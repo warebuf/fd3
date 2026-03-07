@@ -4,6 +4,20 @@ import (
 	"github.com/warebuf/fd3/engine"
 )
 
+type S00000 struct {
+
+	// base info
+	SummonedIndex   int
+	DeclarationTime int64
+	Window          int
+	Valid           bool
+
+	// phase for simulation
+	phase int
+}
+
+func (S00000) Type() (string, int) { return "Summon", 0 }
+
 // heal 1 random on same team
 type A00000 struct {
 
@@ -21,7 +35,7 @@ type A00000 struct {
 	phase int
 }
 
-func (A00000) ID() int { return 0 }
+func (A00000) Type() (string, int) { return "Ability", 0 }
 
 func (ability A00000) Declaration(state *engine.GameState) {
 
@@ -42,17 +56,3 @@ func (ability A00000) Resolution(state *engine.GameState) {
 	//
 
 }
-
-type S00000 struct {
-
-	// base info
-	SummonedIndex   int
-	DeclarationTime int64
-	Window          int
-	Valid           bool
-
-	// phase for simulation
-	phase int
-}
-
-func (S00000) ID() int { return 0 }

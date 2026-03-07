@@ -8,11 +8,13 @@ import (
 	"github.com/warebuf/fd3/engine/simulate/abilities"
 )
 
-func AddSummonToPQ(state *engine.GameState, pq *PriorityQueue, unitIndex int, currentTime time.Time, newEffectIndex uint64) bool {
+func AddSummonToPQ(state *engine.GameState, pq *PriorityQueue, unitIndex int, currentTime time.Time, newEffectIndex uint64) ([]engine.EventLog, bool) {
+
+	newEvents := []engine.EventLog{}
 
 	// check if unit is a valid summon
 	if state.HP[unitIndex] <= 0 || state.Zone[unitIndex] != 0 {
-		return false
+		return newEvents, false
 	}
 
 	// set zone to 3 (pending summon)
@@ -31,6 +33,10 @@ func AddSummonToPQ(state *engine.GameState, pq *PriorityQueue, unitIndex int, cu
 			Window:          WINDOW,
 			Valid:           true,
 		}
+		newEvents = append(newEvents, engine.EventLog{
+			UnitIndex:    unitIndex,
+			AbilityIndex: 0,
+		})
 	}
 
 	// for each summon, create a new stack, add the new PQ object to it
@@ -46,5 +52,5 @@ func AddSummonToPQ(state *engine.GameState, pq *PriorityQueue, unitIndex int, cu
 
 	// apply any on summon declaration effects
 
-	return true
+	return newEvents, true
 }

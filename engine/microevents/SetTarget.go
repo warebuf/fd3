@@ -1,4 +1,4 @@
-package target
+package microevents
 
 import (
 	"time"

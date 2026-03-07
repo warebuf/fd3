@@ -1,90 +1,64 @@
 [
     { 
       "Number": 0, 
-      "Name": "Generic", 
-      "HP": 150,  
-      "Functions": [
+      "Name": "Teeto", 
+      "HP": 5,  
+      "Ability": [
         {
-          "FunctionID": 0,
           "Type": "Auto",
-          "Target": "RA",
-          "Name": "HealRandom",
-          "CD": 2,
+          "CD": 5,
           "Description": "Heal 5"
         },
         {
-          "FunctionID": 1,
-          "Type": "Auto",
-          "Target": "A",
-          "Name": "AOE",
-          "CD": 3,
-          "Description": "Attack all for 2"
+          "Type": "Summon",
+          "Description": "Deal 5 damage to all units"
         }
       ] 
     },
     { 
       "Number": 1, 
       "Name": "Healer", 
-      "HP": 150, 
-      "Functions": [
+      "HP": 5, 
+      "Ability": [
         {
-          "FunctionID": 2,
           "Type": "Auto",
-          "Target": "RA",
-          "Name": "Heal50",
-          "CD": 5,
+          "CD": 10,
           "Description": "Heal any unit on team for 50"
+        },
+        {
+          "Type": "Summon",
+          "Description": "Negate the effect of a card"
         }
       ] 
     },
     { 
       "Number": 2, 
       "Name": "Iago", 
-      "HP": 150, 
-      "Functions": [
+      "HP": 3, 
+      "Ability": [
         {
-          "FunctionID": 3,
           "Type": "Auto",
-          "Target": "RE",
-          "Name": "HardAttack50",
-          "CD": 5,
-          "Description": "Attack enemy for 50"
-        }
-      ] 
-    },
-    { 
-      "Number": 3, 
-      "Name": "False Hero", 
-      "HP": 150, 
-      "Functions": [
+          "CD": 8,
+          "Description": "Deal 4 damage to an enemy"
+        },
         {
-          "FunctionID": 4,
-          "Type": "Auto",
-          "Target": "RE",
-          "Name": "Against Effect",
-          "CD": 5,
-          "Description": "If attacked, reflect the attack back to the attacker"
+          "Type": "Summon",
+          "Description": "Negate the summon and effect of a card"
         }
       ] 
     },
     { 
       "Number": 4, 
       "Name": "Guinsoo", 
-      "HP": 150, 
-      "Functions": [
+      "HP": 5, 
+      "Ability": [
         {
-          "FunctionID": 5,
           "Type": "Auto",
-          "Target": "RE",
-          "Name": "HardAttack50",
           "CD": 5,
           "Description": "Attack enemy for 50. Gain 25 EXP if successful."
         },
         {
-          "FunctionID": 6,
           "Type": "Manual",
-          "Target": "E:1",
-          "Name": "ManualAuto",
           "Description": "Spend 75 EXP. Attack a target for 100. Reset all abilities."
         }
       ]
