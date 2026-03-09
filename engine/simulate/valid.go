@@ -2,7 +2,7 @@ package simulate
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/functions"
+	"github.com/warebuf/fd3/engine/abilities"
 )
 
 func ValidFunction(state *engine.GameState, casterIndex int, funcNo int) bool {

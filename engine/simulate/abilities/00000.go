@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine"
 )
 
+// normal summon, if sucessfully summoned, deal 5 damage to all units
 type S00000 struct {
 
 	// base info
@@ -18,7 +19,7 @@ type S00000 struct {
 
 func (S00000) Type() (string, int) { return "Summon", 0 }
 
-// heal 1 random on same team
+// Give 2 HP to a random ally unit
 type A00000 struct {
 
 	// base info
