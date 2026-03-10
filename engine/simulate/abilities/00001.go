@@ -15,6 +15,8 @@ type S00001 struct {
 
 	// phase for simulation
 	phase int
+
+	// TODO: it seems like if a summon has an effect, it needs to spawn it's own effect object, therefore we have a reference here
 }
 
 func (S00001) Type() (string, int) { return "Summon", 1 }

@@ -63,7 +63,7 @@ func LoadModels() []Model {
 		abilities[unitNo] = append(abilities[unitNo], ability)
 
 		// add the unit to the arr
-		if unitNo == len(models) { // if does not exist, assumes we don't skip UnitNos / they are sequential
+		if unitNo > len(models) { // if does not exist, assumes we don't skip UnitNos / they are sequential
 			models = append(models, Model{
 				UnitNo:    uint(unitNo),
 				Name:      name,
@@ -76,7 +76,7 @@ func LoadModels() []Model {
 
 	// edit to get the final objects
 	for i := 0; i < len(models); i++ {
-		models[i].Abilities = abilities[i]
+		models[i].Abilities = abilities[i+1] // unitNo starts at 1 not 0
 	}
 
 	return models
