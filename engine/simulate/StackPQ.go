@@ -3,7 +3,7 @@ package simulate
 import "container/heap"
 
 type Node interface {
-	Type() (string, int)
+	Code() string
 }
 
 type Stack struct {

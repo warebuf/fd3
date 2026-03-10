@@ -261,7 +261,7 @@ func init() {
 
 	// create matchmaking goroutine
 	matchMap = make(map[string]*match.Match)
-	unitModels = engine.LoadModelSpecs()
+	unitModels = engine.LoadModels()
 	matchmaker = matchmaking.CreateMatchMaking(matchMap, unitModels)
 
 }

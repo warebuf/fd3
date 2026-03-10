@@ -16,11 +16,11 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameState       *engine.GameState       // what the game state should be 200 ms from now
-	PublishedState  *engine.GameState       // a copy of GameState that the players can read
-	PQ              *simulate.PriorityQueue // priority queue of chains/stacks
-	NextEffectIndex uint64                  // assign an index to each action/effect
-	EventLog        []engine.EventLog       // a log of all events that have occurred
+	GameState      *engine.GameState       // what the game state should be 200 ms from now
+	PublishedState *engine.GameState       // a copy of GameState that the players can read
+	PQ             *simulate.PriorityQueue // priority queue of chains/stacks
+	NextNodeIndex  uint64                  // assign an index to each action/effect
+	EventLog       []engine.EventLog       // a log of all events that have occurred
 
 	NextRoundTime time.Time
 
