@@ -6,15 +6,23 @@ import (
 
 // normal summon with summon effect
 type S00000 struct {
+
 	// base info
-	NodeIndex       uint
-	SummonedIndex   int
+	NodeIndex     uint
+	SummonedIndex int
+
+	// timing
 	DeclarationTime int64
 	Window          int
-	Negated         bool
-	phase           int // phase for simulation
 
 	//
+	Negated bool
+
+	// resume mechanism
+	phase   int // phase for simulation
+	counter int // counter that we use so we can restart at the same position
+
+	// special case
 	EffectNegated bool // in this case, if summon not negated, but effect may be
 }
 
@@ -26,6 +34,11 @@ func (ability S00000) Declaration(state *engine.GameState) bool {
 	}
 
 	// TODO: check for autocounters
+	for i := ability.counter; i < len(state.HP); i++ {
+		ability.counter += 1
+	}
+	ability.phase += 1 // set to phase 1
+	ability.counter = 0
 
 	// set zone to 3
 	state.Zone[ability.SummonedIndex] = 3
@@ -41,24 +54,64 @@ func (ability S00000) Resolution(state *engine.GameState) (bool, bool) {
 		return false, false
 	}
 
-	// TODO: check for autocounters
+	// TODO: check for summon autocounters
+	if ability.phase < 2 {
+		for i := ability.counter; i < len(state.HP); i++ {
+			ability.counter += 1
+		}
+	}
+	ability.phase += 1 // set to phase 2
+	ability.counter = 0
 
 	// set zone to 1
 	state.Zone[ability.SummonedIndex] = 1
 
-	// TODO: check for effect counters
+	// TODO: check for post summon triggers
+	if ability.phase < 3 {
+		for i := ability.counter; i < len(state.HP); i++ {
+			ability.counter += 1
+		}
+	}
+	ability.phase += 1 // set to phase 3
+	ability.counter = 0
 
-	// iterate through on field units, deal 5 damage
-	if !ability.EffectNegated {
-		for i := 0; i < len(state.Zone); i++ {
+	// TODO: check for effect counters
+	if ability.phase < 4 {
+		for i := ability.counter; i < len(state.HP); i++ {
+			ability.counter += 1
+		}
+	}
+	ability.phase += 1 // set to phase 4
+	ability.counter = 0
+
+	// deal 5 damage to all field units, check for individual counters
+	if ability.phase < 5 && !ability.EffectNegated {
+		for i := ability.counter; i < len(state.Zone); i++ {
+
+			ability.counter += 1 // increment so we don't check this unit again
+
 			if state.HP[i] > 0 && state.Zone[i] == 1 {
+
+				// TODO: check for attack counter triggers
+
 				state.HP[i] -= 5
-				// TODO: check for attack triggers
+
 			}
 		}
 	}
+	ability.phase += 1 // set to phase 5
+	ability.counter = 0
 
-	return true, true
+	// TODO: check for post attack triggers
+	if ability.phase < 6 {
+		for i := ability.counter; i < len(state.HP); i++ {
+			ability.counter += 1
+		}
+	}
+	ability.phase += 1 // set to phase 6
+	ability.counter = 0
+
+	return true, !ability.EffectNegated
 }
 
 func (S00000) Code() string { return "S00000" }
