@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"fmt"
 )
 
 type Model struct {
@@ -78,6 +79,8 @@ func LoadModels() []Model {
 	for i := 0; i < len(models); i++ {
 		models[i].Abilities = abilities[i+1] // unitNo starts at 1 not 0
 	}
+
+	fmt.Println("models", models)
 
 	return models
 }
