@@ -138,6 +138,11 @@ func (A00000) Type() string { return "A00000" }
 func (ability A00000) Declaration(state *engine.GameState) {
 
 	// check if valid
+	startIndex := state.AbilityStartIdx[ability.CasterIndex]
+	abilityCount := state.AbilityCount[ability.CasterIndex]
+	for i := startIndex; i < startIndex+abilityCount; i++ {
+
+	}
 
 	// get the random ally target
 
