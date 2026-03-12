@@ -2,8 +2,8 @@ package simulate
 
 import "container/heap"
 
-type Node interface {
-	Code() string
+type Effect interface {
+	EffectNo() string
 }
 
 type Stack struct {
@@ -13,7 +13,7 @@ type Stack struct {
 	WindowTime      int
 	ResolutionTime  int64
 
-	Effects []Node
+	Effects []Effect
 
 	index int // heap position (internal)
 }

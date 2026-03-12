@@ -41,13 +41,14 @@ type GameState struct {
 }
 
 type Ability struct {
-	AbilityNo int
+	EffectNo  int
 	Type      int // 0: auto, 1: manual, 2: passive
 	UnitIndex int
 
-	Charge int // in milliseconds
-	SPD    int // in milliseconds
-	Target [5]int16
+	Charge  int // in milliseconds
+	SPD     int // in milliseconds
+	Pending bool
+	Target  [5]int16
 }
 
 // CreateGameState initializes an empty game state with outer slices ready

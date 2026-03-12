@@ -114,11 +114,10 @@ func (ability S00000) Resolution(state *engine.GameState) (bool, bool) {
 	return true, !ability.EffectNegated
 }
 
-func (S00000) Code() string { return "S00000" }
+func (S00000) EffectNo() int { return 1 }
 
 // Give 2 HP to a random ally unit
 type A00000 struct {
-
 	// base info
 	CasterIndex     int
 	DeclarationTime int
@@ -133,18 +132,24 @@ type A00000 struct {
 	phase int
 }
 
-func (A00000) Type() string { return "A00000" }
+func (A00000) EffectNo() int { return 2 }
 
 func (ability A00000) Declaration(state *engine.GameState) {
 
 	// check if valid
 	startIndex := state.AbilityStartIdx[ability.CasterIndex]
 	abilityCount := state.AbilityCount[ability.CasterIndex]
+	abilityIndex := startIndex
+	effectNo := ability.EffectNo()
 	for i := startIndex; i < startIndex+abilityCount; i++ {
-
+		if state.Abilities[startIndex].EffectNo == effectNo {
+			abilityIndex = i
+			break
+		}
 	}
 
 	// get the random ally target
+	
 
 	// set the ability in pending state
 
