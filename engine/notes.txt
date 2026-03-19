@@ -5,7 +5,10 @@ I think just the current organization works:
 Effects(/Actions/Cards?) -> Priority Queue
 Effects(/Actions/Cards?) -> GameState
 
-maybe 
+we want it to work this way because the PriorityQueue can be type 'any'/interface{} 
+and we want the effects to be able to add new nodes to the PQ
+
+maybe we'll also have
 
 Effects -> Primitives
 Engine -> Effects
