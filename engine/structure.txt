@@ -1,0 +1,17 @@
+
+
+this file contains how the packages are structured and referenced
+
+the 'states' package, defines the game states
+
+the 'primitives' package defines primitive effects on the game states
+
+the 'simulate' package manages the order we resolve nodes
+
+the 'cards' package adds nodes to simulate 
+
+
+
+
+
+

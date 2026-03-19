@@ -1,12 +1,12 @@
-package engine
+package states
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
-	"fmt"
 )
 
 type Model struct {

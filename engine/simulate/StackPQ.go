@@ -2,10 +2,6 @@ package simulate
 
 import "container/heap"
 
-type Effect interface {
-	EffectNo() string
-}
-
 type Stack struct {
 	EffectIndex uint64 // the latest effect gets the biggest index
 
@@ -13,7 +9,7 @@ type Stack struct {
 	WindowTime      int
 	ResolutionTime  int64
 
-	Effects []Effect
+	Effects []any
 
 	index int // heap position (internal)
 }

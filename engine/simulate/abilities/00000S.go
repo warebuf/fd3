@@ -2,8 +2,11 @@ package abilities
 
 import (
 	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/simulate/abilities/helpers"
 )
+
+// the behavior is, create two fresh stacks/nodes
+// if the effect node is delayed, only the effect node
+// if the summon node is delayed, delay both nodes
 
 // normal summon with summon effect
 type U00000S struct {
@@ -23,7 +26,27 @@ type U00000S struct {
 	Negated bool
 
 	// special level info
-	EffectNegated bool // in this case, if summon not negated, but effect may be
+	EffectNodeIndex uint //
+}
+
+type U00000SE struct {
+	// base info
+	NodeIndex     uint
+	SummonedIndex int
+
+	// timing
+	DeclarationTime int64
+	Window          int
+
+	// resume mechanism
+	phase   int // phase for simulation
+	counter int // counter that we use so we can restart at the same position
+
+	// status
+	Negated bool
+
+	// special level info
+	SummonNodeIndex uint
 }
 
 func (ability *U00000S) Declaration(state *engine.GameState) bool {
@@ -112,99 +135,4 @@ func (ability *U00000S) Resolution(state *engine.GameState) (bool, bool) { // re
 	ability.counter = 0
 
 	return true, !ability.EffectNegated
-}
-
-func (U00000S) EffectNo() int { return 1 }
-
-// Give 2 HP to a random ally unit
-type U00000A1 struct {
-	// base info
-	NodeIndex   uint
-	CasterIndex int
-
-	// timing
-	DeclarationTime int
-	Window          int
-
-	// phase for simulation
-	phase   int
-	counter int
-
-	// status
-	Negated bool
-
-	// special level info
-	AbilityIndex int
-	TargetIndex  int
-	Amount       int
-}
-
-func (U00000A1) EffectNo() int { return 2 }
-
-func (ability *U00000A1) Declaration(state *engine.GameState) bool {
-
-	// get ability index
-	startIndex := state.AbilityStartIdx[ability.CasterIndex]
-	abilityCount := state.AbilityCount[ability.CasterIndex]
-	effectNo := ability.EffectNo()
-	for i := startIndex; i < startIndex+abilityCount; i++ {
-		if state.Abilities[startIndex].EffectNo == effectNo {
-			ability.AbilityIndex = i
-			break
-		}
-	}
-
-	// check if valid (if unit is alive and ability is charged)
-	if state.HP[ability.CasterIndex] <= 0 || state.Abilities[ability.AbilityIndex].Charge < state.Abilities[ability.AbilityIndex].SPD {
-		return false
-	}
-
-	// set the random ally target
-	targetIndex := helpers.RandomSameTeam(state, state.Team[ability.CasterIndex])
-	if targetIndex < 0 {
-		return false
-	}
-	ability.TargetIndex = targetIndex
-
-	// set the ability in pending state
-	state.Abilities[ability.AbilityIndex].Pending = true
-
-	// TODO: check for autotriggers
-	for i := ability.counter; i < len(state.HP); i++ {
-		ability.counter += 1
-	}
-	ability.phase += 1 // set to phase 1
-	ability.counter = 0
-
-	return true
-
-}
-
-func (ability *U00000A1) Resolution(state *engine.GameState) bool {
-
-	// check if valid, if not return
-	if state.HP[ability.CasterIndex] <= 0 ||
-		state.Abilities[ability.AbilityIndex].Charge < state.Abilities[ability.AbilityIndex].SPD ||
-		state.Abilities[ability.AbilityIndex].Pending == false {
-		return false
-	}
-
-	// check if target is alive, if not reset the charge/pending and return
-	if state.HP[ability.TargetIndex] <= 0 {
-		state.Abilities[ability.AbilityIndex].Charge = 0
-		state.Abilities[ability.AbilityIndex].Pending = false
-		return false
-	}
-
-	// heal
-	state.HP[ability.TargetIndex] += ability.Amount
-
-	// TODO: check for autotriggers
-	for i := ability.counter; i < len(state.HP); i++ {
-		ability.counter += 1
-	}
-	ability.phase += 1 // set to phase 2
-	ability.counter = 0
-
-	return true
 }
