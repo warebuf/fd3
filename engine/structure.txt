@@ -1,17 +1,11 @@
+2026-03-19
 
+I think just the current organization works:
 
-this file contains how the packages are structured and referenced
+Effects(/Actions/Cards?) -> Priority Queue
+Effects(/Actions/Cards?) -> GameState
 
-the 'states' package, defines the game states
+maybe 
 
-the 'primitives' package defines primitive effects on the game states
-
-the 'simulate' package manages the order we resolve nodes
-
-the 'cards' package adds nodes to simulate 
-
-
-
-
-
-
+Effects -> Primitives
+Engine -> Effects
