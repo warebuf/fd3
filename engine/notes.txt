@@ -12,3 +12,5 @@ maybe we'll also have
 
 Effects -> Primitives
 Engine -> Effects
+
+Maybe Primitives is split into Basics + Triggers
