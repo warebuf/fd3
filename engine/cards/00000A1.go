@@ -1,8 +1,8 @@
 package abilities
 
 import (
-	"github.com/warebuf/fd3/engine"
-	"github.com/warebuf/fd3/engine/simulate/abilities/helpers"
+	"github.com/warebuf/fd3/engine/cards/primitives"
+	"github.com/warebuf/fd3/engine/states"
 )
 
 // Give 2 HP to a random ally unit
@@ -28,7 +28,7 @@ type U00000A1 struct {
 	Amount       int
 }
 
-func (ability *U00000A1) Declaration(state *engine.GameState) bool {
+func (ability *U00000A1) Declaration(state *states.GameState) bool {
 
 	// get ability index
 	startIndex := state.AbilityStartIdx[ability.CasterIndex]
@@ -47,7 +47,7 @@ func (ability *U00000A1) Declaration(state *engine.GameState) bool {
 	}
 
 	// set the random ally target
-	targetIndex := helpers.RandomSameTeam(state, state.Team[ability.CasterIndex])
+	targetIndex := primitives.RandomSameTeam(state, state.Team[ability.CasterIndex])
 	if targetIndex < 0 {
 		return false
 	}
@@ -67,7 +67,7 @@ func (ability *U00000A1) Declaration(state *engine.GameState) bool {
 
 }
 
-func (ability *U00000A1) Resolution(state *engine.GameState) bool {
+func (ability *U00000A1) Resolution(state *states.GameState) bool {
 
 	// check if valid, if not return
 	if state.HP[ability.CasterIndex] <= 0 ||

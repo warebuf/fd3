@@ -1,15 +1,15 @@
-package helpers
+package primitives
 
 import (
 	"math/rand"
 
-	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/states"
 )
 
 // implementing reservoir sampling, as it is considered the practically fastest method
 
 // includes self, negative if nothing
-func RandomSameTeam(state *engine.GameState, teamIdx int) int {
+func RandomSameTeam(state *states.GameState, teamIdx int) int {
 	chosen := -1
 	count := 0
 
