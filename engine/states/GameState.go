@@ -40,6 +40,24 @@ type GameState struct {
 
 }
 
+type Card struct {
+	CID   int // card ID
+	DefNo int // the card's serial number
+	Owner int
+	Type  int // structure, unit, trap, spell
+	Zone  int
+	Armed bool
+}
+
+type Permanents struct {
+	PID  int
+	Type int // structure, unit, continuous trap, continuous spell
+	HP   int
+	Team int
+
+	// abilities?
+}
+
 type Ability struct {
 	EffectNo  int
 	Type      int // 0: auto, 1: manual, 2: passive
