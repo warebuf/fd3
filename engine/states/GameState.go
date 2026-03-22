@@ -50,10 +50,11 @@ type Card struct {
 }
 
 type Permanents struct {
-	PID  int
-	Type int // structure, unit, continuous trap, continuous spell
-	HP   int
-	Team int
+	PID        int
+	SourceCard int
+	Type       int // structure, unit, continuous trap, continuous spell
+	HP         int
+	Team       int
 
 	// abilities?
 }
