@@ -45,7 +45,7 @@ type Card struct {
 	DefNo int // the card's serial number
 	Owner int
 	Type  int // structure, unit, trap, spell
-	Zone  int
+	Zone  int // deck, hand, field, graveyard
 	Armed bool
 }
 
