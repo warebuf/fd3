@@ -15,35 +15,13 @@ type GameState struct {
 	// additional info on the state
 	Round int
 
-	// structure data
-	StructureHP   []int
-	StructureTeam []int
-
-	// team sets: index (unitID) ->  team index
-	Team []int
-	Zone []int // 0: Bench, 1: Field, 2: Dead, 3: QueuedSummon
-
-	// model set
-	ModelNo []int
-
-	// core unit stats: index (unitID) ->  HP
-	HP  []int
-	EXP []int
-
-	// summon resolution
-	SummonCharge []int // in milliseconds
-
-	// abilities
-	Abilities       []Ability // abilities are flattened for each unit
-	AbilityCount    []int     // how many functions belong to each unit
-	AbilityStartIdx []int     // the starting index in Functions[] for this unit
-
+	//
 }
 
 type Card struct {
 	CID   int // card ID
 	DefNo int // the card's serial number
-	Owner int
+	Team  int
 	Type  int // structure, unit, trap, spell
 	Zone  int // deck, hand, field, graveyard
 	Armed bool
