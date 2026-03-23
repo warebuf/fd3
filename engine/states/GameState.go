@@ -27,7 +27,7 @@ type Card struct {
 	Armed bool
 }
 
-type Permanents struct {
+type Permanent struct {
 	PID        int
 	SourceCard int
 	Type       int // structure, unit, continuous trap, continuous spell
