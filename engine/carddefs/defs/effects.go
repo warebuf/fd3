@@ -14,8 +14,14 @@ const (
 	EffectGrantAbility
 )
 
+type Effect struct {
+	Type       int
+	TargetRule int
+	Amount     int
+}
+
 func applyEff(gs *states.GameState, pq *stackPQ.PriorityQueue, eff Effect) {
-	switch eff.Kind {
+	switch eff.Type {
 	case EffectAttack:
 		// placeholder
 	case EffectHeal:

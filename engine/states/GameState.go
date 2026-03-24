@@ -5,7 +5,6 @@ import (
 )
 
 type GameState struct {
-
 	//
 	GameStateID int
 
@@ -16,15 +15,8 @@ type GameState struct {
 	Round int
 
 	//
-}
-
-type Card struct {
-	CID   int // card ID
-	DefNo int // the card's serial number
-	Team  int
-	Type  int // structure, unit, trap, spell
-	Zone  int // deck, hand, field, graveyard
-	Armed bool
+	Cards      []Card
+	Permanents []Permanent
 }
 
 type Permanent struct {

@@ -13,8 +13,8 @@ func RandomSameTeam(state *states.GameState, teamIdx int) int {
 	chosen := -1
 	count := 0
 
-	for i := 0; i < len(state.Team); i++ {
-		if state.Zone[i] == 1 && state.Team[i] == teamIdx && state.HP[i] > 0 {
+	for i := 0; i < len(state.Cards); i++ {
+		if state.Cards[i].Zone == 1 && state.Cards[i].Team == teamIdx && state.Cards[i].HP > 0 {
 			count++
 			if rand.Intn(count) == 0 {
 				chosen = i
