@@ -253,6 +253,7 @@ var guestMap *matchmaking.GuestStore
 var matchmaker *matchmaking.Matchmaker
 var unitModels []engine.Model
 
+// by default, golang runs the init function before main
 func init() {
 	fmt.Println("server started")
 

@@ -1,0 +1,11 @@
+2026-03-19
+
+I think this is the idea of the current architecture:
+
+Effects -> Priority Queue
+Effects -> GameState
+
+Effects -> Primitives
+
+Engine -> Effects
+

@@ -1,0 +1,19 @@
+package cardDef
+
+import (
+	"github.com/warebuf/fd3/engine/states/gameState"
+)
+
+type CardDef struct {
+	Type      int
+	OnPlay    []gameState.Effect
+	Triggers  []gameState.TriggerEffect
+	Recurring []gameState.RecurringEffect
+	Passives  []gameState.Passive
+}
+
+var CardDefs = []CardDef{
+	0: {}, // empty, so DefNo lines up with index
+	1: {Type: gameState.CardTypeUnit, OnPlay: []gameState.Effect{}, Triggers: []gameState.TriggerEffect{}},
+	2: {Type: gameState.CardTypeUnit, OnPlay: []gameState.Effect{}, Triggers: []gameState.TriggerEffect{}},
+}
