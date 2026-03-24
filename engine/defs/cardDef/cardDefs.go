@@ -14,6 +14,6 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	1: {Type: gameState.CardTypeUnit, OnPlay: []gameState.Effect{}, Triggers: []gameState.TriggerEffect{}},
-	2: {Type: gameState.CardTypeUnit, OnPlay: []gameState.Effect{}, Triggers: []gameState.TriggerEffect{}},
+	1: {Type: gameState.CardTypeUnit},
+	2: {Type: gameState.CardTypeUnit, OnPlay: []gameState.Effect{}},
 }
