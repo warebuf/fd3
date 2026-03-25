@@ -1,15 +1,18 @@
-package cardDef
+package defs
 
 import (
 	"github.com/warebuf/fd3/engine/states/gameState"
 )
 
 type CardDef struct {
-	Type      int
+	Type int
+
 	OnPlay    []gameState.Effect
 	Triggers  []gameState.TriggerEffect
 	Recurring []gameState.RecurringEffect
 	Passives  []gameState.Passive
+
+	BaseHP int
 }
 
 var CardDefs = []CardDef{

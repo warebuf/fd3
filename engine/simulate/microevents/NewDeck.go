@@ -1,9 +1,12 @@
-package cardDef
+package microevents
 
-import "github.com/warebuf/fd3/engine/states/gameState"
+import (
+	"github.com/warebuf/fd3/engine/defs"
+	"github.com/warebuf/fd3/engine/states/gameState"
+)
 
 func NewCard(cid int, defNo int, team int) gameState.Card {
-	def := CardDefs[defNo] // look up the blueprint
+	def := defs.CardDefs[defNo] // look up the blueprint
 	return gameState.Card{
 		CardID: cid,
 		DefNo:  defNo,
