@@ -8,6 +8,7 @@ import (
 
 type Guest struct {
 	Expiry time.Time
+	Deck   []int
 }
 
 type GuestStore struct {
@@ -30,11 +31,12 @@ func NewGuestStore() *GuestStore {
 	return gs
 }
 
-func (guestMap *GuestStore) Add(id string, expiry time.Time) {
+func (guestMap *GuestStore) Add(id string, expiry time.Time, deck []int) {
 	guestMap.mutex.Lock()
 	defer guestMap.mutex.Unlock()
 	guestMap.store[id] = Guest{
 		Expiry: expiry,
+		Deck:   deck,
 	}
 }
 

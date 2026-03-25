@@ -14,6 +14,7 @@ import (
 
 	// our imports
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/simulate/microevents"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
@@ -38,12 +39,21 @@ var upgrader = websocket.Upgrader{
 // this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
+	var deck []int
+	if err := json.NewDecoder(r.Body).Decode(&deck); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if !microevents.IsValidDeck(deck) {
+		http.Error(w, "invalid deck", http.StatusBadRequest)
+		return
+	}
+
 	id := uuid.NewString()
 	expiry := time.Now().Add(2 * time.Hour)
 
-	guestMap.Add(id, expiry)
-
-	// TODO: verify that the deck is valid, if valid, add it to the cookie i think
+	guestMap.Add(id, expiry, deck)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "guestID",
