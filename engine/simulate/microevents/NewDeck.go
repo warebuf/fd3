@@ -24,3 +24,31 @@ func NewDeck(team int, defNos []int) []gameState.Card {
 	}
 	return deck
 }
+
+func IsValidDeck(deck []int) bool {
+	if len(deck) > 30 {
+		return false
+	}
+
+	cardDefsLength := len(defs.CardDefs)
+	counts := make([]int, cardDefsLength)
+
+	for i := 0; i < len(deck); i++ {
+		cardNo := deck[i]
+
+		// bounds check
+		if cardNo <= 0 || cardNo >= cardDefsLength {
+			return false
+		}
+
+		// count occurrences
+		counts[cardNo]++
+
+		// duplicate rule (example: max 3 copies)
+		if counts[cardNo] > 3 {
+			return false
+		}
+	}
+
+	return true
+}

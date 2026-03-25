@@ -43,6 +43,8 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	guestMap.Add(id, expiry)
 
+	// TODO: verify that the deck is valid, if valid, add it to the cookie i think
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "guestID",
 		Value:    id,
