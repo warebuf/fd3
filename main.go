@@ -39,6 +39,7 @@ var upgrader = websocket.Upgrader{
 // this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
+	// check for valid deck
 	var deck []int
 	if err := json.NewDecoder(r.Body).Decode(&deck); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
