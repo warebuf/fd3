@@ -9,8 +9,10 @@ import (
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/simulate/microevents"
 	"github.com/warebuf/fd3/engine/states/gameState"
+	"github.com/warebuf/fd3/engine/states/stackPQ"
 	"github.com/warebuf/fd3/match"
 )
 
@@ -152,11 +154,11 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameState: state,
-		// PublishedState
-		// PQ
-		NextNodeIndex: 0,
-		EventLog: [],
+		GameState:      state,
+		PublishedState: gameState.DeepCopyGameState(state.Timestamp, state),
+		PQ:             &stackPQ.PriorityQueue{},
+		NextNodeIndex:  0,
+		EventLog:       []logs.EventLog{},
 
 		NextRoundTime: time.Now().Add(20 * time.Second), // 20s
 
@@ -164,7 +166,8 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		EventPQTimer:   nil,
 		NextSeq:        0,
 	}
-	heap.Init(&m.EventPQueue)
+	heap.Init(m.PQ)           // init PQ stack
+	heap.Init(&m.EventPQueue) // init event handling PQ
 
 	match.PushNewRound(m) // timer for starting the game, could also broadcast the time here
 

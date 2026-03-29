@@ -1,4 +1,4 @@
-package engine
+package logs
 
 type EventLog struct {
 	UnitIndex    int

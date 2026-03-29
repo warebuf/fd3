@@ -36,7 +36,7 @@ func CreateFirstGameState(t time.Time, cards []Card) *GameState {
 	return gm
 }
 
-func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
+func DeepCopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 
 	if prevState == nil {
 		return nil
@@ -48,8 +48,21 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		Round:       prevState.Round,
 	}
 
-	// TODO: copy objects correctly
-	newState.Mana = copyIntSlice(prevState.Mana)
+	// Cards
+	newState.Cards = make([]Card, len(prevState.Cards))
+	copy(newState.Cards, prevState.Cards)
+
+	// Permanents
+	newState.Permanents = make([]Permanent, len(prevState.Permanents))
+	copy(newState.Permanents, prevState.Permanents)
+
+	// Mana
+	newState.Mana = make([]int, len(prevState.Mana))
+	copy(newState.Mana, prevState.Mana)
+
+	// ActiveTriggers
+	newState.ActiveTriggers = make([]TriggerEffect, len(prevState.ActiveTriggers))
+	copy(newState.ActiveTriggers, prevState.ActiveTriggers)
 
 	return newState
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/states/stackPQ"
 )
 
@@ -18,7 +19,7 @@ type Match struct {
 	PublishedState *engine.GameState      // a copy of GameState that the players can read
 	PQ             *stackPQ.PriorityQueue // priority queue of chains/stacks
 	NextNodeIndex  uint64                 // assign an index to each action/effect
-	EventLog       []engine.EventLog      // a log of all events that have occurred
+	EventLog       []logs.EventLog        // a log of all events that have occurred
 
 	NextRoundTime time.Time
 

@@ -119,7 +119,7 @@ func (match *Match) handleDuePQEvents() {
 					match.NextEffectIndex += 1
 
 					// publish the new state
-					match.PublishedState = engine.CopyGameState(match.GameState.Timestamp, match.GameState)
+					match.PublishedState = engine.DeepCopyGameState(match.GameState.Timestamp, match.GameState)
 
 					// append the new actions
 					match.EventLog = append(match.EventLog, newEvents...)
@@ -197,7 +197,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// copy state
 			roundTimestamp := next.Event.Timestamp().Add(200 * time.Millisecond)
-			newState := engine.CopyGameState(roundTimestamp, match.GameStates[len(match.GameStates)-1])
+			newState := engine.DeepCopyGameState(roundTimestamp, match.GameStates[len(match.GameStates)-1])
 
 			// increment the round
 			newState.Round += 1
@@ -273,7 +273,7 @@ func pushAutoScheduler(match *Match, nextAutoEvent time.Time) {
 
 func IncrementState(state *engine.GameState, nextTimestamp time.Time) *engine.GameState {
 
-	newState := engine.CopyGameState(nextTimestamp, state)
+	newState := engine.DeepCopyGameState(nextTimestamp, state)
 	increment := int(nextTimestamp.UnixMilli() - state.Timestamp.UnixMilli())
 
 	for i := 0; i < len(state.Zone); i++ {
