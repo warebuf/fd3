@@ -9,7 +9,8 @@ import (
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
-	"github.com/warebuf/fd3/engine"
+	"github.com/warebuf/fd3/engine/simulate/microevents"
+	"github.com/warebuf/fd3/engine/states/gameState"
 	"github.com/warebuf/fd3/match"
 )
 
@@ -30,7 +31,7 @@ type Matchmaker struct {
 	inGame map[string]struct{} // list of users in game
 }
 
-func CreateMatchMaking(MatchMap map[string]*match.Match, unitModels []engine.Model) *Matchmaker {
+func CreateMatchMaking(MatchMap map[string]*match.Match) *Matchmaker {
 	matchMaker := &Matchmaker{
 		queue: orderedmap.New[string, *Ticket](),
 		Join:  make(chan *Ticket, 1024),
@@ -136,14 +137,27 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		userIDs[tickets[i].TicketID] = uint(i)
 	}
 
+	// create an arr of decks
+	var all []gameState.Card
+	for i := 0; i < len(tickets); i++ {
+		deck := microevents.NewDeck(i, tickets[i].Deck)
+		all = append(all, deck...)
+	}
+
+	state := gameState.CreateFirstGameState(time.Now(), all)
+
 	// create match object
 	m := &match.Match{
 		ID:        id,
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameStates:    make([]*engine.GameState, 0),
-		CurrentState:  0,
+		GameState: state,
+		// PublishedState
+		// PQ
+		NextNodeIndex: 0,
+		EventLog: [],
+
 		NextRoundTime: time.Now().Add(20 * time.Second), // 20s
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
@@ -152,40 +166,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	}
 	heap.Init(&m.EventPQueue)
 
-	state := engine.CreateFirstGameState(time.Now(), m.CurrentState)
-	m.GameStates = append(m.GameStates, state)
 	match.PushNewRound(m) // timer for starting the game, could also broadcast the time here
-
-	m.CreateStructure(0, 10000)
-	m.CreateStructure(1, 10000)
-
-	m.DrawCard(0, 1)
-	m.DrawCard(0, 1)
-	m.DrawCard(0, 1)
-	m.DrawCard(0, 2)
-	m.DrawCard(0, 2)
-	m.DrawCard(0, 2)
-	m.DrawCard(0, 3)
-	m.DrawCard(0, 3)
-	m.DrawCard(0, 3)
-	m.DrawCard(0, 4)
-	m.DrawCard(0, 4)
-	m.DrawCard(0, 4)
-
-	m.DrawCard(1, 1)
-	m.DrawCard(1, 1)
-	m.DrawCard(1, 1)
-	m.DrawCard(1, 2)
-	m.DrawCard(1, 2)
-	m.DrawCard(1, 2)
-	m.DrawCard(1, 3)
-	m.DrawCard(1, 3)
-	m.DrawCard(1, 3)
-	m.DrawCard(1, 4)
-	m.DrawCard(1, 4)
-	m.DrawCard(1, 4)
-
-	time.Sleep(1 * time.Millisecond)
 
 	go m.EventScheduler() // on init, check the game state, schedule if first if possible
 

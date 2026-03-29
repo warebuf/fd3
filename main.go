@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/websocket"
 
 	// our imports
-	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/simulate/microevents"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
@@ -170,7 +169,7 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for expired cookie
-	ok := guestMap.Get(guestID)
+	_, ok := guestMap.Get(guestID)
 	if !ok {
 		http.Error(w, "Expired guestID", http.StatusUnauthorized)
 		return
@@ -217,7 +216,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for expired cookie
-	ok := guestMap.Get(guestID)
+	_, ok := guestMap.Get(guestID)
 	if !ok {
 		http.Error(w, "Expired guestID", http.StatusUnauthorized)
 		return
@@ -266,16 +265,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getModelData(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(unitModels)
-}
-
 // global variables
 var matchMap map[string]*match.Match
 var guestMap *matchmaking.GuestStore
 var matchmaker *matchmaking.Matchmaker
-var unitModels []engine.Model
 
 // by default, golang runs the init function before main
 func init() {
@@ -286,8 +279,7 @@ func init() {
 
 	// create matchmaking goroutine
 	matchMap = make(map[string]*match.Match)
-	unitModels = engine.LoadModels()
-	matchmaker = matchmaking.CreateMatchMaking(matchMap, unitModels)
+	matchmaker = matchmaking.CreateMatchMaking(matchMap)
 
 }
 
@@ -300,9 +292,6 @@ func main() {
 	// websocket routes
 	http.HandleFunc("/ws/check", wsPreflight)
 	http.HandleFunc("/ws", wsHandler)
-
-	// simulate routes
-	http.HandleFunc("/getModelData", getModelData)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 

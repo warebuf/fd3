@@ -12,7 +12,7 @@ type GameState struct {
 	// state stuff
 	Cards          []Card
 	Permanents     []Permanent
-	Mana           []int
+	Mana           []int // per team
 	ActiveTriggers []TriggerEffect
 }
 
@@ -26,11 +26,12 @@ type Permanent struct {
 }
 
 // CreateGameState initializes an empty game state with outer slices ready
-func CreateFirstGameState(t time.Time, GSID int) *GameState {
+func CreateFirstGameState(t time.Time, cards []Card) *GameState {
 	gm := &GameState{
-		GameStateID: GSID,
+		GameStateID: 0,
 		Timestamp:   t,
 		Round:       0,
+		Cards:       cards,
 	}
 	return gm
 }
@@ -47,6 +48,7 @@ func CopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 		Round:       prevState.Round,
 	}
 
+	// TODO: copy objects correctly
 	newState.Mana = copyIntSlice(prevState.Mana)
 
 	return newState
