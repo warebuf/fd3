@@ -46,14 +46,15 @@ func (guestMap *GuestStore) Remove(id string) {
 	delete(guestMap.store, id)
 }
 
-func (guestMap *GuestStore) Get(id string) bool {
+func (guestMap *GuestStore) Get(id string) (Guest, bool) {
 	guestMap.mutex.Lock()
 	defer guestMap.mutex.Unlock()
 	guest, ok := guestMap.store[id]
 	if !ok || time.Now().After(guest.Expiry) {
-		return false
+		delete(guestMap.store, id)
+		return Guest{}, false
 	}
-	return true
+	return guest, true
 }
 
 func (guestMap *GuestStore) cleanup() {

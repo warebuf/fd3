@@ -15,6 +15,7 @@ import (
 
 type Ticket struct {
 	TicketID         string
+	Deck             []int
 	ClosedConnection <-chan struct{}
 	Found            chan string   // receives matchID
 	RejectedTicket   chan struct{} // if UserID is in the system, reject
@@ -27,8 +28,6 @@ type Matchmaker struct {
 	Leave chan string
 
 	inGame map[string]struct{} // list of users in game
-
-	UnitModels []engine.Model
 }
 
 func CreateMatchMaking(MatchMap map[string]*match.Match, unitModels []engine.Model) *Matchmaker {
@@ -38,8 +37,6 @@ func CreateMatchMaking(MatchMap map[string]*match.Match, unitModels []engine.Mod
 		Leave: make(chan string, 1024),
 
 		inGame: make(map[string]struct{}),
-
-		UnitModels: unitModels,
 	}
 	go matchMaker.loop(MatchMap)
 	return matchMaker
@@ -75,9 +72,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 			// iterate from newest to oldest, take the two latest that are in the system
 			var selected []*Ticket
 			for current := m.queue.Newest(); current != nil && len(selected) < 2; {
-
-				// non-blocking
-				select {
+				select { // non-blocking
 				case <-current.Value.ClosedConnection: // user is not connected, invalidate ticket
 					prev := current.Prev()
 					m.queue.Delete(current.Key)
@@ -90,14 +85,12 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 					selected = append(selected, current.Value)
 					current = current.Prev()
 				}
-
 			}
 
 			// matchmake
 			if len(selected) >= 2 {
 
-				// create match
-				matchObj := CreateMatch(selected, MatchMap, m.UnitModels)
+				matchObj := CreateMatch(selected, MatchMap) // create match
 
 				// send match to all users
 				for i := 0; i < len(selected); i++ {
@@ -126,7 +119,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 
 }
 
-func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels []engine.Model) *match.Match {
+func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Match {
 
 	// create matchID
 	id := uuid.NewString()
@@ -145,8 +138,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match, unitModels
 
 	// create match object
 	m := &match.Match{
-		UnitModels: unitModels,
-
 		ID:        id,
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,

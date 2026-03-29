@@ -10,8 +10,6 @@ import (
 )
 
 type Match struct {
-	UnitModels []engine.Model
-
 	ID        string
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client

@@ -39,6 +39,11 @@ var upgrader = websocket.Upgrader{
 // this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "non-POST method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	var deck []int
 	if err := json.NewDecoder(r.Body).Decode(&deck); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -86,7 +91,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for expired cookie
-	ok := guestMap.Get(guestID)
+	guest, ok := guestMap.Get(guestID)
 	if !ok {
 		http.Error(w, "Expired guestID", http.StatusUnauthorized)
 		return
@@ -111,6 +116,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	reject := make(chan struct{}, 1)
 	matchmaker.Join <- &matchmaking.Ticket{
 		TicketID:         guestID,
+		Deck:             guest.Deck,
 		ClosedConnection: ctx.Done(),
 		Found:            matchID,
 		RejectedTicket:   reject,
