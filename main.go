@@ -44,6 +44,12 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "non-POST method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// check for valid deck
 	var deck []int
 	if err := json.NewDecoder(r.Body).Decode(&deck); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
