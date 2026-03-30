@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/states/gameState"
 	"github.com/warebuf/fd3/engine/states/stackPQ"
 )
 
@@ -15,8 +15,8 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameState      *engine.GameState // what the game state should be 200 ms from now
-	PublishedState *engine.GameState // a copy of GameState that the players can read
+	GameState      *gameState.GameState // what the game state should be 200 ms from now
+	PublishedState *gameState.GameState // a copy of GameState that the players can read
 
 	PQ          *stackPQ.PriorityQueue // priority queue of chains/stacks
 	NextPQIndex uint64                 // for the PQ, assign an index to each action/effect so we can handle ties
@@ -56,7 +56,7 @@ func (match *Match) BroadcastPublishedState() {
 	}
 }
 
-func (match *Match) BroadcastEventLog(acts []engine.EventLog) {
+func (match *Match) BroadcastEventLog(acts []logs.EventLog) {
 	// serialize actions
 	wrapper := struct {
 		Type string `json:"type"`
