@@ -32,8 +32,9 @@ type CurrentEvent struct {
 
 func (e *CurrentEvent) Timestamp() time.Time { return e.T }
 
-type NewRoundEvent struct {
-	T time.Time
+type NewPhaseEvent struct {
+	T     time.Time
+	Phase int
 }
 
-func (e *NewRoundEvent) Timestamp() time.Time { return e.T }
+func (e *NewPhaseEvent) Timestamp() time.Time { return e.T }

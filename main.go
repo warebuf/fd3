@@ -190,11 +190,9 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 
 	// write the response
 	resp := struct {
-		TeamIdx       uint      `json:"teamIdx"`
-		NextRoundTime time.Time `json:"nextRoundTime"`
+		TeamIdx uint `json:"teamIdx"`
 	}{
-		TeamIdx:       teamIdx,
-		NextRoundTime: match.NextRoundTime,
+		TeamIdx: teamIdx,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)

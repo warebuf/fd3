@@ -98,7 +98,7 @@ func (c *Client) Read() {
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
-			c.MatchObj.SendGameState(c.ID)
+			c.MatchObj.SendPublishedStateToUser(c.ID)
 		}
 
 		_ = c.Conn.SetReadDeadline(time.Now().Add(65 * time.Second)) // reset the idle timer because we got a message

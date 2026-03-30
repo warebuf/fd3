@@ -7,7 +7,10 @@ import (
 type GameState struct {
 	GameStateID int
 	Timestamp   time.Time // time the state is set for
-	Round       int       // what round the state is on
+	Phase       int       // what phase the game is in (0: pre-match, 1: draw hands, 2: play, 3: game end)
+
+	//
+	LastLogIndex int
 
 	// state stuff
 	Cards          []Card
@@ -28,10 +31,11 @@ type Permanent struct {
 // CreateGameState initializes an empty game state with outer slices ready
 func CreateFirstGameState(t time.Time, cards []Card) *GameState {
 	gm := &GameState{
-		GameStateID: 0,
-		Timestamp:   t,
-		Round:       0,
-		Cards:       cards,
+		GameStateID:  0,
+		Timestamp:    t,
+		Phase:        0,
+		LastLogIndex: 0,
+		Cards:        cards,
 	}
 	return gm
 }
@@ -45,7 +49,7 @@ func DeepCopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	newState := &GameState{
 		GameStateID: prevState.GameStateID + 1, // increment ID for new state
 		Timestamp:   timestamp,
-		Round:       prevState.Round,
+		Phase:       prevState.Phase,
 	}
 
 	// Cards

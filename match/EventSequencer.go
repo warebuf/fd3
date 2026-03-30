@@ -6,7 +6,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/warebuf/fd3/engine"
 	"github.com/warebuf/fd3/engine/simulate"
 )
 
@@ -189,11 +188,31 @@ func (match *Match) handleDuePQEvents() {
 				}
 			}
 
-		case "NewRound":
-			fmt.Println("received NewRound")
+		case "NewPhase":
+
+			newPhase := next.Event.(*NewPhaseEvent)
+			fmt.Println("received newPhase", newPhase)
 
 			// remove all autoscheduler events
 			match.EventPQueue.RemoveAllAutoSchedulers()
+
+			// NOTE: it seems like we are not having autoschedulers anymore? replaced by priority queue of stacks system?
+			if newPhase.Phase == 1 { // entering draw phase
+				// add phase increment log (these can be broadcasted early)
+				// add draw events/logs (these can be broadcasted early)
+				// schedule the next NewPhase
+				// update the game state, published state
+				// broadcast new logs
+			} else if newPhase.Phase == 2 { // entering game start
+				// add phase increment event/logs (these can be broadcasted early)
+				// update the game state, published state
+				// schedule autoevents
+				// broadcast new logs
+			} else if newPhase.Phase == 3 { // entering game over
+				// end game (not sure what this requires tbh)
+				// update the game state, published state
+				// broadcast new logs
+			}
 
 			// copy state
 			roundTimestamp := next.Event.Timestamp().Add(200 * time.Millisecond)
@@ -234,14 +253,15 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-func PushNewRound(match *Match) {
+func PushNewPhase(match *Match, t time.Time, phase int) {
 	match.NextSeq++
-	newRound := &NewRoundEvent{
-		T: match.NextRoundTime.Add(-200 * time.Millisecond),
+	newPhase := &NewPhaseEvent{
+		T:     t.Add(-200 * time.Millisecond),
+		Phase: phase,
 	}
 	item := &EventItem{
-		Event: newRound,
-		Type:  "NewRound",
+		Event: newPhase,
+		Type:  "NewPhase",
 		seq:   int64(match.NextSeq),
 	}
 	heap.Push(&match.EventPQueue, item)

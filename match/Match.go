@@ -15,13 +15,13 @@ type Match struct {
 	Whitelist map[string]uint // acts as the teamNo map and the whitelist
 	ByUser    map[string]*Client
 
-	GameState      *engine.GameState      // what the game state should be 200 ms from now
-	PublishedState *engine.GameState      // a copy of GameState that the players can read
-	PQ             *stackPQ.PriorityQueue // priority queue of chains/stacks
-	NextNodeIndex  uint64                 // assign an index to each action/effect
-	EventLog       []logs.EventLog        // a log of all events that have occurred
+	GameState      *engine.GameState // what the game state should be 200 ms from now
+	PublishedState *engine.GameState // a copy of GameState that the players can read
 
-	NextRoundTime time.Time
+	PQ          *stackPQ.PriorityQueue // priority queue of chains/stacks
+	NextPQIndex uint64                 // for the PQ, assign an index to each action/effect so we can handle ties
+
+	EventLog []logs.EventLog // a log of all events that have occurred
 
 	InputEventChan chan *InputEvent
 	EventPQueue    EventPQ
@@ -83,7 +83,7 @@ func (match *Match) BroadcastEventLog(acts []engine.EventLog) {
 }
 
 // TODO: needs to be censored per client
-func (match *Match) SendGameState(ClientID string) {
+func (match *Match) SendPublishedStateToUser(ClientID string) {
 
 	// serialize current game state
 	wrapper := struct {

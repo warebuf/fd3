@@ -157,10 +157,8 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		GameState:      state,
 		PublishedState: gameState.DeepCopyGameState(state.Timestamp, state),
 		PQ:             &stackPQ.PriorityQueue{},
-		NextNodeIndex:  0,
+		NextPQIndex:    0,
 		EventLog:       []logs.EventLog{},
-
-		NextRoundTime: time.Now().Add(20 * time.Second), // 20s
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,
@@ -169,7 +167,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	heap.Init(m.PQ)           // init PQ stack
 	heap.Init(&m.EventPQueue) // init event handling PQ
 
-	match.PushNewRound(m) // timer for starting the game, could also broadcast the time here
+	match.PushNewPhase(m, time.Now().Add(10*time.Second), 1) // timer for starting the game, could also broadcast the time here
 
 	go m.EventScheduler() // on init, check the game state, schedule if first if possible
 
