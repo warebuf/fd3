@@ -1,9 +1,5 @@
 package match
 
-import (
-	"container/heap"
-)
-
 // Priority Queue stuff
 
 type EventItem struct {
@@ -52,12 +48,13 @@ func (pq EventPQ) Peek() (*EventItem, bool) {
 	return pq[0], true
 }
 
-func (pq *EventPQ) RemoveAllAutoSchedulers() {
-	for i := pq.Len() - 1; i >= 0; i-- {
-		item := (*pq)[i]
+// keeping because maybe we have to remove StackPQ items
+// func (pq *EventPQ) RemoveAllAutoSchedulers() {
+// 	for i := pq.Len() - 1; i >= 0; i-- {
+// 		item := (*pq)[i]
 
-		if _, ok := item.Event.(*AutoScheduler); ok {
-			heap.Remove(pq, i)
-		}
-	}
-}
+// 		if _, ok := item.Event.(*AutoScheduler); ok {
+// 			heap.Remove(pq, i)
+// 		}
+// 	}
+// }

@@ -3,7 +3,6 @@ package match
 import (
 	"container/heap"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/warebuf/fd3/engine/simulate"
@@ -60,47 +59,13 @@ func (match *Match) handleDuePQEvents() {
 
 		// handle the event
 		switch next.Type {
-		case "AutoScheduler":
-			fmt.Println("received AutoScheduler")
-
-			//increment
-			autoEventTime := next.Event.Timestamp().Add(200 * time.Millisecond) // HARDCODED b/c autoschedulers are scheduled 200 ms before the autoevent
-			incrementedState := IncrementState(match.GameState, autoEventTime)
-
-			// figure out which abilities are due
-			dueUnits := []int{} // matches length of dueAbilities
-			dueFunc := []int{}
-			for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
-				for j := 0; j < incrementedState.FunctionCount[i]; j++ {
-					funcIdx := incrementedState.FunctionStartIdx[i] + j
-					if incrementedState.FunctionType[funcIdx] == 0 { // only check auto functions
-						isValid := CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
-						if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
-							dueFunc = append(dueFunc, funcIdx)
-							dueUnits = append(dueUnits, i)
-						}
-					}
-				}
-			}
-
-			// activate abilities
-			abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFunc)
-			if modified {
-				match.GameStates = append(match.GameStates, abilityState)
-				match.BroadcastGameState(abilityState)
-			}
-
-			// schedule next AutoScheduler
-			nextAutoEventTime, success := CalcNextAutoEvent(abilityState)
-			if success {
-				pushAutoScheduler(match, nextAutoEventTime)
-			}
-
 		case "Input":
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
 
 			// TODO: notably there is little to no validation
+
+			// TODO: if phase is not 2, do not accept inputs (not sure whether to do it here or before)
 
 			// remove all autoscheduler events (at most only 1 exists in current design)
 			match.EventPQueue.RemoveAllAutoSchedulers()
@@ -193,56 +158,22 @@ func (match *Match) handleDuePQEvents() {
 			newPhase := next.Event.(*NewPhaseEvent)
 			fmt.Println("received newPhase", newPhase)
 
-			// remove all autoscheduler events
-			match.EventPQueue.RemoveAllAutoSchedulers()
-
 			// NOTE: it seems like we are not having autoschedulers anymore? replaced by priority queue of stacks system?
 			if newPhase.Phase == 1 { // entering draw phase
 				// add phase increment log (these can be broadcasted early)
-				// add draw events/logs (these can be broadcasted early)
+				// schedule the draw event
 				// schedule the next NewPhase
 				// update the game state, published state
 				// broadcast new logs
 			} else if newPhase.Phase == 2 { // entering game start
 				// add phase increment event/logs (these can be broadcasted early)
 				// update the game state, published state
-				// schedule autoevents
+				// schedule EventPQ effects
 				// broadcast new logs
 			} else if newPhase.Phase == 3 { // entering game over
 				// end game (not sure what this requires tbh)
 				// update the game state, published state
 				// broadcast new logs
-			}
-
-			// copy state
-			roundTimestamp := next.Event.Timestamp().Add(200 * time.Millisecond)
-			newState := engine.DeepCopyGameState(roundTimestamp, match.GameStates[len(match.GameStates)-1])
-
-			// increment the round
-			newState.Round += 1
-			match.GameStates = append(match.GameStates, newState)
-			match.BroadcastGameState(newState)
-			pushCurrentEvent(match, roundTimestamp)
-
-			// sim any first round summons (add a summon condition, an enumeration/ioata in the game state)
-			prevState := newState
-			modified := false
-			for i := 0; i < len(newState.Zone); i++ {
-				if newState.Zone[i] == 3 {
-					modified = true
-					prevState = summon.BasicSummon(match.UnitModels, prevState, roundTimestamp, newState.Team[i], i)
-				}
-			}
-			if modified {
-				match.GameStates = append(match.GameStates, prevState)
-				match.BroadcastGameState(prevState)
-				pushCurrentEvent(match, roundTimestamp)
-			}
-
-			// schedule autoscheduler
-			nextAutoEventTime, success := CalcNextAutoEvent(prevState)
-			if success {
-				pushAutoScheduler(match, nextAutoEventTime)
 			}
 		}
 
@@ -256,7 +187,7 @@ func (match *Match) handleDuePQEvents() {
 func PushNewPhase(match *Match, t time.Time, phase int) {
 	match.NextSeq++
 	newPhase := &NewPhaseEvent{
-		T:     t.Add(-200 * time.Millisecond),
+		T:     t.Add(-200 * time.Millisecond), // needs to be scheduled 200 ms early
 		Phase: phase,
 	}
 	item := &EventItem{
@@ -276,84 +207,6 @@ func pushInputEvent(match *Match, ev *InputEvent) {
 		seq:   int64(match.NextSeq),
 	}
 	heap.Push(&match.EventPQueue, item)
-}
-
-func pushAutoScheduler(match *Match, nextAutoEvent time.Time) {
-	match.NextSeq++
-	currentEvent := &CurrentEvent{
-		T: nextAutoEvent.Add(-200 * time.Millisecond), // HARDCODED to schedule autoschedules 200 ms earlier
-	}
-	item := &EventItem{
-		Event: currentEvent,
-		Type:  "AutoScheduler",
-		seq:   int64(match.NextSeq),
-	}
-	heap.Push(&match.EventPQueue, item)
-}
-
-func IncrementState(state *engine.GameState, nextTimestamp time.Time) *engine.GameState {
-
-	newState := engine.DeepCopyGameState(nextTimestamp, state)
-	increment := int(nextTimestamp.UnixMilli() - state.Timestamp.UnixMilli())
-
-	for i := 0; i < len(state.Zone); i++ {
-
-		// increment the on-board functions
-		if state.HP[i] > 0 && state.Zone[i] == 1 {
-			for j := state.FunctionStartIdx[i]; j < state.FunctionStartIdx[i]+state.FunctionCount[i]; j++ {
-				if state.FunctionType[j] == 0 {
-					if state.FunctionSPD[j]-increment < state.FunctionCharge[j] { // we've reached past the charge
-						newState.FunctionCharge[j] = newState.FunctionSPD[j]
-					} else {
-						newState.FunctionCharge[j] += increment
-					}
-				}
-			}
-		}
-
-		// increment the units being summoned
-		if state.HP[i] > 0 && state.Zone[i] == 3 {
-			state.SummonCharge[i] += increment
-		}
-
-	}
-
-	return newState
-}
-
-func CalcNextAutoEvent(state *engine.GameState) (time.Time, bool) {
-
-	timeToAutoEvent := math.MaxInt // in milliseconds
-
-	for i := 0; i < len(state.Zone); i++ {
-
-		// checking for summon resolutions
-		if state.HP[i] > 0 && state.Zone[i] == 3 { // presummon zone
-			timeLeft := 2000 - state.SummonCharge[i] // HARDCODED to 2 seconds
-			if timeLeft < timeToAutoEvent {
-				timeToAutoEvent = timeLeft
-			}
-		}
-
-		// iterating through functions
-		if state.HP[i] > 0 && state.Zone[i] == 1 {
-			for j := state.FunctionStartIdx[i]; j < state.FunctionStartIdx[i]+state.FunctionCount[i]; j++ {
-				if state.FunctionType[j] == 0 { // is an auto function
-					timeLeft := int(state.FunctionSPD[j] - state.FunctionCharge[j])
-					if timeLeft < timeToAutoEvent && simulate.ValidFunction(state, i, state.Functions[j]) {
-						timeToAutoEvent = timeLeft
-					}
-				}
-			}
-		}
-
-	}
-
-	if timeToAutoEvent == math.MaxInt {
-		return time.Time{}, false
-	}
-
-	return state.Timestamp.Add(time.Millisecond * time.Duration(timeToAutoEvent)), true
 }
 
 func (match *Match) setPQTimer() {
