@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
+	"github.com/warebuf/fd3/engine/defs/primitives"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/simulate/microevents"
 	"github.com/warebuf/fd3/engine/states/gameState"
@@ -139,14 +140,17 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		userIDs[tickets[i].TicketID] = uint(i)
 	}
 
-	// create an arr of decks
-	var all []gameState.Card
+	// creating the first state, instantiating the card objects
+	var deckDefs [][]int
 	for i := 0; i < len(tickets); i++ {
-		deck := microevents.NewDeck(i, tickets[i].Deck)
-		all = append(all, deck...)
+		deckDefs = append(deckDefs, tickets[i].Deck)
 	}
+	state := microevents.InitDecks(deckDefs)
 
-	state := gameState.CreateFirstGameState(time.Now(), all)
+	// shuffle the decks
+	for i := 0; i < len(state.Deck); i++ {
+		primitives.ShuffleDeck(state, i)
+	}
 
 	// create match object
 	m := &match.Match{
@@ -155,10 +159,10 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		Whitelist: userIDs,
 
 		GameState:      state,
-		PublishedState: gameState.DeepCopyGameState(state.Timestamp, state),
+		PublishedState: gameState.DeepCopyGameState(state),
 		PQ:             &stackPQ.PriorityQueue{},
 		NextPQIndex:    0,
-		EventLog:       []logs.EventLog{},
+		EventLog:       []logs.Log{},
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,

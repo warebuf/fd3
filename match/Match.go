@@ -21,7 +21,7 @@ type Match struct {
 	PQ          *stackPQ.PriorityQueue // priority queue of chains/stacks
 	NextPQIndex uint64                 // for the PQ, assign an index to each action/effect so we can handle ties
 
-	EventLog []logs.EventLog // a log of all events that have occurred
+	EventLog []logs.Log // a log of all events that have occurred
 
 	InputEventChan chan *InputEvent
 	EventPQueue    EventPQ
@@ -56,34 +56,8 @@ func (match *Match) BroadcastPublishedState() {
 	}
 }
 
-func (match *Match) BroadcastEventLog(acts []logs.EventLog) {
-	// serialize actions
-	wrapper := struct {
-		Type string `json:"type"`
-		Data any    `json:"data"`
-	}{
-		Type: "actions",
-		Data: acts,
-	}
-
-	payload, err := json.Marshal(wrapper)
-	if err != nil {
-		fmt.Println("problem marshaling actions:", err)
-		return
-	}
-
-	// send to all clients
-	for key, client := range match.ByUser {
-		select {
-		case client.LowPrio <- payload:
-		default:
-			fmt.Println("dropped packet to", key)
-		}
-	}
-}
-
 // TODO: needs to be censored per client
-func (match *Match) SendPublishedStateToUser(ClientID string) {
+func (match *Match) SendPublishedState(ClientID string) {
 
 	// serialize current game state
 	wrapper := struct {
@@ -108,6 +82,32 @@ func (match *Match) SendPublishedStateToUser(ClientID string) {
 		}
 	}
 
+}
+
+func (match *Match) BroadcastLogs(oldLogsSize int) {
+	// serialize actions
+	wrapper := struct {
+		Type string `json:"type"`
+		Data any    `json:"data"`
+	}{
+		Type: "actions",
+		Data: match.EventLog[oldLogsSize:],
+	}
+
+	payload, err := json.Marshal(wrapper)
+	if err != nil {
+		fmt.Println("problem marshaling actions:", err)
+		return
+	}
+
+	// send to all clients
+	for key, client := range match.ByUser {
+		select {
+		case client.LowPrio <- payload:
+		default:
+			fmt.Println("dropped packet to", key)
+		}
+	}
 }
 
 func (match *Match) Broadcast(data []byte) {

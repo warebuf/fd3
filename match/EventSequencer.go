@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/simulate"
+	"github.com/warebuf/fd3/engine/simulate/microevents"
+	"github.com/warebuf/fd3/engine/states/gameState"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -158,15 +161,46 @@ func (match *Match) handleDuePQEvents() {
 			newPhase := next.Event.(*NewPhaseEvent)
 			fmt.Println("received newPhase", newPhase)
 
-			// NOTE: it seems like we are not having autoschedulers anymore? replaced by priority queue of stacks system?
 			if newPhase.Phase == 1 { // entering draw phase
-				// add phase increment log (these can be broadcasted early)
+
+				// saving the old log count for broadcasting the new logs
+				oldLogsSize := len(match.EventLog)
+
+				// increment the phase
+				match.GameState.Phase = 1
+				match.EventLog = append(match.EventLog, logs.Log{
+					Timestamp: time.Now().UnixMilli(),
+					Type:      logs.PhaseLog,
+					Value:     1,
+				})
+
 				// schedule the draw event
-				// schedule the next NewPhase
+				currentTime := time.Now().UnixMilli()
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5000) // 5.0 seconds from now
+				match.NextPQIndex += 1
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5500) // 5.5 seconds from now
+				match.NextPQIndex += 1
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+6000) // 6.0 seconds from now
+				match.NextPQIndex += 1
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+6500) // 6.5 seconds from now
+				match.NextPQIndex += 1
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7000) // 7.0 seconds from now
+				match.NextPQIndex += 1
+				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7500) // 7.5 seconds from now
+				match.NextPQIndex += 1
+
+				// schedule phase 2 10s from now
+				PushNewPhase(match, time.UnixMilli(currentTime).Add(10*time.Second), 2)
+
 				// update the game state, published state
+				match.GameState.GameStateID += 1
+				match.PublishedState = gameState.DeepCopyGameState(match.GameState)
+
 				// broadcast new logs
+				match.BroadcastLogs(oldLogsSize)
+
 			} else if newPhase.Phase == 2 { // entering game start
-				// add phase increment event/logs (these can be broadcasted early)
+				// increment the phase (these can be broadcasted early)
 				// update the game state, published state
 				// schedule EventPQ effects
 				// broadcast new logs

@@ -1,11 +1,24 @@
-2026-03-19
+2026-03-31
 
-I think this is the idea of the current architecture:
+List of packages:
+engine/defs
+engine/defs/effDef
+engine/defs/primitives
+engine/logs
+engine/stimulate
+engine/stimulate/microevents
+engine/states/gameState
+engine/states/stackPQ
+match
+matchmaking
+main
 
-Effects -> Priority Queue
-Effects -> GameState
+This is the summary of the current architecture:
 
-Effects -> Primitives
+main: 
+- creates global variables that can be shared between goroutines 
+- creates a goroutine for each HTTP route
 
-Engine -> Effects
+matchmaking: it's own goroutine, handles creating matches, adding users to those matches
 
+match:

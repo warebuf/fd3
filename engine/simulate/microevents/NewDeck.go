@@ -1,28 +1,58 @@
 package microevents
 
 import (
+	"time"
+
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/states/gameState"
 )
 
-func NewCard(cid int, defNo int, team int) gameState.Card {
-	def := defs.CardDefs[defNo] // look up the blueprint
-	return gameState.Card{
-		CardID: cid,
-		DefNo:  defNo,
-		Team:   team,
-		Type:   def.Type,
-		Zone:   gameState.ZoneDeck,
-		Armed:  false,
-	}
-}
+func InitDecks(deckDefs [][]int) *gameState.GameState {
+	gs := &gameState.GameState{
+		GameStateID: 0,
+		Timestamp:   time.Now(),
+		Phase:       0,
 
-func NewDeck(team int, defNos []int) []gameState.Card {
-	deck := []gameState.Card{}
-	for i, defNo := range defNos {
-		deck = append(deck, NewCard(i, defNo, team))
+		Cards: []gameState.Card{},
+		Deck:  make([][]int, len(deckDefs)),
+		Hand:  make([][]int, len(deckDefs)),
+		Field: make([][]int, len(deckDefs)),
+		Grave: make([][]int, len(deckDefs)),
+
+		Permanents:     []gameState.Permanent{},
+		Mana:           make([]int, len(deckDefs)),
+		ActiveTriggers: []gameState.TriggerEffect{},
 	}
-	return deck
+
+	nextCardID := 0
+	for team := 0; team < len(deckDefs); team++ {
+		defNos := deckDefs[team]
+
+		gs.Deck[team] = make([]int, 0, len(defNos))
+		gs.Hand[team] = []int{}
+		gs.Field[team] = []int{}
+		gs.Grave[team] = []int{}
+
+		for _, defNo := range defNos {
+			def := defs.CardDefs[defNo]
+
+			card := gameState.Card{
+				CardID: nextCardID,
+				DefNo:  defNo,
+				Team:   team,
+				Type:   def.Type,
+				Zone:   gameState.ZoneDeck,
+				Armed:  false,
+			}
+
+			gs.Cards = append(gs.Cards, card)
+			gs.Deck[team] = append(gs.Deck[team], nextCardID)
+
+			nextCardID++
+		}
+	}
+
+	return gs
 }
 
 func IsValidDeck(deck []int) bool {

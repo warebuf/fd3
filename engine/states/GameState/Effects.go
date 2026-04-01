@@ -1,7 +1,9 @@
 package gameState
 
+type EffectType int
+
 const (
-	EffectAttack = iota + 1
+	EffectAttack EffectType = iota + 1
 	EffectHeal
 	EffectDraw
 	EffectMana
@@ -10,9 +12,10 @@ const (
 )
 
 type Effect struct {
-	Type       int
-	TargetRule int
-	Amount     int
+	Type EffectType
+	A    int
+	B    int
+	C    int
 }
 
 type TriggerEffect struct {

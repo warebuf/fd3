@@ -9,11 +9,14 @@ type GameState struct {
 	Timestamp   time.Time // time the state is set for
 	Phase       int       // what phase the game is in (0: pre-match, 1: draw hands, 2: play, 3: game end)
 
-	//
-	LastLogIndex int
+	// state stuff for cards
+	Cards []Card
+	Deck  [][]int
+	Hand  [][]int // front of arr is the top
+	Field [][]int
+	Grave [][]int
 
-	// state stuff
-	Cards          []Card
+	// other state stuff
 	Permanents     []Permanent
 	Mana           []int // per team
 	ActiveTriggers []TriggerEffect
@@ -28,27 +31,10 @@ type Permanent struct {
 	Master      bool // can only be 1 master unit
 }
 
-// CreateGameState initializes an empty game state with outer slices ready
-func CreateFirstGameState(t time.Time, cards []Card) *GameState {
-	gm := &GameState{
-		GameStateID:  0,
-		Timestamp:    t,
-		Phase:        0,
-		LastLogIndex: 0,
-		Cards:        cards,
-	}
-	return gm
-}
-
-func DeepCopyGameState(timestamp time.Time, prevState *GameState) *GameState {
-
-	if prevState == nil {
-		return nil
-	}
-
+func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		GameStateID: prevState.GameStateID + 1, // increment ID for new state
-		Timestamp:   timestamp,
+		GameStateID: prevState.GameStateID, // increment ID for new state
+		Timestamp:   prevState.Timestamp,
 		Phase:       prevState.Phase,
 	}
 
@@ -69,15 +55,4 @@ func DeepCopyGameState(timestamp time.Time, prevState *GameState) *GameState {
 	copy(newState.ActiveTriggers, prevState.ActiveTriggers)
 
 	return newState
-}
-
-// helpers
-
-func copyIntSlice(src []int) []int {
-	if src == nil {
-		return nil
-	}
-	dst := make([]int, len(src))
-	copy(dst, src)
-	return dst
 }

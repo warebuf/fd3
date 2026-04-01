@@ -5,9 +5,8 @@ import "container/heap"
 type Stack struct {
 	EffectIndex uint64 // the latest effect gets the biggest index
 
-	DeclarationTime int64
-	WindowTime      int
-	ResolutionTime  int64
+	DeclareTime int64
+	ResolveTime int64
 
 	Effects []any
 
@@ -21,8 +20,8 @@ func (pq PriorityQueue) Len() int { return len(pq) }
 // earliest moves first
 func (pq PriorityQueue) Less(i, j int) bool {
 
-	if pq[i].ResolutionTime != pq[j].ResolutionTime {
-		return pq[i].ResolutionTime < pq[j].ResolutionTime
+	if pq[i].ResolveTime != pq[j].ResolveTime {
+		return pq[i].ResolveTime < pq[j].ResolveTime
 	}
 
 	return pq[i].EffectIndex < pq[j].EffectIndex
@@ -50,12 +49,12 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-func (pq *PriorityQueue) Update(item *Stack, newResolutionTime int64, newEffectIndex uint64) {
+func (pq *PriorityQueue) Update(item *Stack, newResolveTime int64, newEffectIndex uint64) {
 	if item == nil || item.index < 0 || item.index >= len(*pq) {
 		return
 	}
 
-	item.ResolutionTime = newResolutionTime
+	item.ResolveTime = newResolveTime
 	item.EffectIndex = newEffectIndex
 	heap.Fix(pq, item.index)
 }

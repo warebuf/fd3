@@ -1,6 +1,13 @@
 package logs
 
-type EventLog struct {
-	UnitIndex    int
-	AbilityIndex int
+type LogType int
+
+const (
+	PhaseLog LogType = iota
+)
+
+type Log struct {
+	Timestamp int64
+	Type      LogType
+	Value     int
 }
