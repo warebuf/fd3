@@ -6,6 +6,7 @@ type EventItem struct {
 	Event Event
 	Type  string
 	seq   int64 // strictly increasing tie-breaker
+	index int   // current heap index
 }
 
 type EventPQ []*EventItem
@@ -24,10 +25,13 @@ func (pq EventPQ) Less(i, j int) bool {
 
 func (pq EventPQ) Swap(i, j int) {
 	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
 }
 
 func (pq *EventPQ) Push(x any) {
 	item := x.(*EventItem)
+	item.index = len(*pq)
 	*pq = append(*pq, item)
 }
 
@@ -35,6 +39,8 @@ func (pq *EventPQ) Pop() any {
 	old := *pq
 	n := len(old)
 	item := old[n-1]
+	old[n-1] = nil // avoid memory leak if needed
+	item.index = -1
 	*pq = old[:n-1]
 	return item
 }
@@ -47,14 +53,3 @@ func (pq EventPQ) Peek() (*EventItem, bool) {
 	}
 	return pq[0], true
 }
-
-// keeping because maybe we have to remove StackPQ items
-// func (pq *EventPQ) RemoveAllAutoSchedulers() {
-// 	for i := pq.Len() - 1; i >= 0; i-- {
-// 		item := (*pq)[i]
-
-// 		if _, ok := item.Event.(*AutoScheduler); ok {
-// 			heap.Remove(pq, i)
-// 		}
-// 	}
-// }

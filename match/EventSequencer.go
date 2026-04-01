@@ -243,6 +243,19 @@ func pushInputEvent(match *Match, ev *InputEvent) {
 	heap.Push(&match.EventPQueue, item)
 }
 
+func scheduleStackPQ(match *Match) {
+
+	// get the timestamp of earliest in StackPQ
+	earliestStack := match.PQ.Peek()
+	if earliestStack == nil {
+		return
+	}
+	earliest := earliestStack.ResolveTime
+
+	// find, modify, and reheapify EffectEvent in EventPQ. If it does not exist, add a new item
+
+}
+
 func (match *Match) setPQTimer() {
 
 	// clear timer

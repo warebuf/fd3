@@ -23,10 +23,14 @@ type Match struct {
 
 	EventLog []logs.Log // a log of all events that have occurred
 
+	// networking related
 	InputEventChan chan *InputEvent
+
+	// EventPQ related
 	EventPQueue    EventPQ
 	EventPQTimer   *time.Timer
 	NextSeq        int
+	EarliestEffect *EffectEvent
 }
 
 // TODO: needs to be censored per client

@@ -9,14 +9,14 @@ type GameState struct {
 	Timestamp   time.Time // time the state is set for
 	Phase       int       // what phase the game is in (0: pre-match, 1: draw hands, 2: play, 3: game end)
 
-	// state stuff for cards
+	// card states
 	Cards []Card
 	Deck  [][]int
 	Hand  [][]int // front of arr is the top
 	Field [][]int
 	Grave [][]int
 
-	// other state stuff
+	// other states
 	Permanents     []Permanent
 	Mana           []int // per team
 	ActiveTriggers []TriggerEffect

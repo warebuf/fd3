@@ -26,3 +26,9 @@ type NewPhaseEvent struct {
 }
 
 func (e *NewPhaseEvent) Timestamp() time.Time { return e.T }
+
+type EffectEvent struct {
+	T time.Time
+}
+
+func (e *EffectEvent) Timestamp() time.Time { return e.T }
