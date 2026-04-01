@@ -248,6 +248,7 @@ func scheduleStackPQ(match *Match) {
 	// get the timestamp of earliest in StackPQ
 	earliestStack := match.PQ.Peek()
 	if earliestStack == nil {
+		// remove the EffectEvent
 		return
 	}
 	earliest := earliestStack.ResolveTime
