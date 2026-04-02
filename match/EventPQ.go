@@ -6,7 +6,7 @@ type EventItem struct {
 	Event Event
 	Type  string
 	seq   int64 // strictly increasing tie-breaker
-	index int   // current heap index
+	Index int   // current heap index
 }
 
 type EventPQ []*EventItem
@@ -25,13 +25,13 @@ func (pq EventPQ) Less(i, j int) bool {
 
 func (pq EventPQ) Swap(i, j int) {
 	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].index = i
-	pq[j].index = j
+	pq[i].Index = i
+	pq[j].Index = j
 }
 
 func (pq *EventPQ) Push(x any) {
 	item := x.(*EventItem)
-	item.index = len(*pq)
+	item.Index = len(*pq)
 	*pq = append(*pq, item)
 }
 
@@ -40,7 +40,7 @@ func (pq *EventPQ) Pop() any {
 	n := len(old)
 	item := old[n-1]
 	old[n-1] = nil // avoid memory leak if needed
-	item.index = -1
+	item.Index = -1
 	*pq = old[:n-1]
 	return item
 }

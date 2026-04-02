@@ -30,7 +30,7 @@ type Match struct {
 	EventPQueue    EventPQ
 	EventPQTimer   *time.Timer
 	NextSeq        int
-	EarliestEffect *EffectEvent
+	EarliestEffect *EventItem
 }
 
 // TODO: needs to be censored per client

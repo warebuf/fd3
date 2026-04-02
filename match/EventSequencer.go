@@ -62,6 +62,10 @@ func (match *Match) handleDuePQEvents() {
 
 		// handle the event
 		switch next.Type {
+		case "Effect":
+
+			// placeholder
+
 		case "Input":
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
@@ -213,8 +217,8 @@ func (match *Match) handleDuePQEvents() {
 
 	}
 
-	// set timer for next event or set it to nil
-	match.setPQTimer()
+	scheduleStackPQ(match) // set the event for the next stackPQ item
+	match.setPQTimer()     // set timer for next event or set it to nil
 
 }
 
@@ -247,13 +251,40 @@ func scheduleStackPQ(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
 	earliestStack := match.PQ.Peek()
+
+	// if no effect events, remove the EffectEvent from the EventPQ
 	if earliestStack == nil {
-		// remove the EffectEvent
+		if match.EarliestEffect != nil {
+			heap.Remove(&match.EventPQueue, match.EarliestEffect.Index)
+			match.EarliestEffect = nil
+		}
 		return
 	}
-	earliest := earliestStack.ResolveTime
 
-	// find, modify, and reheapify EffectEvent in EventPQ. If it does not exist, add a new item
+	// if EffectEvent exists, update and reheapify in EventPQ
+	earliest := time.UnixMilli(earliestStack.ResolveTime)
+	if match.EarliestEffect != nil {
+		effEv, ok := match.EarliestEffect.Event.(*EffectEvent)
+		if !ok {
+			return
+		}
+		effEv.T = earliest
+		heap.Fix(&match.EventPQueue, match.EarliestEffect.Index)
+		return
+	}
+
+	// otherwise add EffectEvent to EventPQ
+	ev := &EffectEvent{
+		T: earliest,
+	}
+	item := &EventItem{
+		Event: ev,
+		Type:  "Effect",
+		seq:   int64(match.NextSeq),
+	}
+	match.NextSeq++
+	heap.Push(&match.EventPQueue, item)
+	match.EarliestEffect = item
 
 }
 
