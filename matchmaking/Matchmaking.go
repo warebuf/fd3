@@ -145,7 +145,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	for i := 0; i < len(tickets); i++ {
 		deckDefs = append(deckDefs, tickets[i].Deck)
 	}
-	state := microevents.InitDecks(deckDefs)
+	state := microevents.CreateDecks(deckDefs)
 
 	// shuffle the decks
 	for i := 0; i < len(state.Deck); i++ {

@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/states/gameState"
 )
 
-func InitDecks(deckDefs [][]int) *gameState.GameState {
+func CreateDecks(deckDefs [][]int) *gameState.GameState {
 	gs := &gameState.GameState{
 		GameStateID: 0,
 		Timestamp:   time.Now(),
