@@ -9,7 +9,7 @@ import (
 
 func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex int, t int64) {
 
-	eff := &gameState.Effect{
+	eff := gameState.Effect{
 		Type: gameState.EffectDraw,
 		A:    teamIndex,
 		B:    1, // number of cards to draw
@@ -19,7 +19,7 @@ func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex i
 		EffectIndex: effectIndex,
 		DeclareTime: t,
 		ResolveTime: t,
-		Effects:     []any{eff},
+		Effects:     []gameState.Effect{eff},
 	}
 
 	heap.Push(pq, s)
