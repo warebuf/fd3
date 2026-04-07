@@ -1,6 +1,10 @@
 package stackPQ
 
-import "container/heap"
+import (
+	"container/heap"
+
+	"github.com/warebuf/fd3/engine/states/gameState"
+)
 
 type Stack struct {
 	EffectIndex uint64 // the latest effect gets the biggest index
@@ -8,7 +12,7 @@ type Stack struct {
 	DeclareTime int64
 	ResolveTime int64
 
-	Effects []any
+	Effects []gameState.Effect
 
 	index int // heap position (internal)
 }

@@ -247,6 +247,36 @@ func pushInputEvent(match *Match, ev *InputEvent) {
 	heap.Push(&match.EventPQueue, item)
 }
 
+func (match *Match) setPQTimer() {
+
+	// clear timer
+	if match.EventPQTimer != nil {
+		if !match.EventPQTimer.Stop() {
+			select {
+			case <-match.EventPQTimer.C: // drain the channel
+			default:
+			}
+		}
+	}
+
+	// if no events, return
+	first, ok := match.EventPQueue.Peek()
+	if !ok {
+		match.EventPQTimer = nil
+		return
+	}
+
+	// set timer
+	now := time.Now()
+	fireTime := first.Event.Timestamp()
+	delay := fireTime.Sub(now)
+	if delay < 0 {
+		delay = 0
+	}
+	match.EventPQTimer = time.NewTimer(delay)
+
+}
+
 func scheduleStackPQ(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
@@ -288,32 +318,6 @@ func scheduleStackPQ(match *Match) {
 
 }
 
-func (match *Match) setPQTimer() {
-
-	// clear timer
-	if match.EventPQTimer != nil {
-		if !match.EventPQTimer.Stop() {
-			select {
-			case <-match.EventPQTimer.C: // drain the channel
-			default:
-			}
-		}
-	}
-
-	// if no events, return
-	first, ok := match.EventPQueue.Peek()
-	if !ok {
-		match.EventPQTimer = nil
-		return
-	}
-
-	// set timer
-	now := time.Now()
-	fireTime := first.Event.Timestamp()
-	delay := fireTime.Sub(now)
-	if delay < 0 {
-		delay = 0
-	}
-	match.EventPQTimer = time.NewTimer(delay)
+func handleDueStackPQ(match *Match) {
 
 }
