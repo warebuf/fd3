@@ -1,4 +1,4 @@
-package gameState
+package state
 
 const (
 	CardTypeStructure = iota

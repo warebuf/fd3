@@ -1,4 +1,4 @@
-package gameState
+package state
 
 type EffectType int
 

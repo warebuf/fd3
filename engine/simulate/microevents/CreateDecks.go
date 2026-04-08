@@ -4,24 +4,24 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/states/gameState"
+	"github.com/warebuf/fd3/engine/state"
 )
 
-func CreateDecks(deckDefs [][]int) *gameState.GameState {
-	gs := &gameState.GameState{
+func CreateDecks(deckDefs [][]int) *state.GameState {
+	gs := &state.GameState{
 		GameStateID: 0,
 		Timestamp:   time.Now(),
 		Phase:       0,
 
-		Cards: []gameState.Card{},
+		Cards: []state.Card{},
 		Deck:  make([][]int, len(deckDefs)),
 		Hand:  make([][]int, len(deckDefs)),
 		Field: make([][]int, len(deckDefs)),
 		Grave: make([][]int, len(deckDefs)),
 
-		Permanents:     []gameState.Permanent{},
+		Permanents:     []state.Permanent{},
 		Mana:           make([]int, len(deckDefs)),
-		ActiveTriggers: []gameState.TriggerEffect{},
+		ActiveTriggers: []state.TriggerEffect{},
 	}
 
 	nextCardID := 0
@@ -36,12 +36,12 @@ func CreateDecks(deckDefs [][]int) *gameState.GameState {
 		for _, defNo := range defNos {
 			def := defs.CardDefs[defNo]
 
-			card := gameState.Card{
+			card := state.Card{
 				CardID: nextCardID,
 				DefNo:  defNo,
 				Team:   team,
 				Type:   def.Type,
-				Zone:   gameState.ZoneDeck,
+				Zone:   state.ZoneDeck,
 				Armed:  false,
 			}
 

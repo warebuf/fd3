@@ -12,8 +12,8 @@ import (
 	"github.com/warebuf/fd3/engine/defs/primitives"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/simulate/microevents"
-	"github.com/warebuf/fd3/engine/states/gameState"
-	"github.com/warebuf/fd3/engine/states/stackPQ"
+	"github.com/warebuf/fd3/engine/stackPQ"
+	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
 )
 
@@ -145,11 +145,11 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	for i := 0; i < len(tickets); i++ {
 		deckDefs = append(deckDefs, tickets[i].Deck)
 	}
-	state := microevents.CreateDecks(deckDefs)
+	gs := microevents.CreateDecks(deckDefs)
 
 	// shuffle the decks
-	for i := 0; i < len(state.Deck); i++ {
-		primitives.ShuffleDeck(state, i)
+	for i := 0; i < len(gs.Deck); i++ {
+		primitives.ShuffleDeck(gs, i)
 	}
 
 	// create match object
@@ -158,8 +158,8 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		ByUser:    make(map[string]*match.Client),
 		Whitelist: userIDs,
 
-		GameState:      state,
-		PublishedState: gameState.DeepCopyGameState(state),
+		GameState:      gs,
+		PublishedState: state.DeepCopyGameState(gs),
 		PQ:             &stackPQ.PriorityQueue{},
 		NextPQIndex:    0,
 		EventLog:       []logs.Log{},

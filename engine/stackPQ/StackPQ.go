@@ -3,7 +3,7 @@ package stackPQ
 import (
 	"container/heap"
 
-	"github.com/warebuf/fd3/engine/states/gameState"
+	"github.com/warebuf/fd3/engine/state"
 )
 
 type Stack struct {
@@ -12,7 +12,7 @@ type Stack struct {
 	DeclareTime int64
 	ResolveTime int64
 
-	Effects []gameState.Effect
+	Effects []state.Effect
 
 	index int // heap position (internal)
 }
@@ -53,13 +53,15 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-func (pq *PriorityQueue) Update(item *Stack, newResolveTime int64, newEffectIndex uint64) {
+func (pq *PriorityQueue) Update(item *Stack, newResolveTime int64, newEffectIndex uint64, changeEffectIndex bool) {
 	if item == nil || item.index < 0 || item.index >= len(*pq) {
 		return
 	}
 
 	item.ResolveTime = newResolveTime
-	item.EffectIndex = newEffectIndex
+	if changeEffectIndex {
+		item.EffectIndex = newEffectIndex
+	}
 	heap.Fix(pq, item.index)
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/simulate"
 	"github.com/warebuf/fd3/engine/simulate/microevents"
-	"github.com/warebuf/fd3/engine/states/gameState"
+	"github.com/warebuf/fd3/engine/state"
 )
 
 // so we have to balance between client inputs and autoevents
@@ -63,9 +63,9 @@ func (match *Match) handleDuePQEvents() {
 		// handle the event
 		switch next.Type {
 		case "Effect":
-
-			// placeholder
-
+			oldLogsSize := len(match.EventLog)
+			simulate.ManageStackPQ(match.GameState, match.PQ, &match.EventLog)
+			match.BroadcastLogs(oldLogsSize)
 		case "Input":
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
@@ -198,7 +198,7 @@ func (match *Match) handleDuePQEvents() {
 
 				// update the game state, published state
 				match.GameState.GameStateID += 1
-				match.PublishedState = gameState.DeepCopyGameState(match.GameState)
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
 				// broadcast new logs
 				match.BroadcastLogs(oldLogsSize)

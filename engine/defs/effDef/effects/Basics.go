@@ -1,19 +1,19 @@
 package effects
 
-import "github.com/warebuf/fd3/engine/states/gameState"
+import "github.com/warebuf/fd3/engine/state"
 
-func ApplyEffectDraw(state *gameState.GameState, eff gameState.Effect) {
+func ApplyEffectDraw(gs *state.GameState, eff state.Effect) {
 	teamIndex := eff.A
 	numCards := eff.B
 
 	for i := 0; i < numCards; i++ {
-		if len(state.Deck[teamIndex]) == 0 { // TODO: if deck is empty
+		if len(gs.Deck[teamIndex]) == 0 { // TODO: if deck is empty
 			return
 		}
 
-		cardIdx := state.Deck[teamIndex][0]
-		state.Deck[teamIndex] = state.Deck[teamIndex][1:]              // draw top card
-		state.Hand[teamIndex] = append(state.Hand[teamIndex], cardIdx) // move to hand
-		state.Cards[cardIdx].Zone = gameState.ZoneHand                 // update card state
+		cardIdx := gs.Deck[teamIndex][0]
+		gs.Deck[teamIndex] = gs.Deck[teamIndex][1:]              // draw top card
+		gs.Hand[teamIndex] = append(gs.Hand[teamIndex], cardIdx) // move to hand
+		gs.Cards[cardIdx].Zone = state.ZoneHand                  // update card state
 	}
 }

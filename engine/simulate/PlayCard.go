@@ -2,24 +2,24 @@ package simulate
 
 import (
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/states/gameState"
+	"github.com/warebuf/fd3/engine/state"
 )
 
-func PlayCard(gs *gameState.GameState, card *gameState.Card, pid int) {
+func PlayCard(gs *state.GameState, card *state.Card, pid int) {
 	switch card.Type {
-	case gameState.CardTypeUnit, gameState.CardTypeStructure:
+	case state.CardTypeUnit, state.CardTypeStructure:
 		createPermanent(gs, card, pid)
-	case gameState.CardTypeSpell:
+	case state.CardTypeSpell:
 		// resolve effect, send to graveyard
-	case gameState.CardTypeTrap:
+	case state.CardTypeTrap:
 		// set in zone, wait for trigger condition
 	}
 }
 
-func createPermanent(gs *gameState.GameState, card *gameState.Card, pid int) {
-	card.Zone = gameState.ZoneField
+func createPermanent(gs *state.GameState, card *state.Card, pid int) {
+	card.Zone = state.ZoneField
 	def := defs.CardDefs[card.DefNo]
-	p := gameState.Permanent{
+	p := state.Permanent{
 		PermanentID: pid,
 		SourceCard:  card.CardID,
 		Type:        card.Type,
