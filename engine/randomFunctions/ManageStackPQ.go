@@ -1,11 +1,11 @@
-package simulate
+package randomFunctions
 
 import (
 	"container/heap"
 	"fmt"
 	"time"
 
-	"github.com/warebuf/fd3/engine/defs/effDef/effects"
+	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"

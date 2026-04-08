@@ -1,4 +1,4 @@
-package simulate
+package randomFunctions
 
 import (
 	"github.com/warebuf/fd3/engine/defs"

@@ -11,7 +11,7 @@ import (
 
 	"github.com/warebuf/fd3/engine/defs/primitives"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/simulate/microevents"
+	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
@@ -145,7 +145,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	for i := 0; i < len(tickets); i++ {
 		deckDefs = append(deckDefs, tickets[i].Deck)
 	}
-	gs := microevents.CreateDecks(deckDefs)
+	gs := randomFunctions.CreateDecks(deckDefs)
 
 	// shuffle the decks
 	for i := 0; i < len(gs.Deck); i++ {

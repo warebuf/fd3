@@ -1,4 +1,4 @@
-package microevents
+package randomFunctions
 
 import (
 	"container/heap"

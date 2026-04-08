@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/simulate"
-	"github.com/warebuf/fd3/engine/simulate/microevents"
+	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -65,7 +64,7 @@ func (match *Match) handleDuePQEvents() {
 		case "Effect":
 			fmt.Println("received effect")
 			oldLogsSize := len(match.EventLog)
-			simulate.ManageStackPQ(match.GameState, match.PQ, &match.EventLog)
+			randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog)
 			match.BroadcastLogs(oldLogsSize)
 		case "Input":
 			ie := next.Event.(*InputEvent)
@@ -95,17 +94,17 @@ func (match *Match) handleDuePQEvents() {
 
 				// schedule the draw event
 				currentTime := time.Now().UnixMilli()
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5000) // 5.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5000) // 5.0 seconds from now
 				match.NextPQIndex += 1
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5500) // 5.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5500) // 5.5 seconds from now
 				match.NextPQIndex += 1
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+6000) // 6.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+6000) // 6.0 seconds from now
 				match.NextPQIndex += 1
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+6500) // 6.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+6500) // 6.5 seconds from now
 				match.NextPQIndex += 1
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7000) // 7.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7000) // 7.0 seconds from now
 				match.NextPQIndex += 1
-				microevents.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7500) // 7.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7500) // 7.5 seconds from now
 				match.NextPQIndex += 1
 
 				// schedule phase 2 10s from now
