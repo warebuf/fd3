@@ -119,9 +119,19 @@ func (match *Match) handleDuePQEvents() {
 
 			} else if newPhase.Phase == 2 { // entering game start
 				// increment the phase (these can be broadcasted early)
-				// schedule EventPQ effects (do i have to check the game state here? probably have to make a func that will init the board state into the EffPQ)
+				oldLogsSize := len(match.EventLog)
+				match.GameState.Phase = 2
+
+				// schedule EventPQ effects
+				randomFunctions.InitBoard(match.GameState, match.PQ)
+
 				// update the game state, published state
+				match.GameState.GameStateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
 				// broadcast new logs
+				match.BroadcastLogs(oldLogsSize)
+
 			} else if newPhase.Phase == 3 { // entering game over
 				// end game (not sure what this requires tbh)
 				// update the game state, published state
