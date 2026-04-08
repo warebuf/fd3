@@ -56,6 +56,7 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 }
 
 func IsValidDeck(deck []int) bool {
+
 	if len(deck) > 30 {
 		return false
 	}
@@ -67,7 +68,7 @@ func IsValidDeck(deck []int) bool {
 		cardNo := deck[i]
 
 		// bounds check
-		if cardNo <= 0 || cardNo >= cardDefsLength {
+		if cardNo <= 0 || cardNo >= cardDefsLength { // rejecting 0, negative, and non-existing numbers
 			return false
 		}
 

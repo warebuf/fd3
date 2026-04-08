@@ -63,6 +63,7 @@ func (match *Match) handleDuePQEvents() {
 		// handle the event
 		switch next.Type {
 		case "Effect":
+			fmt.Println("received effect")
 			oldLogsSize := len(match.EventLog)
 			simulate.ManageStackPQ(match.GameState, match.PQ, &match.EventLog)
 			match.BroadcastLogs(oldLogsSize)
@@ -129,10 +130,12 @@ func (match *Match) handleDuePQEvents() {
 			}
 		}
 
+		// set the event for the next stackPQ item
+		scheduleStackPQ(match)
+
 	}
 
-	scheduleStackPQ(match) // set the event for the next stackPQ item
-	match.setPQTimer()     // set timer for next event or set it to nil
+	match.setPQTimer() // set timer for next event or set it to nil
 
 }
 
@@ -195,23 +198,22 @@ func scheduleStackPQ(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
 	earliestStack := match.PQ.Peek()
+	fmt.Println("entered scheduleStackPQ", earliestStack)
 
 	// if no effect events, remove the EffectEvent from the EventPQ
 	if earliestStack == nil {
-		if match.EarliestEffect != nil {
+		if match.EarliestEffect != nil && match.EarliestEffect.Index > 0 { // EarliestEffect exists AND is in EventPQ (indicated by index > 0)
 			heap.Remove(&match.EventPQueue, match.EarliestEffect.Index)
-			match.EarliestEffect = nil
 		}
+		match.EarliestEffect = nil
 		return
 	}
 
-	// if EffectEvent exists, update and reheapify in EventPQ
+	// if EffectEvent exists and is in the EventPQ, update and reheapify in EventPQ
 	earliest := time.UnixMilli(earliestStack.ResolveTime)
-	if match.EarliestEffect != nil {
-		effEv, ok := match.EarliestEffect.Event.(*EffectEvent)
-		if !ok {
-			return
-		}
+	if match.EarliestEffect != nil && match.EarliestEffect.Index > 0 {
+		// update and reheapify
+		effEv, _ := match.EarliestEffect.Event.(*EffectEvent)
 		effEv.T = earliest
 		heap.Fix(&match.EventPQueue, match.EarliestEffect.Index)
 		return
@@ -229,9 +231,5 @@ func scheduleStackPQ(match *Match) {
 	match.NextSeq++
 	heap.Push(&match.EventPQueue, item)
 	match.EarliestEffect = item
-
-}
-
-func handleDueStackPQ(match *Match) {
 
 }
