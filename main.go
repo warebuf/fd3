@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	// our imports
-	"github.com/warebuf/fd3/engine/simulate/microevents"
+	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
@@ -55,7 +55,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !microevents.IsValidDeck(deck) {
+	if !randomFunctions.IsValidDeck(deck) {
 		http.Error(w, "invalid deck", http.StatusBadRequest)
 		return
 	}
