@@ -74,92 +74,6 @@ func (match *Match) handleDuePQEvents() {
 
 			// TODO: if phase is not 2, do not accept inputs (not sure whether to do it here or before)
 
-			// remove all autoscheduler events (at most only 1 exists in current design)
-			match.EventPQueue.RemoveAllAutoSchedulers()
-
-			// increment the state from the last confirmed GameState
-			nextTimestamp := ie.T.Add(200 * time.Millisecond)
-			incrementedState := IncrementState(match.GameState, nextTimestamp)
-
-			if ie.Type == "Summon" {
-
-				// add the summon to the priority queue and modify the game state
-				newEvents, success := simulate.AddSummonToPQ(match.GameState, match.PQ, ie.UnitIdx, nextTimestamp, match.NextEffectIndex)
-				if success {
-					// increment the effect counter
-					match.NextEffectIndex += 1
-
-					// publish the new state
-					match.PublishedState = engine.DeepCopyGameState(match.GameState.Timestamp, match.GameState)
-
-					// append the new actions
-					match.EventLog = append(match.EventLog, newEvents...)
-
-					// share the new action
-					if len(newEvents) > 0 {
-						match.BroadcastEventLog(newEvents)
-					}
-				}
-
-				// schedule autoscheduler
-				nextAutoEventTime, success := CalcNextAutoEvent(match.GameState)
-				if success {
-					pushAutoScheduler(match, nextAutoEventTime)
-				}
-
-			} else if ie.Type == "Active" {
-
-				// check whether the active is truly due, otherwise we can skip
-				dueUnits := []int{} // matches length of dueAbilities
-				dueFuncs := []int{}
-				if CheckValidFunction(incrementedState, ie.UnitIdx, incrementedState.Functions[ie.FuncIdx]) {
-					dueFuncs = append(dueFuncs, ie.FuncIdx)
-					dueUnits = append(dueUnits, ie.UnitIdx)
-				} else {
-					continue
-				}
-
-				// check for other functions that are due
-				for i := 0; i < len(incrementedState.FunctionStartIdx); i++ {
-					for j := 0; j < incrementedState.FunctionCount[i]; j++ {
-						funcIdx := incrementedState.FunctionStartIdx[i] + j
-						if incrementedState.FunctionType[funcIdx] == 0 { // only check auto functions
-							isValid := CheckValidFunction(incrementedState, i, incrementedState.Functions[funcIdx])
-							if incrementedState.FunctionCharge[funcIdx] >= incrementedState.FunctionSPD[funcIdx] && isValid {
-								dueFuncs = append(dueFuncs, funcIdx)
-								dueUnits = append(dueUnits, i)
-							}
-						}
-					}
-				}
-
-				// activate abilities
-				abilityState, modified := HandleDueFunctions(incrementedState, dueUnits, dueFuncs)
-				if modified {
-					match.GameStates = append(match.GameStates, abilityState)
-					match.BroadcastGameState(abilityState)
-				}
-
-				// schedule next AutoScheduler
-				nextAutoEventTime, success := CalcNextAutoEvent(abilityState)
-				if success {
-					pushAutoScheduler(match, nextAutoEventTime)
-				}
-
-			} else if ie.Type == "Target" {
-				// can change this to an event instead of full gamestate
-				modifiedState, modified := target.SetTargets(incrementedState, nextTimestamp, ie.UnitIdx, ie.FuncIdx, ie.Target1, ie.Target2)
-				if modified {
-					match.GameStates = append(match.GameStates, modifiedState)
-					match.BroadcastGameState(modifiedState)
-				}
-				// schedule autoscheduler
-				nextAutoEventTime, success := CalcNextAutoEvent(modifiedState)
-				if success {
-					pushAutoScheduler(match, nextAutoEventTime)
-				}
-			}
-
 		case "NewPhase":
 
 			newPhase := next.Event.(*NewPhaseEvent)
@@ -175,7 +89,7 @@ func (match *Match) handleDuePQEvents() {
 				match.EventLog = append(match.EventLog, logs.Log{
 					Timestamp: time.Now().UnixMilli(),
 					Type:      logs.PhaseLog,
-					Value:     1,
+					A:         1, // A = phase
 				})
 
 				// schedule the draw event

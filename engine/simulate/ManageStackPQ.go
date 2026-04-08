@@ -46,6 +46,13 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 	switch topEffect.Type {
 	case state.EffectDraw:
 		effects.ApplyEffectDraw(gs, topEffect)
+
+		*eventLogs = append(*eventLogs, logs.Log{
+			Timestamp: time.Now().UnixMilli(),
+			Type:      logs.DrawExec,
+			A:         topEffect.A, // A: teamIndex
+			B:         1,           // B: num of cards to draw
+		})
 	case state.EffectAttack:
 		// placeholder
 	case state.EffectHeal:
