@@ -23,6 +23,12 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 		Mana:           make([]int, len(deckDefs)),
 		ActiveTriggers: []state.TriggerEffect{},
 	}
+	for i := range len(deckDefs) {
+		gs.Deck[i] = []int{}
+		gs.Hand[i] = []int{}
+		gs.Field[i] = []int{}
+		gs.Grave[i] = []int{}
+	}
 
 	nextCardID := 0
 	for team := 0; team < len(deckDefs); team++ {

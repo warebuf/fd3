@@ -33,7 +33,7 @@ type Permanent struct {
 
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		GameStateID: prevState.GameStateID, // increment ID for new state
+		GameStateID: prevState.GameStateID,
 		Timestamp:   prevState.Timestamp,
 		Phase:       prevState.Phase,
 	}
@@ -41,6 +41,34 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// Cards
 	newState.Cards = make([]Card, len(prevState.Cards))
 	copy(newState.Cards, prevState.Cards)
+
+	// Deck
+	newState.Deck = make([][]int, len(prevState.Deck))
+	for i := range prevState.Deck {
+		newState.Deck[i] = make([]int, len(prevState.Deck[i]))
+		copy(newState.Deck[i], prevState.Deck[i])
+	}
+
+	// Hand
+	newState.Hand = make([][]int, len(prevState.Hand))
+	for i := range prevState.Hand {
+		newState.Hand[i] = make([]int, len(prevState.Hand[i]))
+		copy(newState.Hand[i], prevState.Hand[i])
+	}
+
+	// Field
+	newState.Field = make([][]int, len(prevState.Field))
+	for i := range prevState.Field {
+		newState.Field[i] = make([]int, len(prevState.Field[i]))
+		copy(newState.Field[i], prevState.Field[i])
+	}
+
+	// Grave
+	newState.Grave = make([][]int, len(prevState.Grave))
+	for i := range prevState.Grave {
+		newState.Grave[i] = make([]int, len(prevState.Grave[i]))
+		copy(newState.Grave[i], prevState.Grave[i])
+	}
 
 	// Permanents
 	newState.Permanents = make([]Permanent, len(prevState.Permanents))
