@@ -63,8 +63,17 @@ func (match *Match) handleDuePQEvents() {
 		switch next.Type {
 		case "Effect":
 			fmt.Println("received effect")
+
+			// simulate
 			oldLogsSize := len(match.EventLog)
 			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog, match.NextUpdateID)
+
+			// update the published state
+			match.GameState.UpdateID = match.NextUpdateID
+			match.NextUpdateID += 1
+			match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+			// publish the new logs
 			match.BroadcastLogs(oldLogsSize)
 		case "Input":
 			ie := next.Event.(*InputEvent)
@@ -126,9 +135,18 @@ func (match *Match) handleDuePQEvents() {
 				match.BroadcastLogs(oldLogsSize)
 
 			} else if newPhase.Phase == 2 { // entering game start
-				// increment the phase (these can be broadcasted early)
+
 				oldLogsSize := len(match.EventLog)
+
+				// increment the phase
 				match.GameState.Phase = 2
+				match.EventLog = append(match.EventLog, logs.Log{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: time.Now().UnixMilli(),
+					Type:      logs.PhaseLog,
+					A:         2, // A = phase
+				})
+				match.NextUpdateID += 1
 
 				// schedule EventPQ effects
 				randomFunctions.InitBoard(match.GameState, match.PQ)
