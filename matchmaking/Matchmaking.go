@@ -163,6 +163,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		PQ:             &stackPQ.PriorityQueue{},
 		NextPQIndex:    0,
 		EventLog:       []logs.Log{},
+		NextUpdateID:   1, // starts as 1 because the GameState already is UpdateID 0
 
 		InputEventChan: make(chan *match.InputEvent, 1024),
 		EventPQTimer:   nil,

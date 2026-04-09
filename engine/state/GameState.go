@@ -5,9 +5,10 @@ import (
 )
 
 type GameState struct {
-	GameStateID int
-	Timestamp   time.Time // time the state is set for
-	Phase       int       // what phase the game is in (0: pre-match, 1: draw hands, 2: play, 3: game end)
+	UpdateID  int
+	Timestamp time.Time // time the state is set for
+
+	Phase int // what phase the game is in (0: pre-match, 1: draw hands, 2: play, 3: game end)
 
 	// card states
 	Cards []Card
@@ -33,9 +34,9 @@ type Permanent struct {
 
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		GameStateID: prevState.GameStateID,
-		Timestamp:   prevState.Timestamp,
-		Phase:       prevState.Phase,
+		UpdateID:  prevState.UpdateID,
+		Timestamp: prevState.Timestamp,
+		Phase:     prevState.Phase,
 	}
 
 	// Cards

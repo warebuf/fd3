@@ -64,7 +64,7 @@ func (match *Match) handleDuePQEvents() {
 		case "Effect":
 			fmt.Println("received effect")
 			oldLogsSize := len(match.EventLog)
-			randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog)
+			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog, match.NextUpdateID)
 			match.BroadcastLogs(oldLogsSize)
 		case "Input":
 			ie := next.Event.(*InputEvent)
@@ -92,10 +92,12 @@ func (match *Match) handleDuePQEvents() {
 				// increment the phase
 				match.GameState.Phase = 1
 				match.EventLog = append(match.EventLog, logs.Log{
+					UpdateID:  match.NextUpdateID,
 					Timestamp: time.Now().UnixMilli(),
 					Type:      logs.PhaseLog,
 					A:         1, // A = phase
 				})
+				match.NextUpdateID += 1
 
 				// schedule the draw event
 				currentTime := time.Now().UnixMilli()
@@ -116,7 +118,8 @@ func (match *Match) handleDuePQEvents() {
 				PushNewPhase(match, time.UnixMilli(currentTime).Add(10*time.Second), 2)
 
 				// update the game state, published state
-				match.GameState.GameStateID += 1
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
 				// broadcast new logs
@@ -131,7 +134,8 @@ func (match *Match) handleDuePQEvents() {
 				randomFunctions.InitBoard(match.GameState, match.PQ)
 
 				// update the game state, published state
-				match.GameState.GameStateID += 1
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
 				// broadcast new logs

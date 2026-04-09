@@ -9,9 +9,9 @@ import (
 
 func CreateDecks(deckDefs [][]int) *state.GameState {
 	gs := &state.GameState{
-		GameStateID: 0,
-		Timestamp:   time.Now(),
-		Phase:       0,
+		UpdateID:  0,
+		Timestamp: time.Now(),
+		Phase:     0,
 
 		Cards: []state.Card{},
 		Deck:  make([][]int, len(deckDefs)),

@@ -21,7 +21,8 @@ type Match struct {
 	PQ          *stackPQ.PriorityQueue // priority queue of chains/stacks
 	NextPQIndex uint64                 // for the PQ, assign an index to each action/effect so we can handle ties
 
-	EventLog []logs.Log // a log of all events that have occurred
+	EventLog     []logs.Log // a log of all events that have occurred
+	NextUpdateID int
 
 	// networking related
 	InputEventChan chan *InputEvent

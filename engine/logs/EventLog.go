@@ -9,8 +9,10 @@ const (
 
 type Log struct {
 	Timestamp int64
-	Type      LogType
-	A         int
-	B         int
-	C         int
+	UpdateID  int
+
+	Type LogType
+	A    int
+	B    int
+	C    int
 }
