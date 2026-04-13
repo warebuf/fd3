@@ -32,7 +32,7 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 
 		// handle the top effect
 		oldLogCount := len(*eventLogs)
-		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, earliestStack.ResolveTime, NextUpdateID+newUpdateIDCount)
+		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, earliestStack.PopTime, NextUpdateID+newUpdateIDCount)
 		newLogCount := len(*eventLogs)
 		newUpdateIDCount += newLogCount - oldLogCount
 		fmt.Println("stack length", len(earliestStack.Effects))
@@ -57,13 +57,16 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
-			Timestamp: t,
+			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
 			Type:      logs.DrawExec,
 			A:         topEffect.A, // A: teamIndex
 			B:         1,           // B: num of cards to draw
 		})
-	case state.EffectActivate:
-		fmt.Println("activate effect")
+	case state.SummonResolution:
+		fmt.Println("summon resolution")
+
+		// pseudocode:
+
 	case state.EffectAttack:
 		// placeholder
 	case state.EffectHeal:

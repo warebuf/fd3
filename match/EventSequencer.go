@@ -80,11 +80,6 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
 
-			// BIG NOTE; IM DOING THIS WRONG
-			// INPUTS SHOULD BE APPLIED 200 MS ONCE RECEIVED
-			// THEREFORE THE SERVER APPLIES THEM THE SAME TIME THE CLIENT APPLIES THEM
-			// CORRECT THIS
-
 			// TODO: notably there is little to no validation rn
 
 			// if phase is not 2 or greater, do not accept inputs (maybe you can do this earlier, not sure)
@@ -94,11 +89,21 @@ func (match *Match) handleDuePQEvents() {
 
 			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
-			success := randomFunctions.ScheduleDeclareCard(match.GameState, match.PQ, match.NextPQIndex, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+			success := randomFunctions.ScheduleDeclareCard(
+				match.GameState,
+				match.PQ,
+				match.NextPQIndex,
+				&match.EventLog,
+				match.NextUpdateID,
+				ie.TeamIdx,
+				ie.CardIndex,
+				ie.T.UnixMilli(),
+			)
 
 			if success {
-				// if successful, increment the PQ node count
+				// if successful, increment the PQ node count, account for the declaration log
 				match.NextPQIndex += 1
+				match.NextUpdateID += 1
 
 				// update published game state with any applied effects
 				match.GameState.UpdateID = match.NextUpdateID
@@ -123,7 +128,7 @@ func (match *Match) handleDuePQEvents() {
 				match.GameState.Phase = 1
 				match.EventLog = append(match.EventLog, logs.Log{
 					UpdateID:  match.NextUpdateID,
-					Timestamp: time.Now().UnixMilli(),
+					Timestamp: newPhase.T.UnixMilli() + 200,
 					Type:      logs.PhaseLog,
 					A:         1, // A = phase
 				})
@@ -145,7 +150,7 @@ func (match *Match) handleDuePQEvents() {
 				match.NextPQIndex += 1
 
 				// schedule phase 2 10s from now
-				PushNewPhase(match, time.UnixMilli(currentTime).Add(10*time.Second), 2)
+				PushNewPhase(match, time.UnixMilli(currentTime).Add(5*time.Second), 2)
 
 				// update the game state, published state
 				match.GameState.UpdateID = match.NextUpdateID
@@ -163,7 +168,7 @@ func (match *Match) handleDuePQEvents() {
 				match.GameState.Phase = 2
 				match.EventLog = append(match.EventLog, logs.Log{
 					UpdateID:  match.NextUpdateID,
-					Timestamp: time.Now().UnixMilli(),
+					Timestamp: newPhase.T.UnixMilli() + 200,
 					Type:      logs.PhaseLog,
 					A:         2, // A = phase
 				})

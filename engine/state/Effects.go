@@ -10,6 +10,7 @@ const (
 	EffectMana
 	EffectSilence
 	EffectGrantAbility
+	SummonResolution
 )
 
 type Effect struct {
