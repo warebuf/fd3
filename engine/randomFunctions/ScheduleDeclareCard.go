@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleActivateCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex int, cardIndex int, popTime int64) bool {
+func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex int, cardIndex int, popTime int64) bool {
 
 	// check if the card is in hand
 	found := false
@@ -33,8 +33,7 @@ func ScheduleActivateCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effect
 
 	s := &stackPQ.Stack{
 		EffectIndex: effectIndex,
-		PopTime:     popTime,
-		ResolveTime: popTime + 200,
+		PopTime:     popTime + 200,
 		Effects:     []state.Effect{eff},
 	}
 

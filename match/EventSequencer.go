@@ -75,6 +75,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// publish the new logs
 			match.BroadcastLogs(oldLogsSize)
+
 		case "Input":
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
@@ -91,9 +92,9 @@ func (match *Match) handleDuePQEvents() {
 				continue
 			}
 
-			// activate the card and queue the effects
+			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
-			success := randomFunctions.ScheduleActivateCard(match.GameState, match.PQ, match.NextPQIndex, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+			success := randomFunctions.ScheduleDeclareCard(match.GameState, match.PQ, match.NextPQIndex, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
 
 			if success {
 				// if successful, increment the PQ node count

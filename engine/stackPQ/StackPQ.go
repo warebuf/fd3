@@ -10,8 +10,7 @@ import (
 type Stack struct {
 	EffectIndex uint64 // the latest effect gets the biggest index
 
-	PopTime     int64 // the time we can pop an item from the stack and apply it to the game state
-	ResolveTime int64 // the time the user can see the effect applied
+	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
 	Effects []state.Effect
 
@@ -60,7 +59,6 @@ func (pq *PriorityQueue) Update(item *Stack, newPopTime int64, newEffectIndex ui
 	}
 
 	item.PopTime = newPopTime
-	item.ResolveTime = newPopTime + 200
 
 	if changeEffectIndex {
 		item.EffectIndex = newEffectIndex
