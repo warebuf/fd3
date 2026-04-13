@@ -9,13 +9,10 @@ type Event interface {
 // Event types
 
 type InputEvent struct {
-	T       time.Time
-	Type    string
-	TeamIdx int
-	UnitIdx int
-	FuncIdx int
-	Target1 int
-	Target2 int
+	T         time.Time
+	Type      string
+	TeamIdx   int
+	CardIndex int
 }
 
 func (e *InputEvent) Timestamp() time.Time { return e.T }

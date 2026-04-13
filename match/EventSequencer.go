@@ -79,7 +79,7 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
 
-			// TODO: notably there is little to no validation
+			// TODO: notably there is little to no validation rn
 
 			// if phase is not 2 or greater, do not accept inputs (maybe you can do this earlier, not sure)
 			if match.GameState.Phase != 2 {
@@ -87,6 +87,8 @@ func (match *Match) handleDuePQEvents() {
 			}
 
 			//
+
+			
 
 		case "NewPhase":
 

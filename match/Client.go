@@ -75,26 +75,12 @@ func (c *Client) Read() {
 			default:
 			}
 
-		case "benchMove":
-			var benchMoveData BenchMove
-			if err := strictUnmarshal(data, &benchMoveData); err != nil {
+		case "hand":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
 				return
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "Summon", c.ID, int(benchMoveData.UnitID), -1, -1, -1)
-
-		case "Active":
-			var parsed Manual
-			if err := strictUnmarshal(data, &parsed); err != nil {
-				return
-			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "Active", c.ID, int(parsed.UnitID), int(parsed.FunctionID), -1, -1)
-
-		case "Target":
-			var parsed Target
-			if err := strictUnmarshal(data, &parsed); err != nil {
-				return
-			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "Target", c.ID, int(parsed.UnitID), int(parsed.FunctionID), parsed.Target1, parsed.Target2)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "hand", c.ID, msg.CardIndex)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
