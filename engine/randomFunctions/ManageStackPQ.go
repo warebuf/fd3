@@ -32,23 +32,21 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 
 		// handle the top effect
 		oldLogCount := len(*eventLogs)
-		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, NextUpdateID+newUpdateIDCount)
+		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, earliestStack.ResolveTime, NextUpdateID+newUpdateIDCount)
 		newLogCount := len(*eventLogs)
 		newUpdateIDCount += newLogCount - oldLogCount
 		fmt.Println("stack length", len(earliestStack.Effects))
 		if len(earliestStack.Effects) == 0 {
 			heap.Pop(pq) // remove 0 index
 		} else {
-			earliestStack.DeclareTime = time.Now().UnixMilli()
-			earliestStack.ResolveTime = earliestStack.DeclareTime + 2000    // 2 seconds later
-			pq.Update(earliestStack, time.Now().UnixMilli()+2000, 0, false) // do not update effect index
+			pq.Update(earliestStack, time.Now().UnixMilli()+2000-200, 0, false) // do not update effect index
 		}
 
 	}
 
 }
 
-func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.Log, NextUpdateID int) []state.Effect {
+func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.Log, t int64, NextUpdateID int) []state.Effect {
 
 	topEffect := stack[len(stack)-1]
 
@@ -59,7 +57,7 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
-			Timestamp: time.Now().UnixMilli(),
+			Timestamp: t + 200,
 			Type:      logs.DrawExec,
 			A:         topEffect.A, // A: teamIndex
 			B:         1,           // B: num of cards to draw

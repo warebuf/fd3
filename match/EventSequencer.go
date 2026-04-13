@@ -82,7 +82,7 @@ func (match *Match) handleDuePQEvents() {
 			// TODO: notably there is little to no validation
 
 			// if phase is not 2 or greater, do not accept inputs (maybe you can do this earlier, not sure)
-			if match.GameState.Phase < 2 {
+			if match.GameState.Phase != 2 {
 				continue
 			}
 
@@ -110,17 +110,17 @@ func (match *Match) handleDuePQEvents() {
 
 				// schedule the draw event
 				currentTime := time.Now().UnixMilli()
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5000) // 5.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+1000) // 1.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+5500) // 5.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+1500) // 1.5 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+6000) // 6.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+2000) // 2.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+6500) // 6.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+2500) // 2.5 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7000) // 7.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+3000) // 3.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+7500) // 7.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+3500) // 3.5 seconds from now
 				match.NextPQIndex += 1
 
 				// schedule phase 2 10s from now
