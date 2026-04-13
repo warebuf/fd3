@@ -10,8 +10,8 @@ import (
 type Stack struct {
 	EffectIndex uint64 // the latest effect gets the biggest index
 
-	DeclareTime int64
-	ResolveTime int64
+	PopTime     int64 // the time we can pop an item from the stack and apply it to the game state
+	ResolveTime int64 // the time the user can see the effect applied
 
 	Effects []state.Effect
 
@@ -25,8 +25,8 @@ func (pq PriorityQueue) Len() int { return len(pq) }
 // earliest moves first
 func (pq PriorityQueue) Less(i, j int) bool {
 
-	if pq[i].ResolveTime != pq[j].ResolveTime {
-		return pq[i].ResolveTime < pq[j].ResolveTime
+	if pq[i].PopTime != pq[j].PopTime {
+		return pq[i].PopTime < pq[j].PopTime
 	}
 
 	return pq[i].EffectIndex < pq[j].EffectIndex
@@ -54,12 +54,14 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-func (pq *PriorityQueue) Update(item *Stack, newResolveTime int64, newEffectIndex uint64, changeEffectIndex bool) {
+func (pq *PriorityQueue) Update(item *Stack, newPopTime int64, newEffectIndex uint64, changeEffectIndex bool) {
 	if item == nil || item.index < 0 || item.index >= len(*pq) {
 		return
 	}
 
-	item.ResolveTime = newResolveTime
+	item.PopTime = newPopTime
+	item.ResolveTime = newPopTime + 200
+
 	if changeEffectIndex {
 		item.EffectIndex = newEffectIndex
 	}
@@ -75,6 +77,6 @@ func (pq PriorityQueue) Peek() *Stack {
 
 func (pq PriorityQueue) Print() {
 	for i := 0; i < pq.Len(); i++ {
-		fmt.Println(i, "effIndex", pq[i].EffectIndex, "declareT", pq[i].DeclareTime, "effLength", len(pq[i].Effects))
+		fmt.Println(i, "effIndex", pq[i].EffectIndex, "declareT", pq[i].PopTime, "effLength", len(pq[i].Effects))
 	}
 }

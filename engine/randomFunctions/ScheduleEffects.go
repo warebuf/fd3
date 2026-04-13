@@ -17,8 +17,8 @@ func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex i
 
 	s := &stackPQ.Stack{
 		EffectIndex: effectIndex,
-		DeclareTime: t,
-		ResolveTime: t - 200, // note that everything in the stackPQ must be scheduled 200 ms early
+		PopTime:     t - 200, // must pop 200 ms earlier, so we can draw for the user at t
+		ResolveTime: t,
 		Effects:     []state.Effect{eff},
 	}
 

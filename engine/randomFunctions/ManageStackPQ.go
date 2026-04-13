@@ -26,7 +26,7 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 		}
 
 		// if earliestStack is not due
-		if earliestStack.ResolveTime > time.Now().UnixMilli() {
+		if earliestStack.PopTime > time.Now().UnixMilli() {
 			return newUpdateIDCount
 		}
 
@@ -39,7 +39,7 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 		if len(earliestStack.Effects) == 0 {
 			heap.Pop(pq) // remove 0 index
 		} else {
-			pq.Update(earliestStack, time.Now().UnixMilli()+2000-200, 0, false) // do not update effect index
+			pq.Update(earliestStack, time.Now().UnixMilli()+2000, 0, false) // do not update effect index
 		}
 
 	}
@@ -57,11 +57,13 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
-			Timestamp: t + 200,
+			Timestamp: t,
 			Type:      logs.DrawExec,
 			A:         topEffect.A, // A: teamIndex
 			B:         1,           // B: num of cards to draw
 		})
+	case state.EffectActivate:
+		fmt.Println("activate effect")
 	case state.EffectAttack:
 		// placeholder
 	case state.EffectHeal:

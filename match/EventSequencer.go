@@ -79,6 +79,11 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 			fmt.Println("received Input", ie)
 
+			// BIG NOTE; IM DOING THIS WRONG
+			// INPUTS SHOULD BE APPLIED 200 MS ONCE RECEIVED
+			// THEREFORE THE SERVER APPLIES THEM THE SAME TIME THE CLIENT APPLIES THEM
+			// CORRECT THIS
+
 			// TODO: notably there is little to no validation rn
 
 			// if phase is not 2 or greater, do not accept inputs (maybe you can do this earlier, not sure)
@@ -86,9 +91,22 @@ func (match *Match) handleDuePQEvents() {
 				continue
 			}
 
-			//
+			// activate the card and queue the effects
+			oldLogsSize := len(match.EventLog)
+			success := randomFunctions.ScheduleActivateCard(match.GameState, match.PQ, match.NextPQIndex, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
 
-			
+			if success {
+				// if successful, increment the PQ node count
+				match.NextPQIndex += 1
+
+				// update published game state with any applied effects
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				// broadcast any new logs
+				match.BroadcastLogs(oldLogsSize)
+			}
 
 		case "NewPhase":
 
@@ -180,7 +198,7 @@ func (match *Match) handleDuePQEvents() {
 func PushNewPhase(match *Match, t time.Time, phase int) {
 	match.NextSeq++
 	newPhase := &NewPhaseEvent{
-		T:     t.Add(-200 * time.Millisecond), // needs to be scheduled 200 ms early
+		T:     t.Add(-200 * time.Millisecond), // schedule 200 ms early
 		Phase: phase,
 	}
 	item := &EventItem{
@@ -248,7 +266,7 @@ func scheduleStackPQ(match *Match) {
 	}
 
 	// if EffectEvent exists and is in the EventPQ, update and reheapify in EventPQ
-	earliest := time.UnixMilli(earliestStack.ResolveTime)
+	earliest := time.UnixMilli(earliestStack.PopTime)
 	if match.EarliestEffect != nil && match.EarliestEffect.Index > 0 {
 		// update and reheapify
 		effEv, _ := match.EarliestEffect.Event.(*EffectEvent)

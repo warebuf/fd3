@@ -4,6 +4,7 @@ type EffectType int
 
 const (
 	EffectAttack EffectType = iota + 1
+	EffectActivate
 	EffectHeal
 	EffectDraw
 	EffectMana
