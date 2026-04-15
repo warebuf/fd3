@@ -109,7 +109,7 @@ func (match *Match) handleDuePQEvents() {
 				match.NextUpdateID += 1
 
 				// update published game state with any applied effects
-				// TODO: CHANGE TIMESTAMP
+				match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
