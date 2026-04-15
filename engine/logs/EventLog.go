@@ -3,8 +3,9 @@ package logs
 type LogType int
 
 const (
-	PhaseLog LogType = iota // A: phase
-	DrawExec                // A: team index, B: card draw
+	PhaseLog    LogType = iota // A: phase
+	DrawExec                   // A: team index, B: card draw
+	DeclareCard                // A: team index, B: card index
 )
 
 type Log struct {

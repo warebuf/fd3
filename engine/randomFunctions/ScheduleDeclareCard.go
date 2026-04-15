@@ -26,8 +26,8 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 	// create a log for the activation
 	*eventLogs = append(*eventLogs, logs.Log{
 		UpdateID:  logIndex,
-		Timestamp: popTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
-		Type:      logs.DrawExec,
+		Timestamp: popTime + 200, // clients are allowed to receive logs 200ms early but see them in 200ms
+		Type:      logs.DeclareCard,
 		A:         teamIndex, // A: teamIndex
 		B:         cardIndex, // B: num of cards to draw
 	})

@@ -84,7 +84,6 @@ func (c *Client) Read() {
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
-			fmt.Println("received fullState from", c.ID)
 			c.MatchObj.SendPublishedState(c.ID)
 		}
 

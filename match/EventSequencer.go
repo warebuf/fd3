@@ -62,13 +62,14 @@ func (match *Match) handleDuePQEvents() {
 		// handle the event
 		switch next.Type {
 		case "Effect":
-			fmt.Println("received effect")
+			fmt.Println("EventPQ node for eff popped at", time.Now().UnixMilli()%1000000, "meant for", next.Event.Timestamp().UnixMilli()%1000000)
 
 			// simulate
 			oldLogsSize := len(match.EventLog)
 			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog, match.NextUpdateID)
 
 			// update the published state
+			match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
 			match.GameState.UpdateID = match.NextUpdateID
 			match.NextUpdateID += 1
 			match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -78,7 +79,6 @@ func (match *Match) handleDuePQEvents() {
 
 		case "Input":
 			ie := next.Event.(*InputEvent)
-			fmt.Println("received Input", ie)
 
 			// TODO: notably there is little to no validation rn
 
@@ -86,6 +86,9 @@ func (match *Match) handleDuePQEvents() {
 			if match.GameState.Phase != 2 {
 				continue
 			}
+
+			// popped input
+			fmt.Println("Input node popped at", time.Now().UnixMilli()%1000000, "meant for", next.Event.Timestamp().UnixMilli()%1000000)
 
 			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
@@ -106,6 +109,7 @@ func (match *Match) handleDuePQEvents() {
 				match.NextUpdateID += 1
 
 				// update published game state with any applied effects
+				// TODO: CHANGE TIMESTAMP
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -117,42 +121,46 @@ func (match *Match) handleDuePQEvents() {
 		case "NewPhase":
 
 			newPhase := next.Event.(*NewPhaseEvent)
-			fmt.Println("received newPhase", newPhase)
 
 			if newPhase.Phase == 1 { // entering draw phase
+
+				fmt.Println("EventPQ node for phase 1 popped at", time.Now().UnixMilli()%1000000, "meant for", newPhase.T.UnixMilli()%1000000)
 
 				// saving the old log count for broadcasting the new logs
 				oldLogsSize := len(match.EventLog)
 
 				// increment the phase
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + 200
 				match.GameState.Phase = 1
 				match.EventLog = append(match.EventLog, logs.Log{
 					UpdateID:  match.NextUpdateID,
-					Timestamp: newPhase.T.UnixMilli() + 200,
+					Timestamp: phaseChangeTimestamp,
 					Type:      logs.PhaseLog,
 					A:         1, // A = phase
 				})
 				match.NextUpdateID += 1
 
+				fmt.Println("client side phase 1 scheduled for", phaseChangeTimestamp%1000000)
+
 				// schedule the draw event
-				currentTime := time.Now().UnixMilli()
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+1000) // 1.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+1000) // 1.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+1500) // 1.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+1500) // 1.5 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, currentTime+2000) // 2.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+2000) // 2.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+2500) // 2.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+2500) // 2.5 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+3000) // 3.0 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+3000) // 3.0 seconds from now
 				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, currentTime+3500) // 3.5 seconds from now
+				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+3500) // 3.5 seconds from now
 				match.NextPQIndex += 1
 
 				// schedule phase 2 10s from now
-				PushNewPhase(match, time.UnixMilli(currentTime).Add(5*time.Second), 2)
+				PushNewPhase(match, phaseChangeTimestamp+5000, 2)
 
 				// update the game state, published state
+				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -161,6 +169,8 @@ func (match *Match) handleDuePQEvents() {
 				match.BroadcastLogs(oldLogsSize)
 
 			} else if newPhase.Phase == 2 { // entering game start
+
+				fmt.Println("EventPQ node for phase 2 popped at", time.Now().UnixMilli()%1000000, "meant for", newPhase.T.UnixMilli()%1000000)
 
 				oldLogsSize := len(match.EventLog)
 
@@ -173,11 +183,13 @@ func (match *Match) handleDuePQEvents() {
 					A:         2, // A = phase
 				})
 				match.NextUpdateID += 1
+				fmt.Println("client side phase 2 scheduled for", (newPhase.T.UnixMilli()+200)%1000000)
 
 				// schedule EventPQ effects
 				randomFunctions.InitBoard(match.GameState, match.PQ)
 
 				// update the game state, published state
+				match.GameState.Timestamp = newPhase.T.Add(200 * time.Millisecond)
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -201,10 +213,10 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-func PushNewPhase(match *Match, t time.Time, phase int) {
+func PushNewPhase(match *Match, t int64, phase int) {
 	match.NextSeq++
 	newPhase := &NewPhaseEvent{
-		T:     t.Add(-200 * time.Millisecond), // schedule 200 ms early
+		T:     time.UnixMilli(t - 200), // schedule 200 ms early
 		Phase: phase,
 	}
 	item := &EventItem{
@@ -260,7 +272,6 @@ func scheduleStackPQ(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
 	earliestStack := match.PQ.Peek()
-	fmt.Println("entered scheduleStackPQ", earliestStack)
 
 	// if no effect events, remove the EffectEvent from the EventPQ
 	if earliestStack == nil {

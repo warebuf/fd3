@@ -17,7 +17,6 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 	newUpdateIDCount := 0
 
 	for {
-		fmt.Println("stackPQ length", pq.Len())
 
 		// get the earliest stack
 		earliestStack := pq.Peek()
@@ -35,7 +34,6 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, earliestStack.PopTime, NextUpdateID+newUpdateIDCount)
 		newLogCount := len(*eventLogs)
 		newUpdateIDCount += newLogCount - oldLogCount
-		fmt.Println("stack length", len(earliestStack.Effects))
 		if len(earliestStack.Effects) == 0 {
 			heap.Pop(pq) // remove 0 index
 		} else {
@@ -52,8 +50,9 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 	switch topEffect.Type {
 	case state.EffectDraw:
-		fmt.Println("draw eff", topEffect)
 		effects.ApplyEffectDraw(gs, topEffect)
+
+		fmt.Println("scheduling draw for client at", (t+200)%1000000)
 
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
@@ -63,7 +62,6 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 			B:         1,           // B: num of cards to draw
 		})
 	case state.SummonResolution:
-		fmt.Println("summon resolution")
 
 		// pseudocode:
 

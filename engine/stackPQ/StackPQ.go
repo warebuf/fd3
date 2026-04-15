@@ -2,7 +2,6 @@ package stackPQ
 
 import (
 	"container/heap"
-	"fmt"
 
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -71,10 +70,4 @@ func (pq PriorityQueue) Peek() *Stack {
 		return nil
 	}
 	return pq[0]
-}
-
-func (pq PriorityQueue) Print() {
-	for i := 0; i < pq.Len(); i++ {
-		fmt.Println(i, "effIndex", pq[i].EffectIndex, "declareT", pq[i].PopTime, "effLength", len(pq[i].Effects))
-	}
 }
