@@ -19,7 +19,9 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 		Field: make([][]int, len(deckDefs)),
 		Grave: make([][]int, len(deckDefs)),
 
-		Permanents:     []state.Permanent{},
+		Permanents:      []state.Permanent{},
+		LastPermanentID: 0,
+
 		Mana:           make([]int, len(deckDefs)),
 		ActiveTriggers: []state.TriggerEffect{},
 	}

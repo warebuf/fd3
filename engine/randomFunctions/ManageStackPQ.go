@@ -54,6 +54,7 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 		fmt.Println("scheduling draw for client at", (t+200)%1000000)
 
+		// create log
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
 			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
@@ -61,9 +62,40 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 			A:         topEffect.A, // A: teamIndex
 			B:         1,           // B: num of cards to draw
 		})
+
 	case state.SummonResolution:
 
-		// pseudocode:
+		fmt.Println("scheduling summon resolution for client at", (t+200)%1000000)
+
+		success := false
+		for i := 0; i < len(gs.Hand); i++ {
+			if i == topEffect.A {
+				for j := 0; j < len(gs.Hand[i]); j++ {
+					if gs.Hand[i][j] == topEffect.B {
+						gs.Cards[topEffect.B].Zone = state.ZoneGraveyard         // change card's state
+						gs.Hand[i] = append(gs.Hand[i][:j], gs.Hand[i][j+1:]...) // remove from hand arr
+						gs.Grave[i] = append(gs.Grave[i], topEffect.B)           // add to graveyard
+						success = true
+					}
+				}
+			}
+		}
+
+		// create permanent
+		if success {
+			// errr not sure what to do here
+			perm := &state.Permanent{
+				PermanentID: gs.LastPermanentID,
+				SourceCard:  topEffect.B,
+				Type:        1,
+			}
+
+			//
+
+			//
+		}
+
+		// create log
 
 	case state.EffectAttack:
 		// placeholder
