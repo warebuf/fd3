@@ -10,7 +10,12 @@ import (
 
 func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectIndex uint64, eventLogs *[]logs.Log, logIndex int, teamIndex int, cardIndex int, popTime int64) bool {
 
-	// check if the card is in hand
+	// check if card is in hand state
+	if gs.Cards[cardIndex].Zone != 1 {
+		return false
+	}
+
+	// check if card is in hand arr
 	found := false
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
 		if cardIndex == gs.Hand[teamIndex][i] {
@@ -22,6 +27,9 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 	}
 
 	// check if the card meets the activation conditions
+
+	// change the card's state
+	gs.Cards[cardIndex].Zone = state.ZoneDeclared
 
 	// create a log for the activation
 	*eventLogs = append(*eventLogs, logs.Log{
