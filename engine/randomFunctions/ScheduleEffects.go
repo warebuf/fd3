@@ -2,15 +2,12 @@ package randomFunctions
 
 import (
 	"container/heap"
-	"fmt"
 
 	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 )
 
 func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex int, t int64) {
-
-	fmt.Println("scheduling draw for", t%1000000, "popping it at", (t-200)%1000000)
 
 	eff := state.Effect{
 		Type: state.EffectDraw,

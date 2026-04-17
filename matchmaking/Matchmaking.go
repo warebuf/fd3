@@ -173,7 +173,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	heap.Init(&m.EventPQueue) // init event handling PQ
 
 	t := time.Now().UnixMilli()
-	fmt.Println("pushing phase 1 @", t%1000000)
 	match.PushNewPhase(m, t+5000, 1) // timer for starting the game, could also broadcast the time here
 
 	go m.EventScheduler() // on init, check the game state, schedule if first if possible

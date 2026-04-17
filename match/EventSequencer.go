@@ -2,7 +2,6 @@ package match
 
 import (
 	"container/heap"
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/logs"
@@ -62,7 +61,6 @@ func (match *Match) handleDuePQEvents() {
 		// handle the event
 		switch next.Type {
 		case "Effect":
-			fmt.Println("EventPQ node for eff popped at", time.Now().UnixMilli()%1000000, "meant for", next.Event.Timestamp().UnixMilli()%1000000)
 
 			// simulate
 			oldLogsSize := len(match.EventLog)
@@ -86,9 +84,6 @@ func (match *Match) handleDuePQEvents() {
 			if match.GameState.Phase != 2 {
 				continue
 			}
-
-			// popped input
-			fmt.Println("Input node popped at", time.Now().UnixMilli()%1000000, "meant for", next.Event.Timestamp().UnixMilli()%1000000)
 
 			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
@@ -124,8 +119,6 @@ func (match *Match) handleDuePQEvents() {
 
 			if newPhase.Phase == 1 { // entering draw phase
 
-				fmt.Println("EventPQ node for phase 1 popped at", time.Now().UnixMilli()%1000000, "meant for", newPhase.T.UnixMilli()%1000000)
-
 				// saving the old log count for broadcasting the new logs
 				oldLogsSize := len(match.EventLog)
 
@@ -139,8 +132,6 @@ func (match *Match) handleDuePQEvents() {
 					A:         1, // A = phase
 				})
 				match.NextUpdateID += 1
-
-				fmt.Println("client side phase 1 scheduled for", phaseChangeTimestamp%1000000)
 
 				// schedule the draw event
 				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+1000) // 1.0 seconds from now
@@ -170,8 +161,6 @@ func (match *Match) handleDuePQEvents() {
 
 			} else if newPhase.Phase == 2 { // entering game start
 
-				fmt.Println("EventPQ node for phase 2 popped at", time.Now().UnixMilli()%1000000, "meant for", newPhase.T.UnixMilli()%1000000)
-
 				oldLogsSize := len(match.EventLog)
 
 				// increment the phase
@@ -183,7 +172,6 @@ func (match *Match) handleDuePQEvents() {
 					A:         2, // A = phase
 				})
 				match.NextUpdateID += 1
-				fmt.Println("client side phase 2 scheduled for", (newPhase.T.UnixMilli()+200)%1000000)
 
 				// schedule EventPQ effects
 				randomFunctions.InitBoard(match.GameState, match.PQ)

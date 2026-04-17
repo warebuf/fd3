@@ -6,6 +6,7 @@ const (
 	PhaseLog    LogType = iota // A: phase
 	DrawExec                   // A: team index, B: card draw
 	DeclareCard                // A: team index, B: card index
+	SummonUnit                 // A: team index, B: model no
 )
 
 type Log struct {

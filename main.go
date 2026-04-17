@@ -80,8 +80,6 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 
 func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 
-	// fmt.Println("matchmakingSSE: IP", networking.GetIP(r))
-
 	guestID := ""
 	for _, c := range r.Cookies() {
 		if c.Name == "guestID" {

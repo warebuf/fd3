@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/stackPQ"
@@ -52,8 +53,6 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 	case state.EffectDraw:
 		effects.ApplyEffectDraw(gs, topEffect)
 
-		fmt.Println("scheduling draw for client at", (t+200)%1000000)
-
 		// create log
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
@@ -83,19 +82,25 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 		// create permanent
 		if success {
-			// errr not sure what to do here
-			perm := &state.Permanent{
+			perm := state.Permanent{
 				PermanentID: gs.LastPermanentID,
-				SourceCard:  topEffect.B,
-				Type:        1,
+				SourceCard:  gs.Cards[topEffect.B].DefNo,
+				Type:        1, // unit
+				HP:          defs.CardDefs[gs.Cards[topEffect.B].DefNo].BaseHP,
+				Team:        topEffect.A,
+				Master:      false,
 			}
-
-			//
-
-			//
+			gs.Permanents = append(gs.Permanents, perm)
 		}
 
 		// create log
+		*eventLogs = append(*eventLogs, logs.Log{
+			UpdateID:  NextUpdateID,
+			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
+			Type:      logs.SummonUnit,
+			A:         topEffect.A,                 // A: teamIndex
+			B:         gs.Cards[topEffect.B].DefNo, // B: num of cards to draw
+		})
 
 	case state.EffectAttack:
 		// placeholder
