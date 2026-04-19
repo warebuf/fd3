@@ -12,14 +12,14 @@ const (
 	ZoneHand
 	ZoneField
 	ZoneGraveyard
-	ZoneDeclared
 )
 
 type Card struct {
-	CardID int // card ID
-	DefNo  int // the card's serial number
-	Team   int
-	Type   int // structure, unit, trap, spell
-	Zone   int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: declared
-	Armed  bool
+	CardID  int // card ID
+	DefNo   int // the card's serial number
+	Team    int
+	Type    int // structure, unit, trap, spell
+	Zone    int // 0: deck, 1: hand, 2: field, 3: graveyard
+	Pending bool
+	Armed   bool
 }

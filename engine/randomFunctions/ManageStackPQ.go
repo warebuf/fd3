@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/stackPQ"
@@ -64,42 +63,21 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 
 	case state.SummonResolution:
 
-		fmt.Println("scheduling summon resolution for client at", (t+200)%1000000)
+		fmt.Println("scheduling the summon resolution for client at", (t+200)%1000000)
 
-		success := false
-		for i := 0; i < len(gs.Hand); i++ {
-			if i == topEffect.A {
-				for j := 0; j < len(gs.Hand[i]); j++ {
-					if gs.Hand[i][j] == topEffect.B {
-						gs.Cards[topEffect.B].Zone = state.ZoneGraveyard         // change card's state
-						gs.Hand[i] = append(gs.Hand[i][:j], gs.Hand[i][j+1:]...) // remove from hand arr
-						gs.Grave[i] = append(gs.Grave[i], topEffect.B)           // add to graveyard
-						success = true
-					}
-				}
-			}
-		}
+		// complete the summon
+		gs.Cards[topEffect.B].Pending = false
 
-		// create permanent
-		if success {
-			perm := state.Permanent{
-				PermanentID: gs.LastPermanentID,
-				SourceCard:  gs.Cards[topEffect.B].DefNo,
-				Type:        1, // unit
-				HP:          defs.CardDefs[gs.Cards[topEffect.B].DefNo].BaseHP,
-				Team:        topEffect.A,
-				Master:      false,
-			}
-			gs.Permanents = append(gs.Permanents, perm)
-		}
+		// TODO: handle any effects here?
+		// TODO: handle any triggers here?
 
 		// create log
 		*eventLogs = append(*eventLogs, logs.Log{
 			UpdateID:  NextUpdateID,
 			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
 			Type:      logs.SummonUnit,
-			A:         topEffect.A,                 // A: teamIndex
-			B:         gs.Cards[topEffect.B].DefNo, // B: num of cards to draw
+			A:         topEffect.A, // A: teamIndex
+			B:         topEffect.B, // B: card index
 		})
 
 	case state.EffectAttack:

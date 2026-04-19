@@ -18,28 +18,15 @@ type GameState struct {
 	Grave [][]int
 
 	// other states
-	Permanents      []Permanent
-	LastPermanentID int
-
 	Mana           []int // per team
 	ActiveTriggers []TriggerEffect
 }
 
-type Permanent struct {
-	PermanentID int
-	SourceCard  int
-	Type        int // structure, unit, continuous trap, continuous spell
-	HP          int
-	Team        int
-	Master      bool // can only be 1 master unit
-}
-
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		UpdateID:        prevState.UpdateID,
-		Timestamp:       prevState.Timestamp,
-		Phase:           prevState.Phase,
-		LastPermanentID: prevState.LastPermanentID,
+		UpdateID:  prevState.UpdateID,
+		Timestamp: prevState.Timestamp,
+		Phase:     prevState.Phase,
 	}
 
 	// Cards
@@ -73,10 +60,6 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		newState.Grave[i] = make([]int, len(prevState.Grave[i]))
 		copy(newState.Grave[i], prevState.Grave[i])
 	}
-
-	// Permanents
-	newState.Permanents = make([]Permanent, len(prevState.Permanents))
-	copy(newState.Permanents, prevState.Permanents)
 
 	// Mana
 	newState.Mana = make([]int, len(prevState.Mana))

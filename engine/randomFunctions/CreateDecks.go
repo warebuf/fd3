@@ -19,9 +19,6 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 		Field: make([][]int, len(deckDefs)),
 		Grave: make([][]int, len(deckDefs)),
 
-		Permanents:      []state.Permanent{},
-		LastPermanentID: 0,
-
 		Mana:           make([]int, len(deckDefs)),
 		ActiveTriggers: []state.TriggerEffect{},
 	}
@@ -45,12 +42,13 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 			def := defs.CardDefs[defNo]
 
 			card := state.Card{
-				CardID: nextCardID,
-				DefNo:  defNo,
-				Team:   team,
-				Type:   def.Type,
-				Zone:   state.ZoneDeck,
-				Armed:  false,
+				CardID:  nextCardID,
+				DefNo:   defNo,
+				Team:    team,
+				Type:    def.Type,
+				Zone:    state.ZoneDeck,
+				Pending: false,
+				Armed:   false,
 			}
 
 			gs.Cards = append(gs.Cards, card)

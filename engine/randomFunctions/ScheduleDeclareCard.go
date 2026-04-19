@@ -16,29 +16,27 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 	}
 
 	// check if card is in hand arr
-	found := false
-	handIndex := 0
+	handIndex := -1
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
 		if cardIndex == gs.Hand[teamIndex][i] {
 			handIndex = i
-			found = true
 		}
 	}
-	if !found {
+	if handIndex < 0 {
 		return false
 	}
 
-	// check if the card meets the activation conditions
+	// TODO: check any of the card's activation conditions
 
-	// change the card's state
-	gs.Cards[cardIndex].Zone = state.ZoneDeclared
+	// updating the card's state
+	gs.Cards[cardIndex].Zone = state.ZoneField
+	gs.Cards[cardIndex].Pending = true
 
 	// remove card from hand
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
 	// send card to grave
-
-	// create a summoning permanent
+	gs.Grave[teamIndex] = append(gs.Grave[teamIndex], cardIndex)
 
 	// create a log for the activation
 	*eventLogs = append(*eventLogs, logs.Log{
@@ -46,7 +44,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 		Timestamp: popTime + 200, // clients are allowed to receive logs 200ms early but see them in 200ms
 		Type:      logs.DeclareCard,
 		A:         teamIndex, // A: teamIndex
-		B:         cardIndex, // B: num of cards to draw
+		B:         cardIndex, // B: card index
 	})
 
 	// schedule the resolution
