@@ -17,8 +17,10 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 
 	// check if card is in hand arr
 	found := false
+	handIndex := 0
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
 		if cardIndex == gs.Hand[teamIndex][i] {
+			handIndex = i
 			found = true
 		}
 	}
@@ -30,6 +32,13 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 
 	// change the card's state
 	gs.Cards[cardIndex].Zone = state.ZoneDeclared
+
+	// remove card from hand
+	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+
+	// send card to grave
+
+	// create a summoning permanent
 
 	// create a log for the activation
 	*eventLogs = append(*eventLogs, logs.Log{
