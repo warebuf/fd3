@@ -35,8 +35,8 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 	// remove card from hand
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
-	// send card to grave
-	gs.Grave[teamIndex] = append(gs.Grave[teamIndex], cardIndex)
+	// add card to the field
+	gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 
 	// create a log for the activation
 	*eventLogs = append(*eventLogs, logs.Log{
