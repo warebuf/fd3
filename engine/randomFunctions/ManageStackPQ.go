@@ -2,7 +2,6 @@ package randomFunctions
 
 import (
 	"container/heap"
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/defs/effects"
@@ -62,8 +61,6 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 		})
 
 	case state.SummonResolution:
-
-		fmt.Println("scheduling the summon resolution for client at", (t+200)%1000000)
 
 		// complete the summon
 		gs.Cards[topEffect.B].Pending = false
