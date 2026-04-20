@@ -56,7 +56,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 
 	s := &stackPQ.Stack{
 		EffectIndex: effectIndex,
-		PopTime:     popTime + 200 + 2000 - 200,
+		PopTime:     popTime + 200 + 4000 - 200,
 		Effects:     []state.Effect{eff},
 	}
 
