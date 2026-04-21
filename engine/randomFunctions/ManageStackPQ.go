@@ -2,6 +2,7 @@ package randomFunctions
 
 import (
 	"container/heap"
+	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/defs/effects"
@@ -87,6 +88,9 @@ func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.
 		// placeholder
 	case state.EffectGrantAbility:
 		// placeholder
+	case state.EffectDestroy:
+		fmt.Println("TODO: received EffectDestroy", topEffect)
+
 	}
 
 	return stack[:len(stack)-1] // remove the last element

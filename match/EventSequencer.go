@@ -9,14 +9,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// so we have to balance between client inputs and autoevents
-// every client input allows us to predict the next n+1 autoevent
-// 200ms before every autoevent, we are guaranteed for that autoevent/state to happen
-// so 200ms before every autoevent, we are valid to calculate the next autoevent
-
-// this one loop handles pushing inputs into a priority queue
-// and taking out Events, Inputs, and AutoSchedulers from it
-
 func (match *Match) EventScheduler() {
 
 	for {
@@ -87,7 +79,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
-			success := randomFunctions.ScheduleDeclareCard(
+			incrementPQSeq := randomFunctions.ScheduleDeclareCard(
 				match.GameState,
 				match.PQ,
 				match.NextPQIndex,
@@ -97,10 +89,10 @@ func (match *Match) handleDuePQEvents() {
 				ie.CardIndex,
 				ie.T.UnixMilli(),
 			)
+			match.NextPQIndex += uint64(incrementPQSeq)
 
-			if success {
+			if incrementPQSeq > 0 {
 				// if successful, increment the PQ node count, account for the declaration log
-				match.NextPQIndex += 1
 				match.NextUpdateID += 1
 
 				// update published game state with any applied effects

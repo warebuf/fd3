@@ -4,6 +4,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// so right now this file contains
+
 type CardDef struct {
 	Type int
 
@@ -17,6 +19,17 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	1: {Type: state.CardTypeUnit, BaseHP: 10},
-	2: {Type: state.CardTypeUnit, OnPlay: []state.Effect{}},
+	1: {
+		Type:   state.CardTypeUnit,
+		BaseHP: 10,
+	},
+	2: {
+		Type: state.CardTypeSpell,
+		OnPlay: []state.Effect{
+			{
+				Type: state.EffectDestroy,
+				A:    0, // Destroy all units
+			},
+		},
+	},
 }

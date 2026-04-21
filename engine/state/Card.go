@@ -12,6 +12,7 @@ const (
 	ZoneHand
 	ZoneField
 	ZoneGraveyard
+	ZoneTemporaryUnaccessible
 )
 
 type Card struct {
@@ -19,7 +20,7 @@ type Card struct {
 	DefNo   int // the card's serial number
 	Team    int
 	Type    int // structure, unit, trap, spell
-	Zone    int // 0: deck, 1: hand, 2: field, 3: graveyard
+	Zone    int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: temporarily unaccessible
 	Pending bool
 	Armed   bool
 }
