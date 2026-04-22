@@ -16,8 +16,14 @@ const (
 )
 
 type Card struct {
+
+	// descriptive info
+	DefNo       int // the card's serial number
+	Name        string
+	Description string
+
+	// state info
 	CardID  int // card ID
-	DefNo   int // the card's serial number
 	Team    int
 	Type    int // structure, unit, trap, spell
 	Zone    int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: temporarily unaccessible

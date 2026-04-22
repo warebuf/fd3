@@ -42,8 +42,13 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 			def := defs.CardDefs[defNo]
 
 			card := state.Card{
+				//
+				DefNo:       defNo,
+				Name:        def.Name,
+				Description: def.Description,
+
+				//
 				CardID:  nextCardID,
-				DefNo:   defNo,
 				Team:    team,
 				Type:    def.Type,
 				Zone:    state.ZoneDeck,

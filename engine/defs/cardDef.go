@@ -7,7 +7,9 @@ import (
 // so right now this file contains
 
 type CardDef struct {
-	Type int
+	Type        int
+	Name        string
+	Description string
 
 	OnPlay    []state.Effect
 	Triggers  []state.TriggerEffect
@@ -20,11 +22,16 @@ type CardDef struct {
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
 	1: {
-		Type:   state.CardTypeUnit,
-		BaseHP: 10,
+		Type:        state.CardTypeUnit,
+		Name:        "Fallen Soldier",
+		Description: "",
+		BaseHP:      10,
 	},
 	2: {
-		Type: state.CardTypeSpell,
+		Type:        state.CardTypeSpell,
+		Name:        "Year Zero",
+		Description: "Destroy all summoned units on the field",
+
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
