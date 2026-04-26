@@ -4,6 +4,14 @@ import (
 	"container/heap"
 )
 
+type StackEntry struct {
+	Type    StackEntryType // PlayedCard, TriggeredAbility, CounteredPermanent, etc.
+	CardID  int            // which card this originates from
+	PopTime int64          // when it resolves (real-time ms)
+	Hidden  bool           // for face-down traps etc.
+	// Effects payload TBD
+}
+
 type Stack struct {
 	EffectIndex int // the latest effect gets the biggest index
 
