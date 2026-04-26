@@ -77,7 +77,16 @@ func (pq PriorityQueue) Print() {
 
 	fmt.Println("Printing EffPQ")
 	for i := 0; i < pq.Len(); i++ {
-		fmt.Println(i, pq[i])
+		fmt.Println(i, "EffectIndex", pq[i].EffectIndex)
+		fmt.Println(i, "index", pq[i].index)
+		fmt.Println(i, "PopTime", pq[i].PopTime)
+		for j := 0; j < len(pq[i].Effects); j++ {
+			fmt.Println(i, j, "A", pq[i].Effects[j].A)
+			fmt.Println(i, j, "B", pq[i].Effects[j].B)
+			fmt.Println(i, j, "C", pq[i].Effects[j].C)
+			fmt.Println(i, j, "Type", pq[i].Effects[j].Type)
+		}
 	}
+	fmt.Println("EOF")
 
 }
