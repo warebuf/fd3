@@ -6,7 +6,7 @@ import (
 )
 
 type Stack struct {
-	EffectIndex uint64 // the latest effect gets the biggest index
+	EffectIndex int // the latest effect gets the biggest index
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
@@ -15,7 +15,10 @@ type Stack struct {
 	index int // heap position (internal)
 }
 
-type PriorityQueue []*Stack
+type PriorityQueue struct {
+	items []*Stack
+	total int
+}
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
