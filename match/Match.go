@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -17,9 +16,6 @@ type Match struct {
 
 	GameState      *state.GameState // what the game state should be 200 ms from now
 	PublishedState *state.GameState // a copy of GameState that the players can read
-
-	PQ          *stackPQ.PriorityQueue // priority queue of chains/stacks
-	NextPQIndex uint64                 // for the PQ, assign an index to each action/effect so we can handle ties
 
 	EventLog     []logs.Log // a log of all events that have occurred
 	NextUpdateID int

@@ -17,6 +17,9 @@ type GameState struct {
 	Field [][]int
 	Grave [][]int
 
+	// reaction state
+	ReactionPQ PriorityQueue
+
 	// other states
 	Mana           []int // per team
 	ActiveTriggers []TriggerEffect
