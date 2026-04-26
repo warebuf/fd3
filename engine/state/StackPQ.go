@@ -1,10 +1,8 @@
-package stackPQ
+package state
 
 import (
 	"container/heap"
 	"fmt"
-
-	"github.com/warebuf/fd3/engine/state"
 )
 
 type Stack struct {
@@ -12,7 +10,7 @@ type Stack struct {
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
-	Effects []state.Effect
+	Effects []Effect
 
 	index int // heap position (internal)
 }
