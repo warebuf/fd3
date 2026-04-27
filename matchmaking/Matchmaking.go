@@ -12,7 +12,6 @@ import (
 	"github.com/warebuf/fd3/engine/defs/primitives"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
-	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
 )
@@ -160,8 +159,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 		GameState:      gs,
 		PublishedState: state.DeepCopyGameState(gs),
-		PQ:             &stackPQ.PriorityQueue{},
-		NextPQIndex:    0,
 		EventLog:       []logs.Log{},
 		NextUpdateID:   1, // starts as 1 because the GameState already is UpdateID 0
 

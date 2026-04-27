@@ -9,7 +9,7 @@ import (
 )
 
 // returns numer of effects generated
-func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectIndex uint64, eventLogs *[]logs.Log, logIndex int, teamIndex int, cardIndex int, popTime int64) int {
+func ScheduleDeclareCard(gs *state.GameState, effectIndex uint64, eventLogs *[]logs.Log, logIndex int, teamIndex int, cardIndex int, popTime int64) int {
 
 	// check if card is in hand state
 	if gs.Cards[cardIndex].Zone != 1 {
@@ -71,7 +71,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *stackPQ.PriorityQueue, effectI
 
 }
 
-func fulfillEffectTemplate(gs *state.GameState, pq *stackPQ.PriorityQueue, teamIndex int, cardIndex int, effectIndex uint64, popTime int64) int {
+func fulfillEffectTemplate(gs *state.GameState, teamIndex int, cardIndex int, effectIndex uint64, popTime int64) int {
 
 	stacksCreated := 0
 	card := gs.Cards[cardIndex]

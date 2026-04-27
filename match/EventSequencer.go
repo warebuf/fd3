@@ -56,7 +56,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// simulate
 			oldLogsSize := len(match.EventLog)
-			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, match.PQ, &match.EventLog, match.NextUpdateID)
+			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, match.NextUpdateID)
 
 			// update the published state
 			match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
@@ -251,7 +251,7 @@ func (match *Match) setPQTimer() {
 func scheduleStackPQ(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
-	earliestStack := match.PQ.Peek()
+	earliestStack := match.GameState.ReactionPQ.Peek()
 
 	// if no effect events, remove the EffectEvent from the EventPQ
 	if earliestStack == nil {

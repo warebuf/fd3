@@ -16,7 +16,6 @@ func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int)
 	newUpdateIDCount := 0
 
 	for {
-
 		// get the earliest stack
 		earliestStack := gs.ReactionPQ.Peek()
 		if earliestStack == nil {
@@ -30,69 +29,71 @@ func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int)
 
 		// handle the top effect
 		oldLogCount := len(*eventLogs)
-		earliestStack.Effects = SimulateStack(gs, eventLogs, NextUpdateID+newUpdateIDCount)
+		SimulateStack(gs, eventLogs, NextUpdateID+newUpdateIDCount)
 		newLogCount := len(*eventLogs)
 		newUpdateIDCount += newLogCount - oldLogCount
-		if len(earliestStack.Effects) == 0 {
-			heap.Pop(pq) // remove 0 index
-		} else {
-			pq.Update(earliestStack, time.Now().UnixMilli()+2000, 0, false) // do not update effect index
-		}
-
 	}
 
 }
 
-func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) []state.Effect {
+// for the earliest stack in the ReactionPQ, apply the LIFO stackEntry's effects
+func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) {
 
-	stack := gs.ReactionPQ.Peek().StackEntries
-	topEffect := stack[len(stack)-1]
+	stackHeader := gs.ReactionPQ.Peek()
+	stack := stackHeader.StackEntries
+	topEntry := stack[len(stack)-1]
 
-	switch topEffect.Type {
-	case state.EffectDraw:
-		effects.ApplyEffectDraw(gs, topEffect)
+	for i := 0; i < len(topEntry.Effects); i++ {
 
-		// create log
-		*eventLogs = append(*eventLogs, logs.Log{
-			UpdateID:  NextUpdateID,
-			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
-			Type:      logs.DrawExec,
-			A:         topEffect.A, // A: teamIndex
-			B:         1,           // B: num of cards to draw
-		})
+		currentEffect := topEntry.Effects[i]
 
-	case state.SummonResolution:
+		// apply effect
+		switch currentEffect.Type {
 
-		// complete the summon
-		gs.Cards[topEffect.B].Pending = false
+		case state.EffectDraw:
+			effects.ApplyEffectDraw(gs, currentEffect)
 
-		// TODO: handle any effects here?
-		// TODO: handle any triggers here?
+			// create log
+			*eventLogs = append(*eventLogs, logs.Log{
+				UpdateID:  NextUpdateID,
+				Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
+				Type:      logs.DrawExec,
+				A:         currentEffect.A, // A: teamIndex
+				B:         1,               // B: num of cards to draw
+			})
 
-		// create log
-		*eventLogs = append(*eventLogs, logs.Log{
-			UpdateID:  NextUpdateID,
-			Timestamp: t + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
-			Type:      logs.SummonUnit,
-			A:         topEffect.A, // A: teamIndex
-			B:         topEffect.B, // B: card index
-		})
+		case state.SummonResolution:
 
-	case state.EffectAttack:
-		// placeholder
-	case state.EffectHeal:
-		// placeholder
-	case state.EffectMana:
-		// placeholder
-	case state.EffectSilence:
-		// placeholder
-	case state.EffectGrantAbility:
-		// placeholder
-	case state.EffectDestroy:
-		fmt.Println("TODO: received EffectDestroy", topEffect)
+			// complete the summon
+			gs.Cards[currentEffect.B].Pending = false
+
+			// TODO: handle any effects here?
+			// TODO: handle any triggers here?
+
+			// create log
+			*eventLogs = append(*eventLogs, logs.Log{
+				UpdateID:  NextUpdateID,
+				Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
+				Type:      logs.SummonUnit,
+				A:         currentEffect.A, // A: teamIndex
+				B:         currentEffect.B, // B: card index
+			})
+
+		case state.EffectDestroy:
+			fmt.Println("TODO: received EffectDestroy", currentEffect)
+
+		}
 
 	}
 
-	return stack[:len(stack)-1] // remove the last element
+	// remove top entry of the stack
+	stackHeader.StackEntries = stackHeader.StackEntries[:len(stackHeader.StackEntries)-1]
+
+	if len(stackHeader.StackEntries) == 0 {
+		heap.Pop(&gs.ReactionPQ) // remove the stack header
+	} else {
+		// update pop time and sort (TODO: unsure if this is correct, probably not tbh)
+		gs.ReactionPQ.Update(stackHeader, time.Now().UnixMilli()+2000) // do not update effect index ?
+	}
 
 }
