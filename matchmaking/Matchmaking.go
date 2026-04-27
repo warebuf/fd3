@@ -166,7 +166,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		EventPQTimer:   nil,
 		NextSeq:        0,
 	}
-	heap.Init(m.PQ)           // init PQ stack
 	heap.Init(&m.EventPQueue) // init event handling PQ
 
 	t := time.Now().UnixMilli()

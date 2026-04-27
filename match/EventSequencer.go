@@ -56,7 +56,7 @@ func (match *Match) handleDuePQEvents() {
 
 			// simulate
 			oldLogsSize := len(match.EventLog)
-			match.NextUpdateID += randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, match.NextUpdateID)
+			randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 			// update the published state
 			match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
@@ -126,18 +126,12 @@ func (match *Match) handleDuePQEvents() {
 				match.NextUpdateID += 1
 
 				// schedule the draw event
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+1000) // 1.0 seconds from now
-				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+1500) // 1.5 seconds from now
-				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 0, phaseChangeTimestamp+2000) // 2.0 seconds from now
-				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+2500) // 2.5 seconds from now
-				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+3000) // 3.0 seconds from now
-				match.NextPQIndex += 1
-				randomFunctions.ScheduleDrawCard(match.PQ, match.NextPQIndex, 1, phaseChangeTimestamp+3500) // 3.5 seconds from now
-				match.NextPQIndex += 1
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 0, phaseChangeTimestamp+1000) // 1.0 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 0, phaseChangeTimestamp+1500) // 1.5 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 0, phaseChangeTimestamp+2000) // 2.0 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 1, phaseChangeTimestamp+2500) // 2.5 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 1, phaseChangeTimestamp+3000) // 3.0 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, 1, phaseChangeTimestamp+3500) // 3.5 seconds from now
 
 				// schedule phase 2 10s from now
 				PushNewPhase(match, phaseChangeTimestamp+5000, 2)
@@ -166,7 +160,7 @@ func (match *Match) handleDuePQEvents() {
 				match.NextUpdateID += 1
 
 				// schedule EventPQ effects
-				randomFunctions.InitBoard(match.GameState, match.PQ)
+				randomFunctions.InitBoard(match.GameState)
 
 				// update the game state, published state
 				match.GameState.Timestamp = newPhase.T.Add(200 * time.Millisecond)

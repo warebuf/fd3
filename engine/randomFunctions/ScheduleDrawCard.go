@@ -6,7 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex int, t int64) {
+func ScheduleDrawCard(pq *state.PriorityQueue, teamIndex int, t int64) {
 
 	eff := state.Effect{
 		Type: state.EffectDraw,
@@ -14,10 +14,17 @@ func ScheduleDrawCard(pq *stackPQ.PriorityQueue, effectIndex uint64, teamIndex i
 		B:    1, // number of cards to draw
 	}
 
-	s := &stackPQ.Stack{
-		EffectIndex: effectIndex,
-		PopTime:     t - 200, // must pop 200 ms earlier, so we can draw for the user at t
-		Effects:     []state.Effect{eff},
+	se := state.StackEntry{
+		Type:    3,       // other
+		CardID:  -1,      // no ID for prematch draw
+		PopTime: t - 200, // must pop 200 ms earlier, so we can draw for the user at t
+		Effects: []state.Effect{eff},
+	}
+
+	s := &state.Stack{
+		PopTime:      t - 200, // must pop 200 ms earlier, so we can draw for the user at t
+		StackEntries: []state.StackEntry{se},
+		// note EffectIndex is set inside heap.Push
 	}
 
 	heap.Push(pq, s)

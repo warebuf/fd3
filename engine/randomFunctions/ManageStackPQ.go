@@ -11,33 +11,27 @@ import (
 )
 
 // returns the number of new logs created
-func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) int {
-
-	newUpdateIDCount := 0
+func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
 
 	for {
 		// get the earliest stack
 		earliestStack := gs.ReactionPQ.Peek()
 		if earliestStack == nil {
-			return newUpdateIDCount
+			return
 		}
 
 		// if earliestStack is not due
 		if earliestStack.PopTime > time.Now().UnixMilli() {
-			return newUpdateIDCount
+			return
 		}
 
 		// handle the top effect
-		oldLogCount := len(*eventLogs)
-		SimulateStack(gs, eventLogs, NextUpdateID+newUpdateIDCount)
-		newLogCount := len(*eventLogs)
-		newUpdateIDCount += newLogCount - oldLogCount
+		SimulateStack(gs, eventLogs, UpdateID)
 	}
 
 }
 
-// for the earliest stack in the ReactionPQ, apply the LIFO stackEntry's effects
-func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) {
+func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
 
 	stackHeader := gs.ReactionPQ.Peek()
 	stack := stackHeader.StackEntries
@@ -55,12 +49,13 @@ func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int)
 
 			// create log
 			*eventLogs = append(*eventLogs, logs.Log{
-				UpdateID:  NextUpdateID,
+				UpdateID:  *UpdateID,
 				Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
 				Type:      logs.DrawExec,
 				A:         currentEffect.A, // A: teamIndex
 				B:         1,               // B: num of cards to draw
 			})
+			*UpdateID += 1
 
 		case state.SummonResolution:
 
@@ -72,16 +67,19 @@ func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int)
 
 			// create log
 			*eventLogs = append(*eventLogs, logs.Log{
-				UpdateID:  NextUpdateID,
+				UpdateID:  *UpdateID,
 				Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
 				Type:      logs.SummonUnit,
 				A:         currentEffect.A, // A: teamIndex
 				B:         currentEffect.B, // B: card index
 			})
+			*UpdateID += 1
 
 		case state.EffectDestroy:
 			fmt.Println("TODO: received EffectDestroy", currentEffect)
 
+		default:
+			fmt.Println("this effect isnt handled")
 		}
 
 	}
