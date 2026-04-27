@@ -5,10 +5,9 @@ import (
 )
 
 type StackEntry struct {
-	Type    StackEntryType // PlayedCard, TriggeredAbility, CounteredPermanent, etc.
-	CardID  int            // which card this originates from
-	PopTime int64          // when it resolves (real-time ms)
-	Hidden  bool           // for face-down traps etc.
+	Type    int   // 0: card, 1: card eff, 2: ability, 3: other
+	CardID  int   // which card this originates from
+	PopTime int64 // when it resolves (real-time ms)
 	// Effects payload TBD
 }
 
