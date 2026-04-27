@@ -50,8 +50,6 @@ func (match *Match) handleDuePQEvents() {
 
 		heap.Pop(&match.EventPQueue) // pop the event
 
-		match.PQ.Print()
-
 		// handle the event
 		switch next.Type {
 		case "Effect":

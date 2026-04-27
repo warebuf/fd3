@@ -3,7 +3,6 @@ package randomFunctions
 import (
 	"container/heap"
 
-	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 )
 

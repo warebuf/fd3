@@ -7,19 +7,18 @@ import (
 
 	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/stackPQ"
 	"github.com/warebuf/fd3/engine/state"
 )
 
 // returns the number of new logs created
-func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]logs.Log, NextUpdateID int) int {
+func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) int {
 
 	newUpdateIDCount := 0
 
 	for {
 
 		// get the earliest stack
-		earliestStack := pq.Peek()
+		earliestStack := gs.ReactionPQ.Peek()
 		if earliestStack == nil {
 			return newUpdateIDCount
 		}
@@ -31,7 +30,7 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 
 		// handle the top effect
 		oldLogCount := len(*eventLogs)
-		earliestStack.Effects = SimulateStack(gs, earliestStack.Effects, eventLogs, earliestStack.PopTime, NextUpdateID+newUpdateIDCount)
+		earliestStack.Effects = SimulateStack(gs, eventLogs, NextUpdateID+newUpdateIDCount)
 		newLogCount := len(*eventLogs)
 		newUpdateIDCount += newLogCount - oldLogCount
 		if len(earliestStack.Effects) == 0 {
@@ -44,8 +43,9 @@ func ManageStackPQ(gs *state.GameState, pq *stackPQ.PriorityQueue, eventLogs *[]
 
 }
 
-func SimulateStack(gs *state.GameState, stack []state.Effect, eventLogs *[]logs.Log, t int64, NextUpdateID int) []state.Effect {
+func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, NextUpdateID int) []state.Effect {
 
+	stack := gs.ReactionPQ.Peek().StackEntries
 	topEffect := stack[len(stack)-1]
 
 	switch topEffect.Type {

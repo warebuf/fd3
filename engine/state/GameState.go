@@ -21,8 +21,7 @@ type GameState struct {
 	ReactionPQ PriorityQueue
 
 	// other states
-	Mana           []int // per team
-	ActiveTriggers []TriggerEffect
+	Mana []int // per team
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {
@@ -68,9 +67,31 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Mana = make([]int, len(prevState.Mana))
 	copy(newState.Mana, prevState.Mana)
 
-	// ActiveTriggers
-	newState.ActiveTriggers = make([]TriggerEffect, len(prevState.ActiveTriggers))
-	copy(newState.ActiveTriggers, prevState.ActiveTriggers)
+	// ReactionPQ
+	newPQ := PriorityQueue{
+		total: prevState.ReactionPQ.total,
+		items: make([]*Stack, len(prevState.ReactionPQ.items)),
+	}
+	for i, s := range prevState.ReactionPQ.items {
+		newStack := &Stack{
+			EffectIndex:  s.EffectIndex,
+			PopTime:      s.PopTime,
+			index:        s.index,
+			StackEntries: make([]StackEntry, len(s.StackEntries)),
+		}
+		for j, se := range s.StackEntries {
+			newEntry := StackEntry{
+				Type:    se.Type,
+				CardID:  se.CardID,
+				PopTime: se.PopTime,
+				Effects: make([]Effect, len(se.Effects)),
+			}
+			copy(newEntry.Effects, se.Effects)
+			newStack.StackEntries[j] = newEntry
+		}
+		newPQ.items[i] = newStack
+	}
+	newState.ReactionPQ = newPQ
 
 	return newState
 }

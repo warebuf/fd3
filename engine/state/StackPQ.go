@@ -4,11 +4,33 @@ import (
 	"container/heap"
 )
 
+type EffectType int
+
+const (
+	EffectAttack EffectType = iota + 1
+	EffectActivate
+	EffectHeal
+	EffectDraw
+	EffectMana
+	EffectSilence
+	EffectGrantAbility
+	SummonResolution
+	EffectDestroy // A: Destroy Type (0: All, 1: team specific, 2: card specific), B: target (if team specific, team index, if card specific, card index)
+)
+
+type Effect struct {
+	Type EffectType
+	A    int
+	B    int
+	C    int
+}
+
 type StackEntry struct {
 	Type    int   // 0: card, 1: card eff, 2: ability, 3: other
 	CardID  int   // which card this originates from
 	PopTime int64 // when it resolves (real-time ms)
-	// Effects payload TBD
+
+	Effects []Effect
 }
 
 type Stack struct {
@@ -16,7 +38,7 @@ type Stack struct {
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
-	Effects []Effect
+	StackEntries []StackEntry
 
 	index int // heap position (internal)
 }

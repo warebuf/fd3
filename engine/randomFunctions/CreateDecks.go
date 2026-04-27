@@ -19,8 +19,7 @@ func CreateDecks(deckDefs [][]int) *state.GameState {
 		Field: make([][]int, len(deckDefs)),
 		Grave: make([][]int, len(deckDefs)),
 
-		Mana:           make([]int, len(deckDefs)),
-		ActiveTriggers: []state.TriggerEffect{},
+		Mana: make([]int, len(deckDefs)),
 	}
 	for i := range len(deckDefs) {
 		gs.Deck[i] = []int{}
