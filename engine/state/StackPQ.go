@@ -44,48 +44,48 @@ type Stack struct {
 }
 
 type PriorityQueue struct {
-	items []*Stack
+	Items []*Stack
 	total int
 }
 
-func (pq PriorityQueue) Len() int { return len(pq.items) }
+func (pq PriorityQueue) Len() int { return len(pq.Items) }
 
 // earliest moves first
 func (pq PriorityQueue) Less(i, j int) bool {
 
-	if pq.items[i].PopTime != pq.items[j].PopTime {
-		return pq.items[i].PopTime < pq.items[j].PopTime
+	if pq.Items[i].PopTime != pq.Items[j].PopTime {
+		return pq.Items[i].PopTime < pq.Items[j].PopTime
 	}
 
-	return pq.items[i].EffectIndex < pq.items[j].EffectIndex
+	return pq.Items[i].EffectIndex < pq.Items[j].EffectIndex
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
-	pq.items[i], pq.items[j] = pq.items[j], pq.items[i]
-	pq.items[i].index = i
-	pq.items[j].index = j
+	pq.Items[i], pq.Items[j] = pq.Items[j], pq.Items[i]
+	pq.Items[i].index = i
+	pq.Items[j].index = j
 }
 
 func (pq *PriorityQueue) Push(x any) {
 	item := x.(*Stack)
 	item.EffectIndex = pq.total
 	pq.total++
-	item.index = len(pq.items)
-	pq.items = append(pq.items, item)
+	item.index = len(pq.Items)
+	pq.Items = append(pq.Items, item)
 }
 
 func (pq *PriorityQueue) Pop() any {
-	old := pq.items
+	old := pq.Items
 	n := len(old)
 	item := old[n-1]
 	old[n-1] = nil
 	item.index = -1
-	pq.items = old[:n-1]
+	pq.Items = old[:n-1]
 	return item
 }
 
 func (pq *PriorityQueue) Update(item *Stack, newPopTime int64) {
-	if item == nil || item.index < 0 || item.index >= len(pq.items) {
+	if item == nil || item.index < 0 || item.index >= len(pq.Items) {
 		return
 	}
 	item.PopTime = newPopTime
@@ -93,8 +93,8 @@ func (pq *PriorityQueue) Update(item *Stack, newPopTime int64) {
 }
 
 func (pq PriorityQueue) Peek() *Stack {
-	if len(pq.items) == 0 {
+	if len(pq.Items) == 0 {
 		return nil
 	}
-	return pq.items[0]
+	return pq.Items[0]
 }
