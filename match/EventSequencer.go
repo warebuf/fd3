@@ -79,19 +79,16 @@ func (match *Match) handleDuePQEvents() {
 
 			// declare the card and queue the effects
 			oldLogsSize := len(match.EventLog)
-			incrementPQSeq := randomFunctions.ScheduleDeclareCard(
+			randomFunctions.ScheduleDeclareCard(
 				match.GameState,
-				match.PQ,
-				match.NextPQIndex,
 				&match.EventLog,
-				match.NextUpdateID,
+				&match.NextUpdateID,
 				ie.TeamIdx,
 				ie.CardIndex,
 				ie.T.UnixMilli(),
 			)
-			match.NextPQIndex += uint64(incrementPQSeq)
 
-			if incrementPQSeq > 0 {
+			if len(match.EventLog) > oldLogsSize {
 				// if successful, increment the PQ node count, account for the declaration log
 				match.NextUpdateID += 1
 

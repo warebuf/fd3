@@ -9,11 +9,11 @@ import (
 )
 
 // returns numer of effects generated
-func ScheduleDeclareCard(gs *state.GameState, effectIndex uint64, eventLogs *[]logs.Log, logIndex int, teamIndex int, cardIndex int, popTime int64) int {
+func ScheduleDeclareCard(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
 	// check if card is in hand state
 	if gs.Cards[cardIndex].Zone != 1 {
-		return 0
+		return
 	}
 
 	// check if card is in hand arr
@@ -24,14 +24,14 @@ func ScheduleDeclareCard(gs *state.GameState, effectIndex uint64, eventLogs *[]l
 		}
 	}
 	if handIndex < 0 {
-		return 0
+		return
 	}
 
 	// TODO: check any of the card's activation conditions
 
 	// create a log for the activation/declaration
 	*eventLogs = append(*eventLogs, logs.Log{
-		UpdateID:  logIndex,
+		UpdateID:  *UpdateID,
 		Timestamp: popTime + 200, // clients are allowed to receive logs 200ms early but see them in 200ms
 		Type:      logs.DeclareCard,
 		A:         teamIndex, // A: team index
@@ -51,7 +51,7 @@ func ScheduleDeclareCard(gs *state.GameState, effectIndex uint64, eventLogs *[]l
 		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 
 		// schedule the resolution
-		return fulfillEffectTemplate(gs, pq, teamIndex, cardIndex, effectIndex, popTime)
+		fulfillEffectTemplate(gs, teamIndex, cardIndex, popTime)
 
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 
@@ -61,37 +61,37 @@ func ScheduleDeclareCard(gs *state.GameState, effectIndex uint64, eventLogs *[]l
 		// remove card from hand
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
-		// TODO: schedule the on-play effect depending on the card, fulfill the template
-
 		// schedule the resolution
-		return fulfillEffectTemplate(gs, pq, teamIndex, cardIndex, effectIndex, popTime)
+		fulfillEffectTemplate(gs, teamIndex, cardIndex, popTime)
 	}
 
-	return 0
+	return
 
 }
 
-func fulfillEffectTemplate(gs *state.GameState, teamIndex int, cardIndex int, effectIndex uint64, popTime int64) int {
+func fulfillEffectTemplate(gs *state.GameState, teamIndex int, cardIndex int, popTime int64) {
 
-	stacksCreated := 0
 	card := gs.Cards[cardIndex]
 
 	// create summon resolution effect if it's a unit
 	if card.Type == state.CardTypeUnit {
-		s := &stackPQ.Stack{
-			EffectIndex: effectIndex,
-			PopTime:     popTime + 200 + 4000 - 200,
-			Effects: []state.Effect{
-				{
-					Type: state.SummonResolution,
-					A:    teamIndex,
-					B:    cardIndex, // index of card played
-				},
-			},
+		eff := state.Effect{
+			Type: state.SummonResolution,
+			A:    teamIndex,
+			B:    cardIndex, // index of card played
 		}
-		heap.Push(pq, s)
-		effectIndex += 1
-		stacksCreated += 1
+		se := state.StackEntry{
+			Type:    4, // summon
+			CardID:  cardIndex,
+			PopTime: popTime + 200 + 4000 - 200,
+			Effects: []state.Effect{eff},
+		}
+		s := &state.Stack{
+			PopTime:      popTime + 200 + 4000 - 200,
+			StackEntries: []state.StackEntry{se},
+			// note EffectIndex is set inside heap.Push
+		}
+		heap.Push(&gs.ReactionPQ, s)
 	}
 
 	// create any on play effects
@@ -107,20 +107,23 @@ func fulfillEffectTemplate(gs *state.GameState, teamIndex int, cardIndex int, ef
 
 			templ.C = cardIndex // card played
 
-			s := &stackPQ.Stack{
-				EffectIndex: effectIndex,
-				PopTime:     popTime + 200 + 4000 - 200,
-				Effects: []state.Effect{
-					templ,
-				},
+			se := state.StackEntry{
+				Type:    1, // card eff
+				CardID:  cardIndex,
+				PopTime: popTime + 200 + 4000 - 200,
+				Effects: []state.Effect{templ},
 			}
-			heap.Push(pq, s)
-			effectIndex += 1
-			stacksCreated += 1
+			s := &state.Stack{
+				PopTime:      popTime + 200 + 4000 - 200,
+				StackEntries: []state.StackEntry{se},
+				// note EffectIndex is set inside heap.Push
+			}
+
+			heap.Push(&gs.ReactionPQ, s)
 		}
 
 	}
 
-	return stacksCreated
+	return
 
 }

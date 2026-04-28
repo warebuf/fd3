@@ -11,10 +11,7 @@ type CardDef struct {
 	Name        string
 	Description string
 
-	OnPlay    []state.Effect
-	Triggers  []state.TriggerEffect
-	Recurring []state.RecurringEffect
-	Passives  []state.Passive
+	OnPlay []state.Effect
 
 	BaseHP int
 }

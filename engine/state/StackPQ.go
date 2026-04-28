@@ -26,7 +26,7 @@ type Effect struct {
 }
 
 type StackEntry struct {
-	Type    int   // 0: card, 1: card eff, 2: ability, 3: other
+	Type    int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon
 	CardID  int   // which card this originates from
 	PopTime int64 // when it resolves (real-time ms)
 
