@@ -115,17 +115,17 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 			se := state.StackEntry{
 				Type:    1, // card eff
 				CardID:  cardIndex,
-				PopTime: popTime + 200 + 4000 - 200,
+				PopTime: popTime + 200 + 4000 - 200, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that 
 				Effects: []state.Effect{templ},
 			}
 			s := &state.Stack{
-				PopTime:      popTime + 200 + 4000 - 200,
+				PopTime:      se.PopTime,
 				StackEntries: []state.StackEntry{se},
 			}
 			heap.Push(&gs.ReactionPQ, s)
 			*logList = append(*logList, logs.ScheduleStackLog{
 				UpdateID:   *UpdateID,
-				Timestamp:  s.PopTime,
+				Timestamp:  popTime + 200, // when the effect occurs, process the log
 				Type:       logs.ScheduleStack,
 				StackID:    s.StackID,
 				StackEntry: se,

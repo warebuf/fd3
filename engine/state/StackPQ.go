@@ -31,6 +31,8 @@ type StackEntry struct {
 	PopTime int64 // when it resolves (real-time ms)
 
 	Effects []Effect
+
+	// maybe StackEntry should carry it's EffectIndex
 }
 
 type Stack struct {
