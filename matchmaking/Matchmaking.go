@@ -10,7 +10,6 @@ import (
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
 	"github.com/warebuf/fd3/engine/defs/primitives"
-	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
@@ -159,7 +158,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 		GameState:      gs,
 		PublishedState: state.DeepCopyGameState(gs),
-		EventLog:       []logs.Log{},
+		EventLog:       []any{},
 		NextUpdateID:   1, // starts as 1 because the GameState already is UpdateID 0
 
 		InputEventChan: make(chan *match.InputEvent, 1024),

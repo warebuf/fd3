@@ -11,7 +11,7 @@ import (
 )
 
 // returns the number of new logs created
-func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
+func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	for {
 		// get the earliest stack
@@ -26,13 +26,13 @@ func ManageStackPQ(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
 		}
 
 		// handle the top effect
-		SimulateStack(gs, eventLogs, UpdateID)
+		SimulateStack(gs, logList, UpdateID)
 	}
 
 }
 
 // handling it as a yugioh chain, could be a mtg stack though
-func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
+func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	stackHeader := gs.ReactionPQ.Peek()
 
@@ -49,12 +49,12 @@ func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
 				effects.ApplyEffectDraw(gs, currentEffect)
 
 				// create log
-				*eventLogs = append(*eventLogs, logs.Log{
+				*logList = append(*logList, logs.DrawExecEntry{
 					UpdateID:  *UpdateID,
-					Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
+					Timestamp: topEntry.PopTime + 200,
 					Type:      logs.DrawExec,
-					A:         currentEffect.A, // A: teamIndex
-					B:         1,               // B: num of cards to draw
+					TeamIndex: currentEffect.A,
+					NumCards:  1,
 				})
 				*UpdateID += 1
 
@@ -67,12 +67,12 @@ func SimulateStack(gs *state.GameState, eventLogs *[]logs.Log, UpdateID *int) {
 				// TODO: handle any triggers here?
 
 				// create log
-				*eventLogs = append(*eventLogs, logs.Log{
+				*logList = append(*logList, logs.SummonUnitEntry{
 					UpdateID:  *UpdateID,
-					Timestamp: topEntry.PopTime + 200, // clients are allowed to receive logs 200ms early, but see them in 200ms
+					Timestamp: topEntry.PopTime + 200,
 					Type:      logs.SummonUnit,
-					A:         currentEffect.A, // A: teamIndex
-					B:         currentEffect.B, // B: card index
+					TeamIndex: currentEffect.A,
+					CardIndex: currentEffect.B,
 				})
 				*UpdateID += 1
 

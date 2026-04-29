@@ -3,10 +3,11 @@ package randomFunctions
 import (
 	"container/heap"
 
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleDrawCard(pq *state.PriorityQueue, teamIndex int, t int64) {
+func ScheduleDrawCard(pq *state.PriorityQueue, logList *[]any, UpdateID *int, teamIndex int, t int64) {
 
 	eff := state.Effect{
 		Type: state.EffectDraw,
@@ -22,11 +23,18 @@ func ScheduleDrawCard(pq *state.PriorityQueue, teamIndex int, t int64) {
 	}
 
 	s := &state.Stack{
-		PopTime:      t - 200, // must pop 200 ms earlier, so we can draw for the user at t
+		PopTime:      t - 200,
 		StackEntries: []state.StackEntry{se},
-		// note EffectIndex is set inside heap.Push
 	}
 
 	heap.Push(pq, s)
+	*logList = append(*logList, logs.ScheduleStackLog{
+		UpdateID:   *UpdateID,
+		Timestamp:  s.PopTime,
+		Type:       logs.ScheduleStack,
+		StackID:    s.StackID,
+		StackEntry: se,
+	})
+	*UpdateID += 1
 
 }

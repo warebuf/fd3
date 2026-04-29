@@ -34,6 +34,7 @@ type StackEntry struct {
 }
 
 type Stack struct {
+	StackID     int
 	EffectIndex int // the latest effect gets the biggest index
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
@@ -68,6 +69,7 @@ func (pq PriorityQueue) Swap(i, j int) {
 
 func (pq *PriorityQueue) Push(x any) {
 	item := x.(*Stack)
+	item.StackID = pq.total
 	item.EffectIndex = pq.total
 	pq.total++
 	item.index = len(pq.Items)

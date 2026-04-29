@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -17,7 +16,7 @@ type Match struct {
 	GameState      *state.GameState // what the game state should be 200 ms from now
 	PublishedState *state.GameState // a copy of GameState that the players can read
 
-	EventLog     []logs.Log // a log of all events that have occurred
+	EventLog     []any // a log of all events that have occurred
 	NextUpdateID int
 
 	// networking related
