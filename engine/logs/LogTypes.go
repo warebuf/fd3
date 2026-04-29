@@ -10,6 +10,7 @@ const (
 	DeclareCard
 	SummonUnit
 	ScheduleStack
+	RemoveStack
 )
 
 type PhaseLogEntry struct {
@@ -50,3 +51,11 @@ type ScheduleStackLog struct {
 	StackID    int
 	StackEntry state.StackEntry
 }
+
+type RemoveStackLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	StackID   int
+}
+

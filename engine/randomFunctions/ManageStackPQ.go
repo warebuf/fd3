@@ -89,6 +89,13 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 		stackHeader.StackEntries = stackHeader.StackEntries[:len(stackHeader.StackEntries)-1]
 	}
 
-	heap.Pop(&gs.ReactionPQ) // remove the stack header
+	heap.Pop(&gs.ReactionPQ)
+	*logList = append(*logList, logs.RemoveStackLog{
+		UpdateID:  *UpdateID,
+		Timestamp: stackHeader.PopTime,
+		Type:      logs.RemoveStack,
+		StackID:   stackHeader.StackID,
+	})
+	*UpdateID += 1
 
 }
