@@ -65,8 +65,6 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		fulfillEffectTemplate(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
 	}
 
-	return
-
 }
 
 func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
