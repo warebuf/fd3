@@ -78,6 +78,19 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 			case state.EffectDestroy:
 				fmt.Println("TODO: received EffectDestroy", currentEffect)
+				
+				for a := 0; a < len(gs.Card); a++ {
+					fmt.Println(a, "card", gs.Card[a].DefNo, gs.Card[a].CardID, gs.Card[a].Zone, gs.Card[a].Pending )
+				} 
+
+				fmt.Println("field", gs.Field)
+				fmt.Println("grave", gs.Grave)
+				
+				// put all units into the grave
+
+				// put EffectDestroy card into grave
+
+				// create log
 
 			default:
 				fmt.Println("this effect isnt handled")
