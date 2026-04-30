@@ -99,7 +99,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 		*UpdateID += 1
 	}
 
-	// create any on play effects
+	// create the entries for a card
 	effects := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(effects); i++ {
 
@@ -113,7 +113,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 			templ.C = cardIndex // card played
 
 			se := state.StackEntry{
-				Type:    1, // card eff
+				Type:    5, // spell
 				CardID:  cardIndex,
 				PopTime: popTime + 200 + 4000 - 200, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that 
 				Effects: []state.Effect{templ},
