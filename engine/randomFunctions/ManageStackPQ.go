@@ -38,6 +38,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	for len(stackHeader.StackEntries) > 0 {
 		topEntry := stackHeader.StackEntries[len(stackHeader.StackEntries)-1]
+
 		for i := 0; i < len(topEntry.Effects); i++ {
 
 			currentEffect := topEntry.Effects[i]
@@ -60,9 +61,6 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 			case state.SummonResolution:
 
-				// complete the summon
-				gs.Cards[currentEffect.B].Pending = false
-
 				// TODO: handle any effects here?
 				// TODO: handle any triggers here?
 
@@ -77,20 +75,29 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				*UpdateID += 1
 
 			case state.EffectDestroy:
-				fmt.Println("TODO: received EffectDestroy", currentEffect)
-				
-				for a := 0; a < len(gs.Card); a++ {
-					fmt.Println(a, "card", gs.Card[a].DefNo, gs.Card[a].CardID, gs.Card[a].Zone, gs.Card[a].Pending )
-				} 
 
-				fmt.Println("field", gs.Field)
-				fmt.Println("grave", gs.Grave)
-				
-				// put all units into the grave
-
-				// put EffectDestroy card into grave
+				// put all field units into the grave, may have to handle the ordering differently tbh (in order of summon or last move/action)
+				for a := 0; a < len(gs.Field); a++ {
+					for b := 0; b < len(gs.Field[a]); b++ {
+						cardIndex := gs.Field[a][b]
+						gs.Cards[cardIndex].Zone = state.ZoneGraveyard
+						gs.Grave[a] = append(gs.Grave[a], cardIndex)
+					}
+					gs.Field[a] = []int{}
+				}
 
 				// create log
+				*logList = append(*logList, logs.DestroyCardEntry{
+					UpdateID:        *UpdateID,
+					Timestamp:       topEntry.PopTime + 200,
+					Type:            logs.DestroyCard,
+					TeamIndex:       gs.Cards[currentEffect.C].Team,
+					CardIndex:       currentEffect.C,
+					TargetAll:       currentEffect.A == 0,
+					TargetTeamIndex: -1,
+					TargetCardIndex: -1,
+				})
+				*UpdateID += 1
 
 			default:
 				fmt.Println("this effect isnt handled")
@@ -98,14 +105,26 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 		}
 
+		// handling card state related changes
+		if topEntry.CardID >= 0 {
+			if topEntry.Type == 4 { // summon
+				teamIndex := gs.Cards[topEntry.CardID].Team
+				gs.Cards[topEntry.CardID].Zone = state.ZoneField                   // complete the summon
+				gs.Field[teamIndex] = append(gs.Field[teamIndex], topEntry.CardID) // add card to the field
+			} else if topEntry.Type == 5 { // spell
+				gs.Cards[topEntry.CardID].Zone = state.ZoneGraveyard
+			}
+		}
+
 		// remove top entry of the stack
 		stackHeader.StackEntries = stackHeader.StackEntries[:len(stackHeader.StackEntries)-1]
+
 	}
 
 	heap.Pop(&gs.ReactionPQ)
 	*logList = append(*logList, logs.RemoveStackLog{
 		UpdateID:  *UpdateID,
-		Timestamp: stackHeader.PopTime,
+		Timestamp: stackHeader.PopTime + 200,
 		Type:      logs.RemoveStack,
 		StackID:   stackHeader.StackID,
 	})

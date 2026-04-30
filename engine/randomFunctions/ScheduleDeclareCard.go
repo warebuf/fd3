@@ -41,14 +41,10 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	// schedule the effect
 	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 		// updating the card's state
-		gs.Cards[cardIndex].Zone = state.ZoneField
-		gs.Cards[cardIndex].Pending = true
+		gs.Cards[cardIndex].Zone = state.ZoneTemporaryUnaccessible
 
 		// remove card from hand
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-
-		// add card to the field
-		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 
 		// schedule the resolution
 		fulfillEffectTemplate(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
@@ -115,7 +111,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 			se := state.StackEntry{
 				Type:    5, // spell
 				CardID:  cardIndex,
-				PopTime: popTime + 200 + 4000 - 200, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that 
+				PopTime: popTime + 200 + 4000 - 200, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
 				Effects: []state.Effect{templ},
 			}
 			s := &state.Stack{

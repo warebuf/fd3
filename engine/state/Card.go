@@ -23,10 +23,9 @@ type Card struct {
 	Description string
 
 	// state info
-	CardID  int // card ID
-	Team    int
-	Type    int // structure, unit, trap, spell
-	Zone    int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: temporarily unaccessible
-	Pending bool
-	Armed   bool
+	CardID int // card ID
+	Team   int
+	Type   int // structure, unit, trap, spell
+	Zone   int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: temporarily unaccessible
+	Armed  bool
 }

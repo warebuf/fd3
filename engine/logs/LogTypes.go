@@ -11,6 +11,7 @@ const (
 	SummonUnit
 	ScheduleStack
 	RemoveStack
+	DestroyCard
 )
 
 type PhaseLogEntry struct {
@@ -59,3 +60,13 @@ type RemoveStackLog struct {
 	StackID   int
 }
 
+type DestroyCardEntry struct {
+	Timestamp       int64
+	UpdateID        int
+	Type            LogType
+	TeamIndex       int
+	CardIndex       int
+	TargetAll       bool
+	TargetTeamIndex int
+	TargetCardIndex int
+}
