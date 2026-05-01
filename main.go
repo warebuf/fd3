@@ -34,6 +34,11 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type guestIDBody struct {
+    Deck     []int  `json:"deck"`
+    StructNo int `json:"structNo"`
+}
+
 // maybe over the long-term, when I add users, it should be a ticketID, not a guestID
 // this is not encrypted, the user can just edit it if they want, pretend they are someone else
 func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,13 +54,13 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for valid deck
-	var deck []int
-	if err := json.NewDecoder(r.Body).Decode(&deck); err != nil {
+	var reqBody guestIDBody
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if !randomFunctions.IsValidDeck(deck) {
+	if !randomFunctions.IsValidDeck(reqBody.Deck, reqBody.StructNo) {
 		http.Error(w, "invalid deck", http.StatusBadRequest)
 		return
 	}
