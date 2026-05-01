@@ -68,6 +68,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Mana = make([]int, len(prevState.Mana))
 	copy(newState.Mana, prevState.Mana)
 
+	// Structures
+	newState.Structures = make([]Structure, len(prevState.Structures))
+	copy(newState.Structures, prevState.Structures)
+
 	// ReactionPQ
 	newPQ := PriorityQueue{
 		total: prevState.ReactionPQ.total,

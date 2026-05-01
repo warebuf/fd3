@@ -18,6 +18,7 @@ import (
 type Ticket struct {
 	TicketID         string
 	Deck             []int
+	StructureDefNo   int
 	ClosedConnection <-chan struct{}
 	Found            chan string   // receives matchID
 	RejectedTicket   chan struct{} // if UserID is in the system, reject
@@ -140,10 +141,12 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 	// creating the first state, instantiating the card objects
 	var deckDefs [][]int
+	var structureDefNos []int
 	for i := 0; i < len(tickets); i++ {
 		deckDefs = append(deckDefs, tickets[i].Deck)
+		structureDefNos = append(structureDefNos, tickets[i].StructureDefNo)
 	}
-	gs := randomFunctions.CreateDecks(deckDefs)
+	gs := randomFunctions.CreateDecks(deckDefs, structureDefNos)
 
 	// shuffle the decks
 	for i := 0; i < len(gs.Deck); i++ {

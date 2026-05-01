@@ -7,19 +7,24 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func CreateDecks(deckDefs [][]int) *state.GameState {
+func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
+	structures := make([]state.Structure, len(deckDefs))
+	for i, defNo := range structureDefNos {
+		structures[i] = state.Structure{DefNo: defNo, HP: defs.StructureDefs[defNo].BaseHP}
+	}
+
 	gs := &state.GameState{
 		UpdateID:  0,
 		Timestamp: time.Now(),
 		Phase:     0,
 
-		Cards: []state.Card{},
-		Deck:  make([][]int, len(deckDefs)),
-		Hand:  make([][]int, len(deckDefs)),
-		Field: make([][]int, len(deckDefs)),
-		Grave: make([][]int, len(deckDefs)),
-
-		Mana: make([]int, len(deckDefs)),
+		Cards:      []state.Card{},
+		Deck:       make([][]int, len(deckDefs)),
+		Hand:       make([][]int, len(deckDefs)),
+		Field:      make([][]int, len(deckDefs)),
+		Grave:      make([][]int, len(deckDefs)),
+		Mana:       make([]int, len(deckDefs)),
+		Structures: structures,
 	}
 	for i := range len(deckDefs) {
 		gs.Deck[i] = []int{}

@@ -1,5 +1,6 @@
 package state
 
 type Structure struct {
-	HP int
+	DefNo int
+	HP    int
 }
