@@ -69,7 +69,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 	return gs
 }
 
-func IsValidDeck(deck []int) bool {
+func IsValidDeck(deck []int, structNo int) bool {
 
 	if len(deck) > 30 {
 		return false
@@ -93,6 +93,12 @@ func IsValidDeck(deck []int) bool {
 		if counts[cardNo] > 3 {
 			return false
 		}
+	}
+
+	// make sure structNo is available
+	structDefsLength := len(defs.StructureDefs)
+	if structNo <= 0 || structNo >= structDefsLength {
+		return false
 	}
 
 	return true
