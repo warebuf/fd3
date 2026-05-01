@@ -14,6 +14,7 @@ type CardDef struct {
 	OnPlay []state.Effect
 
 	BaseHP int
+	Cost   int
 }
 
 var CardDefs = []CardDef{
@@ -35,5 +36,12 @@ var CardDefs = []CardDef{
 				A:    0, // Destroy all units
 			},
 		},
+	},
+	3: {
+		Type:        state.CardTypeUnit,
+		Name:        "Matter of Time",
+		Description: "Gain 1 mana every 20 seconds",
+		BaseHP:      5,
+		Cost:        0,
 	},
 }
