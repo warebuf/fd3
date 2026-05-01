@@ -21,7 +21,8 @@ type GameState struct {
 	ReactionPQ PriorityQueue
 
 	// other states
-	Mana []int // per team
+	Mana       []int       // per team
+	Structures []Structure // per team
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {

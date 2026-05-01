@@ -16,7 +16,6 @@ const (
 )
 
 type Card struct {
-
 	// descriptive info
 	DefNo       int // the card's serial number
 	Name        string
