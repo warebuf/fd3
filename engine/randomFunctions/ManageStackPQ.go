@@ -88,7 +88,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 						}},
 					})
 					// probably add to the log list here
-					// probably also have to populate the Effect template correctly here too
+					// this is incomplete right, you have to properly populate the Effect template
 				}
 
 			case state.EffectDestroy:
@@ -144,6 +144,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 						}},
 					})
 					// probably have to add a log here...?
+					// this is incomplete right, you have to properly populate the Effect template
 				}
 			}
 		}

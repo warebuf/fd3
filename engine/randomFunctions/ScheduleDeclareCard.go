@@ -9,7 +9,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// returns numer of effects generated
 func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
 	// check if card is in hand state
@@ -48,7 +47,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
 		// schedule the resolution
-		fulfillEffectTemplate(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+		scheduleDeclareCardEffects(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
 
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 
@@ -59,12 +58,12 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
 		// schedule the resolution
-		fulfillEffectTemplate(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+		scheduleDeclareCardEffects(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
 	}
 
 }
 
-func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
 	card := gs.Cards[cardIndex]
 
@@ -131,5 +130,9 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 		}
 
 	}
+
+}
+
+func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
 
 }
