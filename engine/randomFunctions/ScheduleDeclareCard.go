@@ -3,6 +3,7 @@ package randomFunctions
 import (
 	"container/heap"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
@@ -32,7 +33,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	// create a log for the activation/declaration
 	*logList = append(*logList, logs.DeclareCardEntry{
 		UpdateID:  *UpdateID,
-		Timestamp: popTime + 200,
+		Timestamp: popTime + constants.LEAD,
 		Type:      logs.DeclareCard,
 		TeamIndex: teamIndex,
 		CardIndex: cardIndex,
@@ -77,7 +78,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 		se := state.StackEntry{
 			Type:    4, // summon
 			CardID:  cardIndex,
-			PopTime: popTime + 200 + 4000 - 200,
+			PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
 			Effects: []state.Effect{eff},
 		}
 		s := &state.Stack{
@@ -87,7 +88,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 		heap.Push(&gs.ReactionPQ, s)
 		*logList = append(*logList, logs.ScheduleStackLog{
 			UpdateID:   *UpdateID,
-			Timestamp:  popTime + 200,
+			Timestamp:  popTime + constants.LEAD,
 			Type:       logs.ScheduleStack,
 			StackID:    s.StackID,
 			StackEntry: se,
@@ -111,7 +112,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 			se := state.StackEntry{
 				Type:    5, // spell
 				CardID:  cardIndex,
-				PopTime: popTime + 200 + 4000 - 200, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
+				PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
 				Effects: []state.Effect{templ},
 			}
 			s := &state.Stack{
@@ -121,7 +122,7 @@ func fulfillEffectTemplate(gs *state.GameState, logList *[]any, UpdateID *int, t
 			heap.Push(&gs.ReactionPQ, s)
 			*logList = append(*logList, logs.ScheduleStackLog{
 				UpdateID:   *UpdateID,
-				Timestamp:  popTime + 200, // when the effect occurs, process the log
+				Timestamp:  popTime + constants.LEAD, // when the effect occurs, process the log
 				Type:       logs.ScheduleStack,
 				StackID:    s.StackID,
 				StackEntry: se,

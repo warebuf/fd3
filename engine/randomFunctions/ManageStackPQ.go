@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
@@ -52,7 +54,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				// create log
 				*logList = append(*logList, logs.DrawExecEntry{
 					UpdateID:  *UpdateID,
-					Timestamp: topEntry.PopTime + 200,
+					Timestamp: topEntry.PopTime + constants.LEAD,
 					Type:      logs.DrawExec,
 					TeamIndex: currentEffect.A,
 					NumCards:  1,
@@ -61,18 +63,33 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 			case state.SummonResolution:
 
-				// TODO: handle any effects here?
-				// TODO: handle any triggers here?
-
-				// create log
+				// create a summon resolution log
 				*logList = append(*logList, logs.SummonUnitEntry{
 					UpdateID:  *UpdateID,
-					Timestamp: topEntry.PopTime + 200,
+					Timestamp: topEntry.PopTime + constants.LEAD,
 					Type:      logs.SummonUnit,
 					TeamIndex: currentEffect.A,
 					CardIndex: currentEffect.B,
 				})
 				*UpdateID += 1
+
+				// schedule recurring abilities
+				def := defs.CardDefs[gs.Cards[topEntry.CardID].DefNo]
+				for _, object := range def.Recurring {
+					scheduledTime := topEntry.PopTime + object.Milliseconds + constants.LEAD
+					heap.Push(&gs.ReactionPQ, &state.Stack{
+						PopTime: scheduledTime,
+						StackEntries: []state.StackEntry{{
+							Type:            6, // recurring ability
+							CardID:          topEntry.CardID,
+							PopTime:         scheduledTime,
+							Effects:         object.Effects,
+							RecurringPeriod: object.Milliseconds,
+						}},
+					})
+					// probably add to the log list here
+					// probably also have to populate the Effect template correctly here too
+				}
 
 			case state.EffectDestroy:
 
@@ -89,7 +106,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				// create log
 				*logList = append(*logList, logs.DestroyCardEntry{
 					UpdateID:        *UpdateID,
-					Timestamp:       topEntry.PopTime + 200,
+					Timestamp:       topEntry.PopTime + constants.LEAD,
 					Type:            logs.DestroyCard,
 					TeamIndex:       gs.Cards[currentEffect.C].Team,
 					CardIndex:       currentEffect.C,
@@ -113,6 +130,21 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				gs.Field[teamIndex] = append(gs.Field[teamIndex], topEntry.CardID) // add card to the field
 			} else if topEntry.Type == 5 { // spell
 				gs.Cards[topEntry.CardID].Zone = state.ZoneGraveyard
+			} else if topEntry.CardID == 6 { // recurring ability, schedule the next trigger
+				if gs.Cards[topEntry.CardID].Zone == state.ZoneField {
+					scheduledTime := stackHeader.PopTime + topEntry.RecurringPeriod + constants.LEAD
+					heap.Push(&gs.ReactionPQ, &state.Stack{
+						PopTime: scheduledTime,
+						StackEntries: []state.StackEntry{{
+							Type:            6,
+							CardID:          topEntry.CardID,
+							PopTime:         scheduledTime,
+							Effects:         topEntry.Effects,
+							RecurringPeriod: topEntry.RecurringPeriod,
+						}},
+					})
+					// probably have to add a log here...?
+				}
 			}
 		}
 
@@ -124,7 +156,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 	heap.Pop(&gs.ReactionPQ)
 	*logList = append(*logList, logs.RemoveStackLog{
 		UpdateID:  *UpdateID,
-		Timestamp: stackHeader.PopTime + 200,
+		Timestamp: stackHeader.PopTime + constants.LEAD,
 		Type:      logs.RemoveStack,
 		StackID:   stackHeader.StackID,
 	})

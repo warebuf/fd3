@@ -6,12 +6,18 @@ import (
 
 // so right now this file contains
 
+type Recurring struct {
+	Milliseconds int64
+	Effects      []state.Effect
+}
+
 type CardDef struct {
 	Type        int
 	Name        string
 	Description string
 
-	OnPlay []state.Effect
+	OnPlay    []state.Effect
+	Recurring []Recurring
 
 	BaseHP int
 	Cost   int
@@ -29,7 +35,6 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
-
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
@@ -43,5 +48,16 @@ var CardDefs = []CardDef{
 		Description: "Gain 1 mana every 20 seconds",
 		BaseHP:      5,
 		Cost:        0,
+		Recurring: []Recurring{
+			{
+				Milliseconds: 20000,
+				Effects: []state.Effect{
+					{
+						Type: state.EffectMana, // fill A, which is team
+						B:    1,                // amount
+					},
+				},
+			},
+		},
 	},
 }

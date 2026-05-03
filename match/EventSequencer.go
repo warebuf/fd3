@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"time"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
@@ -59,7 +60,7 @@ func (match *Match) handleDuePQEvents() {
 			randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 			// update the published state
-			match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
+			match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
 			match.GameState.UpdateID = match.NextUpdateID
 			match.NextUpdateID += 1
 			match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -93,7 +94,7 @@ func (match *Match) handleDuePQEvents() {
 				match.NextUpdateID += 1
 
 				// update published game state with any applied effects
-				match.GameState.Timestamp = next.Event.Timestamp().Add(200 * time.Millisecond)
+				match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -112,7 +113,7 @@ func (match *Match) handleDuePQEvents() {
 				oldLogsSize := len(match.EventLog)
 
 				// increment the phase
-				phaseChangeTimestamp := newPhase.T.UnixMilli() + 200
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 				match.GameState.Phase = 1
 				match.EventLog = append(match.EventLog, logs.PhaseLogEntry{
 					UpdateID:  match.NextUpdateID,
@@ -150,7 +151,7 @@ func (match *Match) handleDuePQEvents() {
 				match.GameState.Phase = 2
 				match.EventLog = append(match.EventLog, logs.PhaseLogEntry{
 					UpdateID:  match.NextUpdateID,
-					Timestamp: newPhase.T.UnixMilli() + 200,
+					Timestamp: newPhase.T.UnixMilli() + constants.LEAD,
 					Type:      logs.PhaseLog,
 					Phase:     2,
 				})
@@ -160,7 +161,7 @@ func (match *Match) handleDuePQEvents() {
 				randomFunctions.InitBoard(match.GameState)
 
 				// update the game state, published state
-				match.GameState.Timestamp = newPhase.T.Add(200 * time.Millisecond)
+				match.GameState.Timestamp = newPhase.T.Add(constants.LEAD * time.Millisecond)
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -187,7 +188,7 @@ func (match *Match) handleDuePQEvents() {
 func PushNewPhase(match *Match, t int64, phase int) {
 	match.NextSeq++
 	newPhase := &NewPhaseEvent{
-		T:     time.UnixMilli(t - 200), // schedule 200 ms early
+		T:     time.UnixMilli(t - constants.LEAD), // schedule 200 ms early
 		Phase: phase,
 	}
 	item := &EventItem{

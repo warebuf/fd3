@@ -11,7 +11,7 @@ const (
 	EffectActivate
 	EffectHeal
 	EffectDraw
-	EffectMana
+	EffectMana // A: team, B: amount
 	EffectSilence
 	EffectGrantAbility
 	SummonResolution
@@ -26,11 +26,12 @@ type Effect struct {
 }
 
 type StackEntry struct {
-	Type    int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon, 5: spell
+	Type    int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon, 5: spell, 6: recurring ability
 	CardID  int   // which card this originates from
 	PopTime int64 // when it resolves (real-time ms)
 
-	Effects []Effect
+	Effects         []Effect //
+	RecurringPeriod int64    // if <= 0, not recurring
 
 	// maybe StackEntry should carry it's EffectIndex
 }

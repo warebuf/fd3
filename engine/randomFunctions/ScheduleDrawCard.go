@@ -3,6 +3,7 @@ package randomFunctions
 import (
 	"container/heap"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -16,14 +17,14 @@ func ScheduleDrawCard(pq *state.PriorityQueue, logList *[]any, UpdateID *int, te
 	}
 
 	se := state.StackEntry{
-		Type:    3,       // other
-		CardID:  -1,      // no ID for prematch draw
-		PopTime: t - 200, // must pop 200 ms earlier, so we can draw for the user at t
+		Type:    3,                  // other
+		CardID:  -1,                 // no ID for prematch draw
+		PopTime: t - constants.LEAD, // must pop 200 ms earlier, so we can draw for the user at t
 		Effects: []state.Effect{eff},
 	}
 
 	s := &state.Stack{
-		PopTime:      t - 200,
+		PopTime:      t - constants.LEAD,
 		StackEntries: []state.StackEntry{se},
 	}
 
