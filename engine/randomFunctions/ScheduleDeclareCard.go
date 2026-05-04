@@ -2,6 +2,7 @@ package randomFunctions
 
 import (
 	"container/heap"
+	"log"
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
@@ -102,37 +103,40 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 		// create the template
 		templ := effects[i]
 
-		// fill the rest of the template out
-		switch templ.Type {
-		case state.EffectDestroy:
+		// fill out the template
+		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
-			templ.C = cardIndex // card played
-
-			se := state.StackEntry{
-				Type:    5, // spell
-				CardID:  cardIndex,
-				PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
-				Effects: []state.Effect{templ},
-			}
-			s := &state.Stack{
-				PopTime:      se.PopTime,
-				StackEntries: []state.StackEntry{se},
-			}
-			heap.Push(&gs.ReactionPQ, s)
-			*logList = append(*logList, logs.ScheduleStackLog{
-				UpdateID:   *UpdateID,
-				Timestamp:  popTime + constants.LEAD, // when the effect occurs, process the log
-				Type:       logs.ScheduleStack,
-				StackID:    s.StackID,
-				StackEntry: se,
-			})
-			*UpdateID += 1
+		se := state.StackEntry{
+			Type:    5, // spell
+			CardID:  cardIndex,
+			PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
+			Effects: []state.Effect{newEff},
 		}
-
+		s := &state.Stack{
+			PopTime:      se.PopTime,
+			StackEntries: []state.StackEntry{se},
+		}
+		heap.Push(&gs.ReactionPQ, s)
+		*logList = append(*logList, logs.ScheduleStackLog{
+			UpdateID:   *UpdateID,
+			Timestamp:  popTime + constants.LEAD, // when the effect occurs, process the log
+			Type:       logs.ScheduleStack,
+			StackID:    s.StackID,
+			StackEntry: se,
+		})
+		*UpdateID += 1
 	}
 
 }
 
 func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
 
+	switch templ.Type {
+	case state.EffectDestroy:
+		templ.C = cardIndex
+		return templ
+	}
+
+	log.Printf("unknown effect type: %v", templ.Type)
+	return templ
 }
