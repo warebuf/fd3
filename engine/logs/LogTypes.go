@@ -12,7 +12,10 @@ const (
 	ScheduleStack
 	RemoveStack
 	DestroyCard
+	GainMana
 )
+
+// honestly Entry is not the right name, it should be log
 
 type PhaseLogEntry struct {
 	Timestamp int64
@@ -69,4 +72,12 @@ type DestroyCardEntry struct {
 	TargetAll       bool
 	TargetTeamIndex int
 	TargetCardIndex int
+}
+
+type GainManaEntry struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	TeamIndex int
+	Amount    int
 }

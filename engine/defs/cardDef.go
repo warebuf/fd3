@@ -4,8 +4,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// so right now this file contains
-
 type Recurring struct {
 	Milliseconds int64
 	Effects      []state.Effect

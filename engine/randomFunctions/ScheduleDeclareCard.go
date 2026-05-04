@@ -135,6 +135,9 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 	case state.EffectDestroy:
 		templ.C = cardIndex
 		return templ
+	case state.EffectMana:
+		templ.A = teamIndex
+		return templ
 	}
 
 	log.Printf("unknown effect type: %v", templ.Type)

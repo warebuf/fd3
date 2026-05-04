@@ -41,6 +41,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 	for len(stackHeader.StackEntries) > 0 {
 		topEntry := stackHeader.StackEntries[len(stackHeader.StackEntries)-1]
 
+		// handling all effects of an entry
 		for i := 0; i < len(topEntry.Effects); i++ {
 
 			currentEffect := topEntry.Effects[i]
@@ -74,21 +75,44 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				*UpdateID += 1
 
 				// schedule recurring abilities
-				def := defs.CardDefs[gs.Cards[topEntry.CardID].DefNo]
-				for _, object := range def.Recurring {
-					scheduledTime := topEntry.PopTime + object.Milliseconds + constants.LEAD
-					heap.Push(&gs.ReactionPQ, &state.Stack{
-						PopTime: scheduledTime,
-						StackEntries: []state.StackEntry{{
-							Type:            6, // recurring ability
-							CardID:          topEntry.CardID,
-							PopTime:         scheduledTime,
-							Effects:         object.Effects,
-							RecurringPeriod: object.Milliseconds,
-						}},
+				recurring := defs.CardDefs[gs.Cards[topEntry.CardID].DefNo].Recurring
+				for a := 0; a < len(recurring); a++ {
+
+					entry := recurring[a]
+
+					// create effects for this entry
+					effs := []state.Effect{}
+					for b := 0; b < len(entry.Effects); b++ {
+						templ := entry.Effects[b]                                                // create the template effect
+						newEff := FulfillEffectTemplate(templ, currentEffect.A, currentEffect.B) // completing the template
+						effs = append(effs, newEff)
+					}
+
+					// create the entry/stack
+					scheduledTime := topEntry.PopTime + entry.Milliseconds + constants.LEAD
+					se := state.StackEntry{
+						Type:            6, // recurring ability
+						CardID:          topEntry.CardID,
+						PopTime:         scheduledTime,
+						Effects:         effs,
+						RecurringPeriod: entry.Milliseconds,
+					}
+					s := &state.Stack{
+						PopTime:      scheduledTime,
+						StackEntries: []state.StackEntry{se},
+					}
+					heap.Push(&gs.ReactionPQ, s)
+
+					// broadcast the new entry to all clients
+					*logList = append(*logList, logs.ScheduleStackLog{
+						UpdateID:   *UpdateID,
+						Timestamp:  topEntry.PopTime + constants.LEAD, // when the effect occurs, process the log
+						Type:       logs.ScheduleStack,
+						StackID:    s.StackID,
+						StackEntry: se,
 					})
-					// probably add to the log list here
-					// this is incomplete right, you have to properly populate the Effect template
+					*UpdateID += 1
+
 				}
 
 			case state.EffectDestroy:
@@ -116,13 +140,29 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				})
 				*UpdateID += 1
 
+			case state.EffectMana:
+				// increase mana for team by the amount
+				team := currentEffect.A
+				amount := currentEffect.B
+				gs.Mana[team] += amount
+
+				// create log
+				*logList = append(*logList, logs.GainManaEntry{
+					UpdateID:  *UpdateID,
+					Timestamp: topEntry.PopTime + constants.LEAD,
+					Type:      logs.GainMana,
+					TeamIndex: team,
+					Amount:    amount,
+				})
+				*UpdateID += 1
+
 			default:
 				fmt.Println("this effect isnt handled")
 			}
 
 		}
 
-		// handling card state related changes
+		// finishing the handling of an entry
 		if topEntry.CardID >= 0 {
 			if topEntry.Type == 4 { // summon
 				teamIndex := gs.Cards[topEntry.CardID].Team
@@ -130,26 +170,55 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				gs.Field[teamIndex] = append(gs.Field[teamIndex], topEntry.CardID) // add card to the field
 			} else if topEntry.Type == 5 { // spell
 				gs.Cards[topEntry.CardID].Zone = state.ZoneGraveyard
-			} else if topEntry.CardID == 6 { // recurring ability, schedule the next trigger
+			} else if topEntry.Type == 6 { // recurring ability, schedule the next trigger
 				if gs.Cards[topEntry.CardID].Zone == state.ZoneField {
-					scheduledTime := stackHeader.PopTime + topEntry.RecurringPeriod + constants.LEAD
-					heap.Push(&gs.ReactionPQ, &state.Stack{
-						PopTime: scheduledTime,
-						StackEntries: []state.StackEntry{{
-							Type:            6,
+
+					// schedule recurring abilities
+					recurring := defs.CardDefs[gs.Cards[topEntry.CardID].DefNo].Recurring
+					for a := 0; a < len(recurring); a++ {
+
+						entry := recurring[a]
+
+						// create effects for this entry
+						effs := []state.Effect{}
+						for b := 0; b < len(entry.Effects); b++ {
+							templ := entry.Effects[b]                                                               // create the template effect
+							newEff := FulfillEffectTemplate(templ, gs.Cards[topEntry.CardID].Team, topEntry.CardID) // completing the template
+							effs = append(effs, newEff)
+						}
+
+						// create the entry/stack
+						scheduledTime := topEntry.PopTime + entry.Milliseconds + constants.LEAD
+						se := state.StackEntry{
+							Type:            6, // recurring ability
 							CardID:          topEntry.CardID,
 							PopTime:         scheduledTime,
-							Effects:         topEntry.Effects,
-							RecurringPeriod: topEntry.RecurringPeriod,
-						}},
-					})
-					// probably have to add a log here...?
-					// this is incomplete right, you have to properly populate the Effect template
+							Effects:         effs,
+							RecurringPeriod: entry.Milliseconds,
+						}
+						s := &state.Stack{
+							PopTime:      scheduledTime,
+							StackEntries: []state.StackEntry{se},
+						}
+						heap.Push(&gs.ReactionPQ, s)
+
+						// broadcast the new entry to all clients
+						*logList = append(*logList, logs.ScheduleStackLog{
+							UpdateID:   *UpdateID,
+							Timestamp:  topEntry.PopTime + constants.LEAD, // when the effect occurs, process the log
+							Type:       logs.ScheduleStack,
+							StackID:    s.StackID,
+							StackEntry: se,
+						})
+						*UpdateID += 1
+
+					}
+
 				}
 			}
 		}
 
-		// remove top entry of the stack
+		// removing the top entry from the stack
 		stackHeader.StackEntries = stackHeader.StackEntries[:len(stackHeader.StackEntries)-1]
 
 	}
