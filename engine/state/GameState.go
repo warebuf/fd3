@@ -89,7 +89,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			newEntry := StackEntry{
 				Type:            se.Type,
 				CardID:          se.CardID,
+				StartTime:       se.StartTime,
 				PopTime:         se.PopTime,
+				OccurTime:       se.OccurTime,
 				Effects:         make([]Effect, len(se.Effects)),
 				RecurringPeriod: se.RecurringPeriod,
 			}

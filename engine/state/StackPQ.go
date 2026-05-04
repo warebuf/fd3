@@ -26,9 +26,11 @@ type Effect struct {
 }
 
 type StackEntry struct {
-	Type    int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon, 5: spell, 6: recurring ability
-	CardID  int   // which card this originates from
-	PopTime int64 // when it resolves (real-time ms)
+	Type      int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon, 5: spell, 6: recurring ability
+	CardID    int   // which card this originates from
+	StartTime int64 // when it was scheduled (real-time ms)
+	PopTime   int64 // when the server pops it (early, to broadcast in time)
+	OccurTime int64 // when the effect actually fires (real-time ms)
 
 	Effects         []Effect //
 	RecurringPeriod int64    // if <= 0, not recurring
@@ -102,4 +104,32 @@ func (pq PriorityQueue) Peek() *Stack {
 		return nil
 	}
 	return pq.Items[0]
+}
+
+// RemoveStacksByCardID removes all stacks whose entries belong to cardID.
+// Returns the removed stacks so callers can emit RemoveStack logs.
+func (pq *PriorityQueue) RemoveStacksByCardID(cardID int) []*Stack {
+	var removed []*Stack
+	kept := pq.Items[:0]
+
+	for _, stack := range pq.Items {
+		filtered := stack.StackEntries[:0]
+		for _, entry := range stack.StackEntries {
+			if entry.CardID != cardID {
+				filtered = append(filtered, entry)
+			}
+		}
+		stack.StackEntries = filtered
+
+		if len(stack.StackEntries) == 0 {
+			stack.index = -1
+			removed = append(removed, stack)
+		} else {
+			kept = append(kept, stack)
+		}
+	}
+
+	pq.Items = kept
+	heap.Init(pq)
+	return removed
 }

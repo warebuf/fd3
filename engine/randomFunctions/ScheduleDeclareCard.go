@@ -76,10 +76,12 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			B:    cardIndex, // index of card played
 		}
 		se := state.StackEntry{
-			Type:    4, // summon
-			CardID:  cardIndex,
-			PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-			Effects: []state.Effect{eff},
+			Type:      4, // summon
+			CardID:    cardIndex,
+			StartTime: popTime + constants.LEAD,
+			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
+			Effects:   []state.Effect{eff},
 		}
 		s := &state.Stack{
 			PopTime:      se.PopTime,
@@ -107,10 +109,12 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
 		se := state.StackEntry{
-			Type:    5, // spell
-			CardID:  cardIndex,
-			PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
-			Effects: []state.Effect{newEff},
+			Type:      5, // spell
+			CardID:    cardIndex,
+			StartTime: popTime + constants.LEAD,
+			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
+			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
+			Effects:   []state.Effect{newEff},
 		}
 		s := &state.Stack{
 			PopTime:      se.PopTime,

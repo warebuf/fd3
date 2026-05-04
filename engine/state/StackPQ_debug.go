@@ -73,8 +73,8 @@ func DebugReactionPQ(pq *PriorityQueue) string {
 			if entry.RecurringPeriod > 0 {
 				recurring = fmt.Sprintf(" recurring=%dms", entry.RecurringPeriod)
 			}
-			fmt.Fprintf(&b, "    [%d] Entry type=%s cardID=%d popTime=%s%s\n",
-				ei, entryTypeName(entry.Type), entry.CardID, fmtMs(entry.PopTime), recurring)
+			fmt.Fprintf(&b, "    [%d] Entry type=%s cardID=%d startTime=%s popTime=%s occurTime=%s%s\n",
+				ei, entryTypeName(entry.Type), entry.CardID, fmtMs(entry.StartTime), fmtMs(entry.PopTime), fmtMs(entry.OccurTime), recurring)
 
 			for fi, eff := range entry.Effects {
 				fmt.Fprintf(&b, "      [%d] Effect type=%s A=%d B=%d C=%d\n",

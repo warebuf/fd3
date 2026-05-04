@@ -93,7 +93,9 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 					se := state.StackEntry{
 						Type:            6, // recurring ability
 						CardID:          topEntry.CardID,
+						StartTime:       topEntry.PopTime + constants.LEAD,
 						PopTime:         scheduledTime,
+						OccurTime:       scheduledTime + constants.LEAD,
 						Effects:         effs,
 						RecurringPeriod: entry.Milliseconds,
 					}
@@ -192,7 +194,9 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 						se := state.StackEntry{
 							Type:            6, // recurring ability
 							CardID:          topEntry.CardID,
+							StartTime:       topEntry.PopTime + constants.LEAD,
 							PopTime:         scheduledTime,
+							OccurTime:       scheduledTime + constants.LEAD,
 							Effects:         effs,
 							RecurringPeriod: entry.Milliseconds,
 						}
