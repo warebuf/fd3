@@ -31,21 +31,21 @@ func (et EffectType) String() string {
 	}
 }
 
-func entryTypeName(t int) string {
+func chainStepTypeName(t int) string {
 	switch t {
-	case 0:
+	case ChainStepCard:
 		return "card"
-	case 1:
+	case ChainStepCardEff:
 		return "card_eff"
-	case 2:
+	case ChainStepAbility:
 		return "ability"
-	case 3:
+	case ChainStepOther:
 		return "other"
-	case 4:
+	case ChainStepSummon:
 		return "summon"
-	case 5:
+	case ChainStepSpell:
 		return "spell"
-	case 6:
+	case ChainStepRecurring:
 		return "recurring_ability"
 	default:
 		return fmt.Sprintf("unknown(%d)", t)
@@ -64,19 +64,19 @@ func DebugReactionPQ(pq *PriorityQueue) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "ReactionPQ t=%d:\n", time.Now().UnixMilli()%100_000)
 
-	for si, stack := range pq.Items {
-		fmt.Fprintf(&b, "  [%d] Stack %d: effectIndex=%d popTime=%s\n",
-			si, stack.StackID, stack.EffectIndex, fmtMs(stack.PopTime))
+	for ci, chain := range pq.Items {
+		fmt.Fprintf(&b, "  [%d] Chain %d: effectIndex=%d popTime=%s\n",
+			ci, chain.ChainID, chain.EffectIndex, fmtMs(chain.PopTime))
 
-		for ei, entry := range stack.StackEntries {
+		for si, step := range chain.Steps {
 			recurring := ""
-			if entry.RecurringPeriod > 0 {
-				recurring = fmt.Sprintf(" recurring=%dms", entry.RecurringPeriod)
+			if step.RecurringPeriod > 0 {
+				recurring = fmt.Sprintf(" recurring=%dms", step.RecurringPeriod)
 			}
-			fmt.Fprintf(&b, "    [%d] Entry type=%s cardID=%d startTime=%s popTime=%s occurTime=%s%s\n",
-				ei, entryTypeName(entry.Type), entry.CardID, fmtMs(entry.StartTime), fmtMs(entry.PopTime), fmtMs(entry.OccurTime), recurring)
+			fmt.Fprintf(&b, "    [%d] Step type=%s cardID=%d startTime=%s popTime=%s occurTime=%s%s\n",
+				si, chainStepTypeName(step.Type), step.CardID, fmtMs(step.StartTime), fmtMs(step.PopTime), fmtMs(step.OccurTime), recurring)
 
-			for fi, eff := range entry.Effects {
+			for fi, eff := range step.Effects {
 				fmt.Fprintf(&b, "      [%d] Effect type=%s A=%d B=%d C=%d\n",
 					fi, eff.Type, eff.A, eff.B, eff.C)
 			}

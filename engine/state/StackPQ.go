@@ -25,32 +25,40 @@ type Effect struct {
 	C    int
 }
 
-type StackEntry struct {
-	Type      int   // 0: card, 1: card eff, 2: ability, 3: other, 4: summon, 5: spell, 6: recurring ability
+const (
+	ChainStepCard      = 0
+	ChainStepCardEff   = 1
+	ChainStepAbility   = 2
+	ChainStepOther     = 3
+	ChainStepSummon    = 4
+	ChainStepSpell     = 5
+	ChainStepRecurring = 6
+)
+
+type ChainStep struct {
+	Type      int
 	CardID    int   // which card this originates from
 	StartTime int64 // when it was scheduled (real-time ms)
 	PopTime   int64 // when the server pops it (early, to broadcast in time)
 	OccurTime int64 // when the effect actually fires (real-time ms)
 
-	Effects         []Effect //
-	RecurringPeriod int64    // if <= 0, not recurring
-
-	// maybe StackEntry should carry it's EffectIndex
+	Effects         []Effect
+	RecurringPeriod int64 // if <= 0, not recurring
 }
 
-type Stack struct {
-	StackID     int
+type Chain struct {
+	ChainID     int
 	EffectIndex int // the latest effect gets the biggest index
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
-	StackEntries []StackEntry
+	Steps []ChainStep
 
 	index int // heap position (internal)
 }
 
 type PriorityQueue struct {
-	Items []*Stack
+	Items []*Chain
 	total int
 }
 
@@ -73,8 +81,8 @@ func (pq PriorityQueue) Swap(i, j int) {
 }
 
 func (pq *PriorityQueue) Push(x any) {
-	item := x.(*Stack)
-	item.StackID = pq.total
+	item := x.(*Chain)
+	item.ChainID = pq.total
 	item.EffectIndex = pq.total
 	pq.total++
 	item.index = len(pq.Items)
@@ -91,7 +99,7 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-func (pq *PriorityQueue) Update(item *Stack, newPopTime int64) {
+func (pq *PriorityQueue) Update(item *Chain, newPopTime int64) {
 	if item == nil || item.index < 0 || item.index >= len(pq.Items) {
 		return
 	}
@@ -99,33 +107,33 @@ func (pq *PriorityQueue) Update(item *Stack, newPopTime int64) {
 	heap.Fix(pq, item.index)
 }
 
-func (pq PriorityQueue) Peek() *Stack {
+func (pq PriorityQueue) Peek() *Chain {
 	if len(pq.Items) == 0 {
 		return nil
 	}
 	return pq.Items[0]
 }
 
-// RemoveStacksByCardID removes all stacks whose entries belong to cardID.
-// Returns the removed stacks so callers can emit RemoveStack logs.
-func (pq *PriorityQueue) RemoveStacksByCardID(cardID int) []*Stack {
-	var removed []*Stack
+// RemoveChainsByCardID removes all chains whose steps belong to cardID.
+// Returns the removed chains so callers can emit RemoveChain logs.
+func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
+	var removed []*Chain
 	kept := pq.Items[:0]
 
-	for _, stack := range pq.Items {
-		filtered := stack.StackEntries[:0]
-		for _, entry := range stack.StackEntries {
-			if entry.CardID != cardID {
-				filtered = append(filtered, entry)
+	for _, chain := range pq.Items {
+		filtered := chain.Steps[:0]
+		for _, step := range chain.Steps {
+			if step.CardID != cardID {
+				filtered = append(filtered, step)
 			}
 		}
-		stack.StackEntries = filtered
+		chain.Steps = filtered
 
-		if len(stack.StackEntries) == 0 {
-			stack.index = -1
-			removed = append(removed, stack)
+		if len(chain.Steps) == 0 {
+			chain.index = -1
+			removed = append(removed, chain)
 		} else {
-			kept = append(kept, stack)
+			kept = append(kept, chain)
 		}
 	}
 

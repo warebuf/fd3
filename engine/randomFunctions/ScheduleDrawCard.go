@@ -16,8 +16,8 @@ func ScheduleDrawCard(pq *state.PriorityQueue, logList *[]any, UpdateID *int, te
 		B:    1, // number of cards to draw
 	}
 
-	se := state.StackEntry{
-		Type:      3,                  // other
+	se := state.ChainStep{
+		Type:      state.ChainStepOther,
 		CardID:    -1,                 // no ID for prematch draw
 		StartTime: t - constants.LEAD,
 		PopTime:   t - constants.LEAD, // must pop 200 ms earlier, so we can draw for the user at t
@@ -25,18 +25,18 @@ func ScheduleDrawCard(pq *state.PriorityQueue, logList *[]any, UpdateID *int, te
 		Effects:   []state.Effect{eff},
 	}
 
-	s := &state.Stack{
-		PopTime:      t - constants.LEAD,
-		StackEntries: []state.StackEntry{se},
+	s := &state.Chain{
+		PopTime: t - constants.LEAD,
+		Steps:   []state.ChainStep{se},
 	}
 
 	heap.Push(pq, s)
-	*logList = append(*logList, logs.ScheduleStackLog{
-		UpdateID:   *UpdateID,
-		Timestamp:  s.PopTime,
-		Type:       logs.ScheduleStack,
-		StackID:    s.StackID,
-		StackEntry: se,
+	*logList = append(*logList, logs.ScheduleChainLog{
+		UpdateID:  *UpdateID,
+		Timestamp: s.PopTime,
+		Type:      logs.ScheduleChain,
+		ChainID:   s.ChainID,
+		Step:      se,
 	})
 	*UpdateID += 1
 

@@ -1,0 +1,64 @@
+REFACTOR SUMMARY
+================
+
+Changes made across 7 files. Logic is untouched everywhere — naming and deduplication only.
+
+#1 — Extracted duplicate recurring ability scheduling (ManageStackPQ.go)
+-------------------------------------------------------------------------
+The two near-identical blocks that scheduled recurring abilities (one inside SummonResolution,
+one inside the ChainStepRecurring handler) were extracted into:
+
+  scheduleRecurringAbilities(gs, logList, UpdateID, cardID, startTime)
+
+Both call sites now use this helper. The helper preserves all original comments and structure.
+
+#2 — Replaced magic numbers with named constants (StackPQ.go + all callers)
+-----------------------------------------------------------------------------
+Added to engine/state/StackPQ.go:
+
+  ChainStepCard      = 0
+  ChainStepCardEff   = 1
+  ChainStepAbility   = 2
+  ChainStepOther     = 3
+  ChainStepSummon    = 4
+  ChainStepSpell     = 5
+  ChainStepRecurring = 6
+
+All Type: 4 / 5 / 6 / 3 literals replaced across:
+  - ManageStackPQ.go
+  - ScheduleDeclareCard.go
+  - ScheduleDrawCard.go
+  - StackPQ_debug.go
+
+RENAME — StackEntry -> ChainStep, Stack -> Chain (all 7 files)
+--------------------------------------------------------------
+engine/state/StackPQ.go
+  StackEntry      -> ChainStep
+  Stack           -> Chain
+  StackEntries    -> Steps
+  StackID         -> ChainID
+  RemoveStacksByCardID -> RemoveChainsByCardID
+
+engine/state/StackPQ_debug.go
+  Updated all field references + renamed entryTypeName -> chainStepTypeName
+
+engine/state/GameState.go
+  Updated deep copy block (newStack -> newChain, newEntry -> newStep, etc.)
+
+engine/logs/LogTypes.go
+  ScheduleStack (constant)  -> ScheduleChain
+  RemoveStack (constant)    -> RemoveChain
+  ScheduleStackLog (struct) -> ScheduleChainLog
+  RemoveStackLog (struct)   -> RemoveChainLog
+  StackID field             -> ChainID
+  StackEntry field          -> Step
+
+engine/randomFunctions/ManageStackPQ.go
+engine/randomFunctions/ScheduleDeclareCard.go
+engine/randomFunctions/ScheduleDrawCard.go
+  All updated to use new type/struct/field names.
+
+STILL TODO (deferred by you)
+-----------------------------
+#3 — EffectDestroy ignores its A field (destroy type: all / team / card-specific). Currently always destroys all.
+#4 — RemoveChainsByCardID exists but is never called. Needs to be wired into EffectDestroy so cards leaving the field clean up their pending ChainSteps.

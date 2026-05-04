@@ -75,18 +75,18 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// ReactionPQ
 	newPQ := PriorityQueue{
 		total: prevState.ReactionPQ.total,
-		Items: make([]*Stack, len(prevState.ReactionPQ.Items)),
+		Items: make([]*Chain, len(prevState.ReactionPQ.Items)),
 	}
 	for i, s := range prevState.ReactionPQ.Items {
-		newStack := &Stack{
-			StackID:      s.StackID,
-			EffectIndex:  s.EffectIndex,
-			PopTime:      s.PopTime,
-			index:        s.index,
-			StackEntries: make([]StackEntry, len(s.StackEntries)),
+		newChain := &Chain{
+			ChainID:     s.ChainID,
+			EffectIndex: s.EffectIndex,
+			PopTime:     s.PopTime,
+			index:       s.index,
+			Steps:       make([]ChainStep, len(s.Steps)),
 		}
-		for j, se := range s.StackEntries {
-			newEntry := StackEntry{
+		for j, se := range s.Steps {
+			newStep := ChainStep{
 				Type:            se.Type,
 				CardID:          se.CardID,
 				StartTime:       se.StartTime,
@@ -95,10 +95,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 				Effects:         make([]Effect, len(se.Effects)),
 				RecurringPeriod: se.RecurringPeriod,
 			}
-			copy(newEntry.Effects, se.Effects)
-			newStack.StackEntries[j] = newEntry
+			copy(newStep.Effects, se.Effects)
+			newChain.Steps[j] = newStep
 		}
-		newPQ.Items[i] = newStack
+		newPQ.Items[i] = newChain
 	}
 	newState.ReactionPQ = newPQ
 

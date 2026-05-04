@@ -9,8 +9,8 @@ const (
 	DrawExec
 	DeclareCard
 	SummonUnit
-	ScheduleStack
-	RemoveStack
+	ScheduleChain
+	RemoveChain
 	DestroyCard
 	GainMana
 )
@@ -48,19 +48,19 @@ type SummonUnitEntry struct {
 	CardIndex int
 }
 
-type ScheduleStackLog struct {
-	Timestamp  int64
-	UpdateID   int
-	Type       LogType
-	StackID    int
-	StackEntry state.StackEntry
-}
-
-type RemoveStackLog struct {
+type ScheduleChainLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
-	StackID   int
+	ChainID   int
+	Step      state.ChainStep
+}
+
+type RemoveChainLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	ChainID   int
 }
 
 type DestroyCardEntry struct {

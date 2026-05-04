@@ -75,30 +75,30 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			A:    teamIndex,
 			B:    cardIndex, // index of card played
 		}
-		se := state.StackEntry{
-			Type:      4, // summon
+		se := state.ChainStep{
+			Type:      state.ChainStepSummon,
 			CardID:    cardIndex,
 			StartTime: popTime + constants.LEAD,
 			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
 			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
 			Effects:   []state.Effect{eff},
 		}
-		s := &state.Stack{
-			PopTime:      se.PopTime,
-			StackEntries: []state.StackEntry{se},
+		s := &state.Chain{
+			PopTime: se.PopTime,
+			Steps:   []state.ChainStep{se},
 		}
 		heap.Push(&gs.ReactionPQ, s)
-		*logList = append(*logList, logs.ScheduleStackLog{
-			UpdateID:   *UpdateID,
-			Timestamp:  popTime + constants.LEAD,
-			Type:       logs.ScheduleStack,
-			StackID:    s.StackID,
-			StackEntry: se,
+		*logList = append(*logList, logs.ScheduleChainLog{
+			UpdateID:  *UpdateID,
+			Timestamp: popTime + constants.LEAD,
+			Type:      logs.ScheduleChain,
+			ChainID:   s.ChainID,
+			Step:      se,
 		})
 		*UpdateID += 1
 	}
 
-	// create the entries for a card
+	// create the steps for a card
 	effects := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(effects); i++ {
 
@@ -108,25 +108,25 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 		// fill out the template
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
-		se := state.StackEntry{
-			Type:      5, // spell
+		se := state.ChainStep{
+			Type:      state.ChainStepSpell,
 			CardID:    cardIndex,
 			StartTime: popTime + constants.LEAD,
-			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD, // the effect is being declared 200 ms from now, and applied 4 s after that, band broadcasted 200 ms before that
+			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
 			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
 			Effects:   []state.Effect{newEff},
 		}
-		s := &state.Stack{
-			PopTime:      se.PopTime,
-			StackEntries: []state.StackEntry{se},
+		s := &state.Chain{
+			PopTime: se.PopTime,
+			Steps:   []state.ChainStep{se},
 		}
 		heap.Push(&gs.ReactionPQ, s)
-		*logList = append(*logList, logs.ScheduleStackLog{
-			UpdateID:   *UpdateID,
-			Timestamp:  popTime + constants.LEAD, // when the effect occurs, process the log
-			Type:       logs.ScheduleStack,
-			StackID:    s.StackID,
-			StackEntry: se,
+		*logList = append(*logList, logs.ScheduleChainLog{
+			UpdateID:  *UpdateID,
+			Timestamp: popTime + constants.LEAD,
+			Type:      logs.ScheduleChain,
+			ChainID:   s.ChainID,
+			Step:      se,
 		})
 		*UpdateID += 1
 	}
