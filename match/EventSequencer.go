@@ -2,7 +2,6 @@ package match
 
 import (
 	"container/heap"
-	"log"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -52,7 +51,7 @@ func (match *Match) handleDuePQEvents() {
 
 		heap.Pop(&match.EventPQueue) // pop the event
 
-		log.Print(state.DebugReactionPQ(&match.GameState.ReactionPQ))
+		//log.Print(state.DebugReactionPQ(&match.GameState.ReactionPQ))
 
 		// handle the event
 		switch next.Type {
