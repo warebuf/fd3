@@ -94,6 +94,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 				OccurTime:       se.OccurTime,
 				Effects:         make([]Effect, len(se.Effects)),
 				RecurringPeriod: se.RecurringPeriod,
+				Persistent:      se.Persistent,
 			}
 			copy(newStep.Effects, se.Effects)
 			newChain.ChainSteps[j] = newStep

@@ -17,12 +17,13 @@ func ScheduleDrawCard(pq *state.PriorityQueue, logList *[]any, UpdateID *int, te
 	}
 
 	se := state.ChainStep{
-		Type:      state.ChainStepOther,
-		CardID:    -1, // no ID for prematch draw
-		StartTime: t - constants.LEAD,
-		PopTime:   t - constants.LEAD, // must pop 200 ms earlier, so we can draw for the user at t
-		OccurTime: t,
-		Effects:   []state.Effect{eff},
+		Type:       state.ChainStepOther,
+		CardID:     -1, // no ID for prematch draw
+		StartTime:  t - constants.LEAD,
+		PopTime:    t - constants.LEAD, // must pop 200 ms earlier, so we can draw for the user at t
+		OccurTime:  t,
+		Effects:    []state.Effect{eff},
+		Persistent: false,
 	}
 
 	s := &state.Chain{

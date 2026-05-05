@@ -44,6 +44,7 @@ type ChainStep struct {
 
 	Effects         []Effect
 	RecurringPeriod int64 // if <= 0, not recurring
+	Persistent      bool
 }
 
 type Chain struct {
@@ -114,8 +115,7 @@ func (pq PriorityQueue) Peek() *Chain {
 	return pq.Items[0]
 }
 
-// RemoveChainsByCardID removes all chains whose steps belong to cardID.
-// Returns the removed chains so callers can emit RemoveChain logs.
+// returns the removed chains so callers can emit RemoveChain logs.
 func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
 	var removed []*Chain
 	kept := pq.Items[:0]

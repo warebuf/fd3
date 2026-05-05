@@ -180,6 +180,7 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 			OccurTime:       scheduledTime + constants.LEAD,
 			Effects:         effs,
 			RecurringPeriod: entry.Milliseconds,
+			Persistent:      entry.Persistent,
 		}
 		s := &state.Chain{
 			PopTime:    scheduledTime,

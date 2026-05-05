@@ -76,12 +76,13 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			B:    cardIndex, // index of card played
 		}
 		se := state.ChainStep{
-			Type:      state.ChainStepSummon,
-			CardID:    cardIndex,
-			StartTime: popTime + constants.LEAD,
-			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
-			Effects:   []state.Effect{eff},
+			Type:       state.ChainStepSummon,
+			CardID:     cardIndex,
+			StartTime:  popTime + constants.LEAD,
+			PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+			OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
+			Effects:    []state.Effect{eff},
+			Persistent: false,
 		}
 		s := &state.Chain{
 			PopTime:    se.PopTime,
@@ -99,22 +100,23 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 	}
 
 	// create the steps for a card
-	effects := defs.CardDefs[card.DefNo].OnPlay
-	for i := 0; i < len(effects); i++ {
+	abilities := defs.CardDefs[card.DefNo].OnPlay
+	for i := 0; i < len(abilities); i++ {
 
 		// create the template
-		templ := effects[i]
+		templ := abilities[i]
 
 		// fill out the template
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
 		se := state.ChainStep{
-			Type:      state.ChainStepSpell,
-			CardID:    cardIndex,
-			StartTime: popTime + constants.LEAD,
-			PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
-			Effects:   []state.Effect{newEff},
+			Type:       state.ChainStepSpell,
+			CardID:     cardIndex,
+			StartTime:  popTime + constants.LEAD,
+			PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+			OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
+			Effects:    []state.Effect{newEff},
+			Persistent: false,
 		}
 		s := &state.Chain{
 			PopTime:    se.PopTime,
