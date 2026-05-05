@@ -8,6 +8,8 @@ import (
 )
 
 func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
+
+	// create structures
 	structures := make([]state.Structure, len(deckDefs))
 	for i, defNo := range structureDefNos {
 		structures[i] = state.Structure{DefNo: defNo, HP: defs.StructureDefs[defNo].BaseHP}

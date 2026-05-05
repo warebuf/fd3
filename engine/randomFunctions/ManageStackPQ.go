@@ -134,10 +134,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				gs.Cards[topStep.CardID].Zone = state.ZoneGraveyard
 			} else if topStep.Type == state.ChainStepRecurring {
 				if gs.Cards[topStep.CardID].Zone == state.ZoneField {
-
-					// schedule recurring abilities
 					scheduleRecurringAbilities(gs, logList, UpdateID, topStep.CardID, topStep.PopTime+constants.LEAD)
-
 				}
 			}
 		}
