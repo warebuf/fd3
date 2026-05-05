@@ -1,6 +1,8 @@
 PLAN: Remove dead unit abilities from ReactionPQ on death
 ==========================================================
 
+??? PersistsAfterDeath
+
 PROBLEM
 -------
 When a unit dies (EffectDestroy in ManageStackPQ.go), its Zone is set to ZoneGraveyard
