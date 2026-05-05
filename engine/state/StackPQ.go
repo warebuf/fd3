@@ -115,9 +115,36 @@ func (pq PriorityQueue) Peek() *Chain {
 	return pq.Items[0]
 }
 
-// returns the removed chains so callers can emit RemoveChain logs.
-func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
-	var removed []*Chain
+// returns the removed chain IDs so callers can emit RemoveChain logs.
+func (pq *PriorityQueue) RemoveChainsByCardIDs(ids map[int]bool) []int {
+	var removedChainIDs []int
+	kept := pq.Items[:0]
+
+	for _, chain := range pq.Items {
+		filtered := chain.ChainSteps[:0]
+		for _, step := range chain.ChainSteps {
+			if !ids[step.CardID] {
+				filtered = append(filtered, step)
+			}
+		}
+		chain.ChainSteps = filtered
+
+		if len(chain.ChainSteps) == 0 {
+			chain.index = -1
+			removedChainIDs = append(removedChainIDs, chain.ChainID)
+		} else {
+			kept = append(kept, chain)
+		}
+	}
+
+	pq.Items = kept
+	heap.Init(pq)
+	return removedChainIDs
+}
+
+// returns the removed chain IDs so callers can emit RemoveChain logs.
+func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []int {
+	var removedChainIDs []int
 	kept := pq.Items[:0]
 
 	for _, chain := range pq.Items {
@@ -131,7 +158,7 @@ func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
 
 		if len(chain.ChainSteps) == 0 {
 			chain.index = -1
-			removed = append(removed, chain)
+			removedChainIDs = append(removedChainIDs, chain.ChainID)
 		} else {
 			kept = append(kept, chain)
 		}
@@ -139,5 +166,5 @@ func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
 
 	pq.Items = kept
 	heap.Init(pq)
-	return removed
+	return removedChainIDs
 }

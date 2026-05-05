@@ -80,13 +80,26 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 			case state.EffectDestroy:
 
 				// put all field units into the grave, may have to handle the ordering differently tbh (in order of summon or last move/action)
+				destroyedIDs := map[int]bool{}
 				for a := 0; a < len(gs.Field); a++ {
 					for b := 0; b < len(gs.Field[a]); b++ {
 						cardIndex := gs.Field[a][b]
 						gs.Cards[cardIndex].Zone = state.ZoneGraveyard
 						gs.Grave[a] = append(gs.Grave[a], cardIndex)
+						destroyedIDs[cardIndex] = true
 					}
 					gs.Field[a] = []int{}
+				}
+
+				removedChainIDs := gs.ReactionPQ.RemoveChainsByCardIDs(destroyedIDs)
+				for _, chainID := range removedChainIDs {
+					*logList = append(*logList, logs.RemoveChainLog{
+						UpdateID:  *UpdateID,
+						Timestamp: topStep.PopTime + constants.LEAD,
+						Type:      logs.RemoveChain,
+						ChainID:   chainID,
+					})
+					*UpdateID += 1
 				}
 
 				// create log
