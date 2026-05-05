@@ -52,7 +52,7 @@ type Chain struct {
 
 	PopTime int64 // the time we can pop an item from the stack and apply it to the game state
 
-	Steps []ChainStep
+	ChainSteps []ChainStep
 
 	index int // heap position (internal)
 }
@@ -121,15 +121,15 @@ func (pq *PriorityQueue) RemoveChainsByCardID(cardID int) []*Chain {
 	kept := pq.Items[:0]
 
 	for _, chain := range pq.Items {
-		filtered := chain.Steps[:0]
-		for _, step := range chain.Steps {
+		filtered := chain.ChainSteps[:0]
+		for _, step := range chain.ChainSteps {
 			if step.CardID != cardID {
 				filtered = append(filtered, step)
 			}
 		}
-		chain.Steps = filtered
+		chain.ChainSteps = filtered
 
-		if len(chain.Steps) == 0 {
+		if len(chain.ChainSteps) == 0 {
 			chain.index = -1
 			removed = append(removed, chain)
 		} else {

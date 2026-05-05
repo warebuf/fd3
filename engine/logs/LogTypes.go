@@ -5,26 +5,24 @@ import "github.com/warebuf/fd3/engine/state"
 type LogType int
 
 const (
-	PhaseLog LogType = iota
-	DrawExec
+	Phase LogType = iota
+	Draw
 	DeclareCard
-	SummonUnit
+	Summon
 	ScheduleChain
 	RemoveChain
 	DestroyCard
 	GainMana
 )
 
-// honestly Entry is not the right name, it should be log
-
-type PhaseLogEntry struct {
+type PhaseLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
 	Phase     int
 }
 
-type DrawExecEntry struct {
+type DrawLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
@@ -32,7 +30,7 @@ type DrawExecEntry struct {
 	NumCards  int
 }
 
-type DeclareCardEntry struct {
+type DeclareCardLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
@@ -40,7 +38,7 @@ type DeclareCardEntry struct {
 	CardIndex int
 }
 
-type SummonUnitEntry struct {
+type SummonLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
@@ -63,7 +61,7 @@ type RemoveChainLog struct {
 	ChainID   int
 }
 
-type DestroyCardEntry struct {
+type DestroyCardLog struct {
 	Timestamp       int64
 	UpdateID        int
 	Type            LogType
@@ -74,7 +72,7 @@ type DestroyCardEntry struct {
 	TargetCardIndex int
 }
 
-type GainManaEntry struct {
+type GainManaLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType

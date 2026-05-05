@@ -38,8 +38,8 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	chainHeader := gs.ReactionPQ.Peek()
 
-	for len(chainHeader.Steps) > 0 {
-		topStep := chainHeader.Steps[len(chainHeader.Steps)-1]
+	for len(chainHeader.ChainSteps) > 0 {
+		topStep := chainHeader.ChainSteps[len(chainHeader.ChainSteps)-1]
 
 		// handling all effects of a step
 		for i := 0; i < len(topStep.Effects); i++ {
@@ -53,10 +53,10 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				effects.ApplyEffectDraw(gs, currentEffect)
 
 				// create log
-				*logList = append(*logList, logs.DrawExecEntry{
+				*logList = append(*logList, logs.DrawLog{
 					UpdateID:  *UpdateID,
 					Timestamp: topStep.PopTime + constants.LEAD,
-					Type:      logs.DrawExec,
+					Type:      logs.Draw,
 					TeamIndex: currentEffect.A,
 					NumCards:  1,
 				})
@@ -65,10 +65,10 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 			case state.SummonResolution:
 
 				// create a summon resolution log
-				*logList = append(*logList, logs.SummonUnitEntry{
+				*logList = append(*logList, logs.SummonLog{
 					UpdateID:  *UpdateID,
 					Timestamp: topStep.PopTime + constants.LEAD,
-					Type:      logs.SummonUnit,
+					Type:      logs.Summon,
 					TeamIndex: currentEffect.A,
 					CardIndex: currentEffect.B,
 				})
@@ -90,7 +90,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				}
 
 				// create log
-				*logList = append(*logList, logs.DestroyCardEntry{
+				*logList = append(*logList, logs.DestroyCardLog{
 					UpdateID:        *UpdateID,
 					Timestamp:       topStep.PopTime + constants.LEAD,
 					Type:            logs.DestroyCard,
@@ -109,7 +109,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				gs.Mana[team] += amount
 
 				// create log
-				*logList = append(*logList, logs.GainManaEntry{
+				*logList = append(*logList, logs.GainManaLog{
 					UpdateID:  *UpdateID,
 					Timestamp: topStep.PopTime + constants.LEAD,
 					Type:      logs.GainMana,
@@ -143,7 +143,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 		}
 
 		// removing the top step from the chain
-		chainHeader.Steps = chainHeader.Steps[:len(chainHeader.Steps)-1]
+		chainHeader.ChainSteps = chainHeader.ChainSteps[:len(chainHeader.ChainSteps)-1]
 
 	}
 
@@ -168,8 +168,8 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 		// create effects for this entry
 		effs := []state.Effect{}
 		for b := 0; b < len(entry.Effects); b++ {
-			templ := entry.Effects[b]                                        // create the template effect
-			newEff := FulfillEffectTemplate(templ, teamIndex, cardID)        // completing the template
+			templ := entry.Effects[b]                                 // create the template effect
+			newEff := FulfillEffectTemplate(templ, teamIndex, cardID) // completing the template
 			effs = append(effs, newEff)
 		}
 
@@ -185,8 +185,8 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 			RecurringPeriod: entry.Milliseconds,
 		}
 		s := &state.Chain{
-			PopTime: scheduledTime,
-			Steps:   []state.ChainStep{se},
+			PopTime:    scheduledTime,
+			ChainSteps: []state.ChainStep{se},
 		}
 		heap.Push(&gs.ReactionPQ, s)
 

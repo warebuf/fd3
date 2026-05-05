@@ -83,9 +83,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			EffectIndex: s.EffectIndex,
 			PopTime:     s.PopTime,
 			index:       s.index,
-			Steps:       make([]ChainStep, len(s.Steps)),
+			ChainSteps:  make([]ChainStep, len(s.ChainSteps)),
 		}
-		for j, se := range s.Steps {
+		for j, se := range s.ChainSteps {
 			newStep := ChainStep{
 				Type:            se.Type,
 				CardID:          se.CardID,
@@ -96,7 +96,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 				RecurringPeriod: se.RecurringPeriod,
 			}
 			copy(newStep.Effects, se.Effects)
-			newChain.Steps[j] = newStep
+			newChain.ChainSteps[j] = newStep
 		}
 		newPQ.Items[i] = newChain
 	}

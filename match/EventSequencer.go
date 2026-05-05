@@ -51,14 +51,14 @@ func (match *Match) handleDuePQEvents() {
 		}
 
 		heap.Pop(&match.EventPQueue) // pop the event
-		
+
 		log.Print(state.DebugReactionPQ(&match.GameState.ReactionPQ))
 
 		// handle the event
 		switch next.Type {
 		case "Effect":
 
-			// simulate	
+			// simulate
 			oldLogsSize := len(match.EventLog)
 			randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
@@ -118,10 +118,10 @@ func (match *Match) handleDuePQEvents() {
 				// increment the phase
 				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 				match.GameState.Phase = 1
-				match.EventLog = append(match.EventLog, logs.PhaseLogEntry{
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
 					UpdateID:  match.NextUpdateID,
 					Timestamp: phaseChangeTimestamp,
-					Type:      logs.PhaseLog,
+					Type:      logs.Phase,
 					Phase:     1,
 				})
 				match.NextUpdateID += 1
@@ -152,10 +152,10 @@ func (match *Match) handleDuePQEvents() {
 
 				// increment the phase
 				match.GameState.Phase = 2
-				match.EventLog = append(match.EventLog, logs.PhaseLogEntry{
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
 					UpdateID:  match.NextUpdateID,
 					Timestamp: newPhase.T.UnixMilli() + constants.LEAD,
-					Type:      logs.PhaseLog,
+					Type:      logs.Phase,
 					Phase:     2,
 				})
 				match.NextUpdateID += 1

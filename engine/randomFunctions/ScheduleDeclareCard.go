@@ -31,7 +31,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	// TODO: check any of the card's activation conditions
 
 	// create a log for the activation/declaration
-	*logList = append(*logList, logs.DeclareCardEntry{
+	*logList = append(*logList, logs.DeclareCardLog{
 		UpdateID:  *UpdateID,
 		Timestamp: popTime + constants.LEAD,
 		Type:      logs.DeclareCard,
@@ -84,8 +84,8 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			Effects:   []state.Effect{eff},
 		}
 		s := &state.Chain{
-			PopTime: se.PopTime,
-			Steps:   []state.ChainStep{se},
+			PopTime:    se.PopTime,
+			ChainSteps: []state.ChainStep{se},
 		}
 		heap.Push(&gs.ReactionPQ, s)
 		*logList = append(*logList, logs.ScheduleChainLog{
@@ -117,8 +117,8 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			Effects:   []state.Effect{newEff},
 		}
 		s := &state.Chain{
-			PopTime: se.PopTime,
-			Steps:   []state.ChainStep{se},
+			PopTime:    se.PopTime,
+			ChainSteps: []state.ChainStep{se},
 		}
 		heap.Push(&gs.ReactionPQ, s)
 		*logList = append(*logList, logs.ScheduleChainLog{

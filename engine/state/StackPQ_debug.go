@@ -68,7 +68,7 @@ func DebugReactionPQ(pq *PriorityQueue) string {
 		fmt.Fprintf(&b, "  [%d] Chain %d: effectIndex=%d popTime=%s\n",
 			ci, chain.ChainID, chain.EffectIndex, fmtMs(chain.PopTime))
 
-		for si, step := range chain.Steps {
+		for si, step := range chain.ChainSteps {
 			recurring := ""
 			if step.RecurringPeriod > 0 {
 				recurring = fmt.Sprintf(" recurring=%dms", step.RecurringPeriod)
