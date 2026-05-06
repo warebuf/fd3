@@ -99,7 +99,7 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 		*UpdateID += 1
 	}
 
-	// create the steps for a card
+	// create the ChainSteps for a card
 	abilities := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(abilities); i++ {
 

@@ -131,6 +131,9 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				})
 				*UpdateID += 1
 
+			case state.EffectAttack:
+				fmt.Println("working on this now")
+
 			default:
 				fmt.Println("this effect isnt handled")
 			}

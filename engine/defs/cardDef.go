@@ -28,8 +28,21 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier",
 		Description: "Deal 1 random damage every 20 seconds",
-		BaseHP:      10,
+		BaseHP:      3,
 		Cost:        1,
+		Recurring: []Recurring{
+			{
+				Milliseconds: 20000,
+				Effects: []state.Effect{
+					{
+						Type: state.EffectAttack,
+						A:    0, // targetType, 0: random, 1: user-targetted
+						B:    1, // amount
+					},
+				},
+				Persistent: false,
+			},
+		},
 	},
 	2: {
 		Type:        state.CardTypeSpell,
