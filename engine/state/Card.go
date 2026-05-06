@@ -20,6 +20,8 @@ type Card struct {
 	DefNo       int // the card's serial number
 	Name        string
 	Description string
+	HP          int
+	Cost        int
 
 	// state info
 	CardID int // card ID

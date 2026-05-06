@@ -27,8 +27,9 @@ var CardDefs = []CardDef{
 	1: {
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier",
-		Description: "",
+		Description: "Deal 1 random damage every 20 seconds",
 		BaseHP:      10,
+		Cost:        1,
 	},
 	2: {
 		Type:        state.CardTypeSpell,

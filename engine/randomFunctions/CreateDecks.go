@@ -52,6 +52,8 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				DefNo:       defNo,
 				Name:        def.Name,
 				Description: def.Description,
+				Cost:        def.Cost,
+				HP:          def.BaseHP,
 
 				//
 				CardID: nextCardID,
