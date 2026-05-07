@@ -48,6 +48,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
+		Cost: 5,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
