@@ -29,7 +29,7 @@ var CardDefs = []CardDef{
 		Name:        "Fallen Soldier",
 		Description: "Deal 1 random damage every 20 seconds",
 		BaseHP:      2,
-		Cost:        1,
+		Cost:        2,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 20000,
@@ -48,7 +48,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
-		Cost: 5,
+		Cost:        5,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
