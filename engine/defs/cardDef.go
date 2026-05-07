@@ -28,7 +28,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier",
 		Description: "Deal 1 random damage every 20 seconds",
-		BaseHP:      3,
+		BaseHP:      2,
 		Cost:        1,
 		Recurring: []Recurring{
 			{
@@ -60,7 +60,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Name:        "Matter of Time",
 		Description: "Gain 1 mana every 20 seconds",
-		BaseHP:      5,
+		BaseHP:      2,
 		Cost:        0,
 		Recurring: []Recurring{
 			{
