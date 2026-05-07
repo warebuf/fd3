@@ -74,4 +74,17 @@ var CardDefs = []CardDef{
 			},
 		},
 	},
+	4: {
+		Type:        state.CardTypeSpell,
+		Name:        "Downforce",
+		Description: "Gain 1 mana",
+		BaseHP:      0,
+		Cost:        0,
+		OnPlay: []state.Effect{
+			{
+				Type: state.EffectMana,
+				B:    1, // amount
+			},
+		},
+	},
 }
