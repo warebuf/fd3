@@ -28,7 +28,20 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return
 	}
 
-	// TODO: check any of the card's activation conditions
+	// check cost condition
+	cost := gs.Cards[cardIndex].Cost
+	if gs.Mana[teamIndex] < cost {
+		return
+	}
+	gs.Mana[teamIndex] -= cost
+	*logList = append(*logList, logs.SpendManaLog{
+		UpdateID:  *UpdateID,
+		Timestamp: popTime,
+		Type:      logs.SpendMana,
+		TeamIndex: teamIndex,
+		Amount:    cost,
+	})
+	*UpdateID += 1
 
 	// create a log for the activation/declaration
 	*logList = append(*logList, logs.DeclareCardLog{

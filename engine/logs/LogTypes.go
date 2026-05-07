@@ -13,6 +13,7 @@ const (
 	RemoveChain
 	DestroyCard
 	GainMana
+	SpendMana
 	Attack
 )
 
@@ -74,6 +75,14 @@ type DestroyCardLog struct {
 }
 
 type GainManaLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	TeamIndex int
+	Amount    int
+}
+
+type SpendManaLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
