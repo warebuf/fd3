@@ -13,6 +13,7 @@ const (
 	RemoveChain
 	DestroyCard
 	GainMana
+	Attack
 )
 
 type PhaseLog struct {
@@ -78,4 +79,15 @@ type GainManaLog struct {
 	Type      LogType
 	TeamIndex int
 	Amount    int
+}
+
+type AttackLog struct {
+	Timestamp       int64
+	UpdateID        int
+	Type            LogType
+	AttackerIndex   int
+	TargetIsUnit    bool
+	TargetTeamIndex int
+	TargetCardIndex int // -1 if targeting a structure
+	Damage          int
 }

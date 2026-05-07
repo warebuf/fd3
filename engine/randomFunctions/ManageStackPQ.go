@@ -3,6 +3,7 @@ package randomFunctions
 import (
 	"container/heap"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -132,10 +133,77 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 				*UpdateID += 1
 
 			case state.EffectAttack:
-				fmt.Println("working on this now", currentEffect)
+				unitIndex := topStep.CardID
+				teamIndex := gs.Cards[unitIndex].Team
+				enemyTeam := 1 - teamIndex
+				damage := currentEffect.B
+
 				if currentEffect.A == 0 { // random target
-					unitIndex := topStep.CardID
-					teamIndex := gs.Cards[unitIndex].Team
+					enemyField := gs.Field[enemyTeam]
+					if len(enemyField) > 0 {
+						targetIdx := enemyField[rand.Intn(len(enemyField))]
+						gs.Cards[targetIdx].HP -= damage
+
+						*logList = append(*logList, logs.AttackLog{
+							UpdateID:        *UpdateID,
+							Timestamp:       topStep.PopTime + constants.LEAD,
+							Type:            logs.Attack,
+							AttackerIndex:   unitIndex,
+							TargetIsUnit:    true,
+							TargetTeamIndex: enemyTeam,
+							TargetCardIndex: targetIdx,
+							Damage:          damage,
+						})
+						*UpdateID += 1
+
+						if gs.Cards[targetIdx].HP <= 0 { // if killed
+							for i, ci := range gs.Field[enemyTeam] { // remove from field arr
+								if ci == targetIdx {
+									gs.Field[enemyTeam] = append(gs.Field[enemyTeam][:i], gs.Field[enemyTeam][i+1:]...)
+									break
+								}
+							}
+							gs.Cards[targetIdx].Zone = state.ZoneGraveyard
+							gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
+
+							removedChainIDs := gs.ReactionPQ.RemoveChainsByCardID(targetIdx)
+							for _, chainID := range removedChainIDs {
+								*logList = append(*logList, logs.RemoveChainLog{
+									UpdateID:  *UpdateID,
+									Timestamp: topStep.PopTime + constants.LEAD,
+									Type:      logs.RemoveChain,
+									ChainID:   chainID,
+								})
+								*UpdateID += 1
+							}
+
+							*logList = append(*logList, logs.DestroyCardLog{
+								UpdateID:        *UpdateID,
+								Timestamp:       topStep.PopTime + constants.LEAD,
+								Type:            logs.DestroyCard,
+								TeamIndex:       teamIndex,
+								CardIndex:       targetIdx,
+								TargetAll:       false,
+								TargetTeamIndex: enemyTeam,
+								TargetCardIndex: targetIdx,
+							})
+							*UpdateID += 1
+						}
+					} else {
+						gs.Structures[enemyTeam].HP -= damage
+
+						*logList = append(*logList, logs.AttackLog{
+							UpdateID:        *UpdateID,
+							Timestamp:       topStep.PopTime + constants.LEAD,
+							Type:            logs.Attack,
+							AttackerIndex:   unitIndex,
+							TargetIsUnit:    false,
+							TargetTeamIndex: enemyTeam,
+							TargetCardIndex: -1,
+							Damage:          damage,
+						})
+						*UpdateID += 1
+					}
 				}
 
 			default:
