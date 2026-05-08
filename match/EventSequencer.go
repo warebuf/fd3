@@ -2,6 +2,7 @@ package match
 
 import (
 	"container/heap"
+	"sort"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -99,9 +100,15 @@ func (match *Match) handleDuePQEvents() {
 						continue
 					}
 
-					// move from hand to staged
+					// move from hand to staged; assign next AutoSummon order for this team
+					nextAutoSummon := 1
+					for _, c := range match.GameState.Cards {
+						if c.Team == teamIdx && c.Zone == state.ZoneSetup && c.AutoSummon >= nextAutoSummon {
+							nextAutoSummon = c.AutoSummon + 1
+						}
+					}
 					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx][:handIndex], match.GameState.Hand[teamIdx][handIndex+1:]...)
-					match.GameState.StagedCards[teamIdx] = append(match.GameState.StagedCards[teamIdx], cardIndex)
+					match.GameState.Cards[cardIndex].AutoSummon = nextAutoSummon
 					match.GameState.Cards[cardIndex].Zone = state.ZoneSetup
 
 					// publish updated state
@@ -122,20 +129,9 @@ func (match *Match) handleDuePQEvents() {
 						continue
 					}
 
-					stageIndex := -1
-					for i, ci := range match.GameState.StagedCards[teamIdx] {
-						if ci == cardIndex {
-							stageIndex = i
-							break
-						}
-					}
-					if stageIndex < 0 {
-						continue
-					}
-
 					// move from staged back to hand
-					match.GameState.StagedCards[teamIdx] = append(match.GameState.StagedCards[teamIdx][:stageIndex], match.GameState.StagedCards[teamIdx][stageIndex+1:]...)
 					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
+					match.GameState.Cards[cardIndex].AutoSummon = 0
 					match.GameState.Cards[cardIndex].Zone = state.ZoneHand
 
 					// publish updated state
@@ -258,12 +254,8 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
-				// initialize staged cards and ready flags
+				// initialize ready flags
 				numTeams := len(match.GameState.Hand)
-				match.GameState.StagedCards = make([][]int, numTeams)
-				for i := range match.GameState.StagedCards {
-					match.GameState.StagedCards[i] = []int{}
-				}
 				match.GameState.Ready = make([]bool, numTeams)
 
 				// schedule reveal in 90 seconds; can be triggered early by both players readying up
@@ -290,19 +282,35 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
-				// move all staged cards back to hand, then declare them simultaneously
+				// collect staged cards per team, sorted by AutoSummon order
 				revealTime := phaseChangeTimestamp + 500
-				for teamIdx := range match.GameState.StagedCards {
-					for _, cardIndex := range match.GameState.StagedCards[teamIdx] {
+				numTeams := len(match.GameState.Hand)
+				stagedByTeam := make([][]int, numTeams)
+				for i, c := range match.GameState.Cards {
+					if c.Zone == state.ZoneSetup {
+						stagedByTeam[c.Team] = append(stagedByTeam[c.Team], i)
+					}
+				}
+				for teamIdx := range stagedByTeam {
+					sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool {
+						return match.GameState.Cards[stagedByTeam[teamIdx][a]].AutoSummon < match.GameState.Cards[stagedByTeam[teamIdx][b]].AutoSummon
+					})
+				}
+
+				// move all staged cards back to hand
+				for teamIdx, staged := range stagedByTeam {
+					for _, cardIndex := range staged {
 						match.GameState.Cards[cardIndex].Zone = state.ZoneHand
+						match.GameState.Cards[cardIndex].AutoSummon = 0
 						match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
 					}
 				}
-				for teamIdx := range match.GameState.StagedCards {
-					for _, cardIndex := range match.GameState.StagedCards[teamIdx] {
+
+				// declare in AutoSummon order
+				for teamIdx, staged := range stagedByTeam {
+					for _, cardIndex := range staged {
 						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
 					}
-					match.GameState.StagedCards[teamIdx] = nil
 				}
 				match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
