@@ -101,7 +101,7 @@ func (match *Match) handleDuePQEvents() {
 					match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 						Timestamp:     ie.T.UnixMilli(),
 						UpdateID:      match.NextUpdateID,
-						Type:          logs.SetAutoSummon,
+						Type:          logs.AutoSummonIndex,
 						TeamIndex:     teamIdx,
 						CardIndex:     cardIndex,
 						AutoSummonIdx: nextAutoSummon,
@@ -134,7 +134,7 @@ func (match *Match) handleDuePQEvents() {
 					match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 						Timestamp:     ie.T.UnixMilli(),
 						UpdateID:      match.NextUpdateID,
-						Type:          logs.ClearAutoSummon,
+						Type:          logs.AutoSummonIndex,
 						TeamIndex:     teamIdx,
 						CardIndex:     cardIndex,
 						AutoSummonIdx: 0,

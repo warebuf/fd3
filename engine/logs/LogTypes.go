@@ -16,8 +16,7 @@ const (
 	SpendMana
 	Attack
 	Ready
-	SetAutoSummon
-	ClearAutoSummon
+	AutoSummonIndex
 )
 
 type PhaseLog struct {
