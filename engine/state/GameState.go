@@ -21,8 +21,10 @@ type GameState struct {
 	ReactionPQ PriorityQueue
 
 	// other states
-	Mana       []int       // per team
-	Structures []Structure // per team
+	Mana        []int       // per team
+	Structures  []Structure // per team
+	StagedCards [][]int     // per team, cards hidden during board setup phase
+	Ready       []bool      // per team, whether the player has readied up
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {
@@ -71,6 +73,17 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// Structures
 	newState.Structures = make([]Structure, len(prevState.Structures))
 	copy(newState.Structures, prevState.Structures)
+
+	// StagedCards
+	newState.StagedCards = make([][]int, len(prevState.StagedCards))
+	for i := range prevState.StagedCards {
+		newState.StagedCards[i] = make([]int, len(prevState.StagedCards[i]))
+		copy(newState.StagedCards[i], prevState.StagedCards[i])
+	}
+
+	// Ready
+	newState.Ready = make([]bool, len(prevState.Ready))
+	copy(newState.Ready, prevState.Ready)
 
 	// ReactionPQ
 	newPQ := PriorityQueue{

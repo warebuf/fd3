@@ -19,9 +19,6 @@ type Match struct {
 	EventLog     []any // a log of all events that have occurred
 	NextUpdateID int
 
-	StagedCards [][]int // per team, cards hidden during board setup phase
-	Ready       []bool  // per team, whether the player has readied up
-
 	// networking related
 	InputEventChan chan *InputEvent
 
