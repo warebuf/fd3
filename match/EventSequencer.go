@@ -101,7 +101,7 @@ func (match *Match) handleDuePQEvents() {
 
 					// move from hand to staged
 					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx][:handIndex], match.GameState.Hand[teamIdx][handIndex+1:]...)
-					match.StagedCards[teamIdx] = append(match.StagedCards[teamIdx], cardIndex)
+					match.GameState.StagedCards[teamIdx] = append(match.GameState.StagedCards[teamIdx], cardIndex)
 					match.GameState.Cards[cardIndex].Zone = state.ZoneSetup
 
 					// publish updated state
@@ -123,7 +123,7 @@ func (match *Match) handleDuePQEvents() {
 					}
 
 					stageIndex := -1
-					for i, ci := range match.StagedCards[teamIdx] {
+					for i, ci := range match.GameState.StagedCards[teamIdx] {
 						if ci == cardIndex {
 							stageIndex = i
 							break
@@ -134,7 +134,7 @@ func (match *Match) handleDuePQEvents() {
 					}
 
 					// move from staged back to hand
-					match.StagedCards[teamIdx] = append(match.StagedCards[teamIdx][:stageIndex], match.StagedCards[teamIdx][stageIndex+1:]...)
+					match.GameState.StagedCards[teamIdx] = append(match.GameState.StagedCards[teamIdx][:stageIndex], match.GameState.StagedCards[teamIdx][stageIndex+1:]...)
 					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
 					match.GameState.Cards[cardIndex].Zone = state.ZoneHand
 
@@ -146,13 +146,13 @@ func (match *Match) handleDuePQEvents() {
 
 				case "ready":
 					teamIdx := ie.TeamIdx
-					if teamIdx < 0 || teamIdx >= len(match.Ready) {
+					if teamIdx < 0 || teamIdx >= len(match.GameState.Ready) {
 						continue
 					}
-					match.Ready[teamIdx] = true
+					match.GameState.Ready[teamIdx] = true
 
 					allReady := true
-					for _, r := range match.Ready {
+					for _, r := range match.GameState.Ready {
 						if !r {
 							allReady = false
 							break
@@ -250,11 +250,11 @@ func (match *Match) handleDuePQEvents() {
 
 				// initialize staged cards and ready flags
 				numTeams := len(match.GameState.Hand)
-				match.StagedCards = make([][]int, numTeams)
-				for i := range match.StagedCards {
-					match.StagedCards[i] = []int{}
+				match.GameState.StagedCards = make([][]int, numTeams)
+				for i := range match.GameState.StagedCards {
+					match.GameState.StagedCards[i] = []int{}
 				}
-				match.Ready = make([]bool, numTeams)
+				match.GameState.Ready = make([]bool, numTeams)
 
 				// schedule reveal in 90 seconds; can be triggered early by both players readying up
 				PushNewPhase(match, phaseChangeTimestamp+90000, 3)
@@ -282,19 +282,19 @@ func (match *Match) handleDuePQEvents() {
 
 				// move all staged cards back to hand, then declare them simultaneously
 				revealTime := phaseChangeTimestamp + 500
-				for teamIdx := range match.StagedCards {
-					for _, cardIndex := range match.StagedCards[teamIdx] {
+				for teamIdx := range match.GameState.StagedCards {
+					for _, cardIndex := range match.GameState.StagedCards[teamIdx] {
 						match.GameState.Cards[cardIndex].Zone = state.ZoneHand
 						match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
 					}
 				}
-				for teamIdx := range match.StagedCards {
-					for _, cardIndex := range match.StagedCards[teamIdx] {
+				for teamIdx := range match.GameState.StagedCards {
+					for _, cardIndex := range match.GameState.StagedCards[teamIdx] {
 						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
 					}
-					match.StagedCards[teamIdx] = nil
+					match.GameState.StagedCards[teamIdx] = nil
 				}
-				match.Ready = make([]bool, len(match.Ready))
+				match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
 				// schedule play phase after reveal effects resolve
 				PushNewPhase(match, revealTime+int64(constants.REACTION_WINDOW)+2000, 4)
