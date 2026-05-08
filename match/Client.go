@@ -82,6 +82,27 @@ func (c *Client) Read() {
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "hand", c.ID, msg.CardIndex)
 
+		case "stageCard":
+			var msg stageCardMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "stageCard", c.ID, msg.CardIndex)
+
+		case "unstageCard":
+			var msg stageCardMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unstageCard", c.ID, msg.CardIndex)
+
+		case "ready":
+			var msg readyMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, 0)
+
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
 			c.MatchObj.SendPublishedState(c.ID)

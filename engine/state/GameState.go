@@ -8,7 +8,7 @@ type GameState struct {
 	UpdateID  int
 	Timestamp time.Time // time the state is set for
 
-	Phase int // what phase the game is in (0: pre-match, 1: draw hands, 2: board setup, 3: play, 4: game end)
+	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
 	// card states
 	Cards []Card

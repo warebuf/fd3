@@ -51,8 +51,6 @@ func (match *Match) handleDuePQEvents() {
 
 		heap.Pop(&match.EventPQueue) // pop the event
 
-		//log.Print(state.DebugReactionPQ(&match.GameState.ReactionPQ))
-
 		// handle the event
 		switch next.Type {
 		case "Effect":
@@ -73,41 +71,136 @@ func (match *Match) handleDuePQEvents() {
 		case "Input":
 			ie := next.Event.(*InputEvent)
 
-			// TODO: notably there is little to no validation rn
+			switch match.GameState.Phase {
 
-			// if phase is not 2 or greater, do not accept inputs (maybe you can do this earlier, not sure)
-			if match.GameState.Phase != 2 {
+			case 2: // board setup
+				switch ie.Type {
+
+				case "stageCard":
+					cardIndex := ie.CardIndex
+					teamIdx := ie.TeamIdx
+
+					if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
+						continue
+					}
+					card := match.GameState.Cards[cardIndex]
+					if card.Zone != state.ZoneHand || card.Team != teamIdx {
+						continue
+					}
+
+					handIndex := -1
+					for i, ci := range match.GameState.Hand[teamIdx] {
+						if ci == cardIndex {
+							handIndex = i
+							break
+						}
+					}
+					if handIndex < 0 {
+						continue
+					}
+
+					// move from hand to staged
+					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx][:handIndex], match.GameState.Hand[teamIdx][handIndex+1:]...)
+					match.StagedCards[teamIdx] = append(match.StagedCards[teamIdx], cardIndex)
+					match.GameState.Cards[cardIndex].Zone = state.ZoneSetup
+
+					// publish updated state
+					match.GameState.UpdateID = match.NextUpdateID
+					match.NextUpdateID++
+					match.PublishedState = state.DeepCopyGameState(match.GameState)
+					match.BroadcastPublishedState()
+
+				case "unstageCard":
+					cardIndex := ie.CardIndex
+					teamIdx := ie.TeamIdx
+
+					if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
+						continue
+					}
+					card := match.GameState.Cards[cardIndex]
+					if card.Zone != state.ZoneSetup || card.Team != teamIdx {
+						continue
+					}
+
+					stageIndex := -1
+					for i, ci := range match.StagedCards[teamIdx] {
+						if ci == cardIndex {
+							stageIndex = i
+							break
+						}
+					}
+					if stageIndex < 0 {
+						continue
+					}
+
+					// move from staged back to hand
+					match.StagedCards[teamIdx] = append(match.StagedCards[teamIdx][:stageIndex], match.StagedCards[teamIdx][stageIndex+1:]...)
+					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
+					match.GameState.Cards[cardIndex].Zone = state.ZoneHand
+
+					// publish updated state
+					match.GameState.UpdateID = match.NextUpdateID
+					match.NextUpdateID++
+					match.PublishedState = state.DeepCopyGameState(match.GameState)
+					match.BroadcastPublishedState()
+
+				case "ready":
+					teamIdx := ie.TeamIdx
+					if teamIdx < 0 || teamIdx >= len(match.Ready) {
+						continue
+					}
+					match.Ready[teamIdx] = true
+
+					allReady := true
+					for _, r := range match.Ready {
+						if !r {
+							allReady = false
+							break
+						}
+					}
+					if allReady {
+						PushNewPhase(match, time.Now().UnixMilli(), 3)
+					}
+				}
+
+			case 4: // play
+				if ie.Type != "hand" {
+					continue
+				}
+
+				oldLogsSize := len(match.EventLog)
+				randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+
+				if len(match.EventLog) > oldLogsSize {
+					match.NextUpdateID += 1
+
+					match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
+					match.GameState.UpdateID = match.NextUpdateID
+					match.NextUpdateID += 1
+					match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+					match.BroadcastLogs(oldLogsSize)
+				}
+
+			default:
 				continue
-			}
-
-			// declare the card and queue the effects
-			oldLogsSize := len(match.EventLog)
-			randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
-
-			if len(match.EventLog) > oldLogsSize {
-				// if successful, increment the PQ node count, account for the declaration log
-				match.NextUpdateID += 1
-
-				// update published game state with any applied effects
-				match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
-				match.GameState.UpdateID = match.NextUpdateID
-				match.NextUpdateID += 1
-				match.PublishedState = state.DeepCopyGameState(match.GameState)
-
-				// broadcast any new logs
-				match.BroadcastLogs(oldLogsSize)
 			}
 
 		case "NewPhase":
 
 			newPhase := next.Event.(*NewPhaseEvent)
 
-			if newPhase.Phase == 1 { // entering draw phase
+			// skip stale phase events (e.g. 90s board setup timer after early ready-up)
+			if match.GameState.Phase >= newPhase.Phase {
+				continue
+			}
 
-				// saving the old log count for broadcasting the new logs
+			switch newPhase.Phase {
+
+			case 1: // entering draw phase
+
 				oldLogsSize := len(match.EventLog)
 
-				// increment the phase
 				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 				match.GameState.Phase = 1
 				match.EventLog = append(match.EventLog, logs.PhaseLog{
@@ -118,61 +211,126 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
-				// schedule the draw event
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500)  // 0.5 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+750)  // 0.75 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1000) // 1.0 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1250) // 1.25 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1500) // 1.5 seconds from now
+				// schedule draws: 5 cards per team, staggered 250ms apart
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+750)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1000)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1250)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1500)
 
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000) // 2.0 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2250) // 2.25 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2500) // 2.5 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2750) // 2.75 seconds from now
-				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+3000) // 3.0 seconds from now
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2250)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2500)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2750)
+				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+3000)
 
-				// schedule phase 2 10s from now
+				// enter board setup 5 seconds after draw starts
 				PushNewPhase(match, phaseChangeTimestamp+5000, 2)
 
-				// update the game state, published state
 				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
-				// broadcast new logs
 				match.BroadcastLogs(oldLogsSize)
 
-			} else if newPhase.Phase == 2 { // entering game start
+			case 2: // entering board setup
 
 				oldLogsSize := len(match.EventLog)
 
-				// increment the phase
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 				match.GameState.Phase = 2
 				match.EventLog = append(match.EventLog, logs.PhaseLog{
 					UpdateID:  match.NextUpdateID,
-					Timestamp: newPhase.T.UnixMilli() + constants.LEAD,
+					Timestamp: phaseChangeTimestamp,
 					Type:      logs.Phase,
 					Phase:     2,
 				})
 				match.NextUpdateID += 1
 
-				// schedule EventPQ effects
+				// initialize staged cards and ready flags
+				numTeams := len(match.GameState.Hand)
+				match.StagedCards = make([][]int, numTeams)
+				for i := range match.StagedCards {
+					match.StagedCards[i] = []int{}
+				}
+				match.Ready = make([]bool, numTeams)
+
+				// schedule reveal in 90 seconds; can be triggered early by both players readying up
+				PushNewPhase(match, phaseChangeTimestamp+90000, 3)
+
+				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+
+			case 3: // entering reveal
+
+				oldLogsSize := len(match.EventLog)
+
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 3
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     3,
+				})
+				match.NextUpdateID += 1
+
+				// move all staged cards back to hand, then declare them simultaneously
+				revealTime := phaseChangeTimestamp + 500
+				for teamIdx := range match.StagedCards {
+					for _, cardIndex := range match.StagedCards[teamIdx] {
+						match.GameState.Cards[cardIndex].Zone = state.ZoneHand
+						match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
+					}
+				}
+				for teamIdx := range match.StagedCards {
+					for _, cardIndex := range match.StagedCards[teamIdx] {
+						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
+					}
+					match.StagedCards[teamIdx] = nil
+				}
+				match.Ready = make([]bool, len(match.Ready))
+
+				// schedule play phase after reveal effects resolve
+				PushNewPhase(match, revealTime+int64(constants.REACTION_WINDOW)+2000, 4)
+
+				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+
+			case 4: // entering play
+
+				oldLogsSize := len(match.EventLog)
+
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 4
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     4,
+				})
+				match.NextUpdateID += 1
+
 				randomFunctions.InitBoard(match.GameState)
 
-				// update the game state, published state
 				match.GameState.Timestamp = newPhase.T.Add(constants.LEAD * time.Millisecond)
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
-				// broadcast new logs
 				match.BroadcastLogs(oldLogsSize)
 
-			} else if newPhase.Phase == 3 { // entering game over
-				// end game (not sure what this requires tbh)
-				// update the game state, published state
-				// broadcast new logs
+			case 5: // entering game over
+				// TODO: end game logic
 			}
 		}
 
