@@ -151,6 +151,16 @@ func (match *Match) handleDuePQEvents() {
 					}
 					match.GameState.Ready[teamIdx] = true
 
+					oldLogsSize := len(match.EventLog)
+					match.EventLog = append(match.EventLog, logs.ReadyLog{
+						Timestamp: ie.T.UnixMilli(),
+						UpdateID:  match.NextUpdateID,
+						Type:      logs.Ready,
+						TeamIndex: teamIdx,
+					})
+					match.NextUpdateID++
+					match.BroadcastLogs(oldLogsSize)
+
 					allReady := true
 					for _, r := range match.GameState.Ready {
 						if !r {

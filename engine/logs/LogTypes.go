@@ -15,6 +15,7 @@ const (
 	GainMana
 	SpendMana
 	Attack
+	Ready
 )
 
 type PhaseLog struct {
@@ -99,4 +100,11 @@ type AttackLog struct {
 	TargetTeamIndex int
 	TargetCardIndex int // -1 if targeting a structure
 	Damage          int
+}
+
+type ReadyLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	TeamIndex int
 }
