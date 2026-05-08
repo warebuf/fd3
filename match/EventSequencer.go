@@ -300,9 +300,19 @@ func (match *Match) handleDuePQEvents() {
 					})
 				}
 
-				// declare in AutoSummon order
-				for teamIdx, staged := range stagedByTeam {
-					for _, cardIndex := range staged {
+				// declare in AutoSummon order, alternating between teams
+				maxStaged := 0
+				for _, staged := range stagedByTeam {
+					if len(staged) > maxStaged {
+						maxStaged = len(staged)
+					}
+				}
+				for i := 0; i < maxStaged; i++ {
+					for teamIdx, staged := range stagedByTeam {
+						if i >= len(staged) {
+							continue
+						}
+						cardIndex := staged[i]
 						match.GameState.Cards[cardIndex].AutoSummon = 0
 						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
 					}
