@@ -307,6 +307,8 @@ func (match *Match) handleDuePQEvents() {
 						maxStaged = len(staged)
 					}
 				}
+				declareTime := revealTime
+				const declareDelay = int64(800) // ms between each auto-summon declaration
 				for i := 0; i < maxStaged; i++ {
 					for teamIdx, staged := range stagedByTeam {
 						if i >= len(staged) {
@@ -314,13 +316,14 @@ func (match *Match) handleDuePQEvents() {
 						}
 						cardIndex := staged[i]
 						match.GameState.Cards[cardIndex].AutoSummon = 0
-						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
+						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
+						declareTime += declareDelay
 					}
 				}
 				match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
 				// schedule play phase after reveal effects resolve
-				PushNewPhase(match, revealTime+int64(constants.REACTION_WINDOW)+2000, 4)
+				PushNewPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
 
 				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
 				match.GameState.UpdateID = match.NextUpdateID
