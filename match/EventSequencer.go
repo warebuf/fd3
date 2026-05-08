@@ -234,8 +234,8 @@ func (match *Match) handleDuePQEvents() {
 				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2750)
 				randomFunctions.ScheduleDrawCard(&match.GameState.ReactionPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+3000)
 
-				// enter board setup 5 seconds after draw starts
-				PushNewPhase(match, phaseChangeTimestamp+5000, 2)
+				// enter board setup after draws complete
+				PushNewPhase(match, phaseChangeTimestamp+3500, 2)
 
 				match.GameState.Timestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
 				match.GameState.UpdateID = match.NextUpdateID
