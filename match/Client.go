@@ -82,19 +82,12 @@ func (c *Client) Read() {
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "hand", c.ID, msg.CardIndex)
 
-		case "stageCard":
-			var msg stageCardMessage
+		case "clearAutoSummon":
+			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "stageCard", c.ID, msg.CardIndex)
-
-		case "unstageCard":
-			var msg stageCardMessage
-			if err := strictUnmarshal(data, &msg); err != nil {
-				continue
-			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unstageCard", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "clearAutoSummon", c.ID, msg.CardIndex)
 
 		case "ready":
 			var msg readyMessage

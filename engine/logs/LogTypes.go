@@ -16,6 +16,8 @@ const (
 	SpendMana
 	Attack
 	Ready
+	SetAutoSummon
+	ClearAutoSummon
 )
 
 type PhaseLog struct {
@@ -107,4 +109,13 @@ type ReadyLog struct {
 	UpdateID  int
 	Type      LogType
 	TeamIndex int
+}
+
+type AutoSummonLog struct {
+	Timestamp     int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
+	AutoSummonIdx int // 0 when cleared, assigned order when set
 }

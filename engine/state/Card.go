@@ -13,7 +13,6 @@ const (
 	ZoneField
 	ZoneGraveyard
 	ZoneTemporaryUnaccessible
-	ZoneSetup // staged during board setup, hidden from opponent until reveal
 )
 
 type Card struct {

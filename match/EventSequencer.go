@@ -77,7 +77,7 @@ func (match *Match) handleDuePQEvents() {
 			case 2: // board setup
 				switch ie.Type {
 
-				case "stageCard":
+				case "hand":
 					cardIndex := ie.CardIndex
 					teamIdx := ie.TeamIdx
 
@@ -85,39 +85,32 @@ func (match *Match) handleDuePQEvents() {
 						continue
 					}
 					card := match.GameState.Cards[cardIndex]
-					if card.Zone != state.ZoneHand || card.Team != teamIdx {
+					if card.Zone != state.ZoneHand || card.Team != teamIdx || card.AutoSummon != 0 {
 						continue
 					}
 
-					handIndex := -1
-					for i, ci := range match.GameState.Hand[teamIdx] {
-						if ci == cardIndex {
-							handIndex = i
-							break
-						}
-					}
-					if handIndex < 0 {
-						continue
-					}
-
-					// move from hand to staged; assign next AutoSummon order for this team
 					nextAutoSummon := 1
 					for _, c := range match.GameState.Cards {
-						if c.Team == teamIdx && c.Zone == state.ZoneSetup && c.AutoSummon >= nextAutoSummon {
+						if c.Team == teamIdx && c.AutoSummon >= nextAutoSummon {
 							nextAutoSummon = c.AutoSummon + 1
 						}
 					}
-					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx][:handIndex], match.GameState.Hand[teamIdx][handIndex+1:]...)
 					match.GameState.Cards[cardIndex].AutoSummon = nextAutoSummon
-					match.GameState.Cards[cardIndex].Zone = state.ZoneSetup
 
-					// publish updated state
-					match.GameState.UpdateID = match.NextUpdateID
+					oldLogsSize := len(match.EventLog)
+					match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+						Timestamp:     ie.T.UnixMilli(),
+						UpdateID:      match.NextUpdateID,
+						Type:          logs.SetAutoSummon,
+						TeamIndex:     teamIdx,
+						CardIndex:     cardIndex,
+						AutoSummonIdx: nextAutoSummon,
+					})
 					match.NextUpdateID++
 					match.PublishedState = state.DeepCopyGameState(match.GameState)
-					match.BroadcastPublishedState()
+					match.BroadcastLogs(oldLogsSize)
 
-				case "unstageCard":
+				case "clearAutoSummon":
 					cardIndex := ie.CardIndex
 					teamIdx := ie.TeamIdx
 
@@ -125,20 +118,30 @@ func (match *Match) handleDuePQEvents() {
 						continue
 					}
 					card := match.GameState.Cards[cardIndex]
-					if card.Zone != state.ZoneSetup || card.Team != teamIdx {
+					if card.Zone != state.ZoneHand || card.Team != teamIdx || card.AutoSummon == 0 {
 						continue
 					}
 
-					// move from staged back to hand
-					match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
+					cleared := match.GameState.Cards[cardIndex].AutoSummon
 					match.GameState.Cards[cardIndex].AutoSummon = 0
-					match.GameState.Cards[cardIndex].Zone = state.ZoneHand
+					for i := range match.GameState.Cards {
+						if match.GameState.Cards[i].Team == teamIdx && match.GameState.Cards[i].AutoSummon > cleared {
+							match.GameState.Cards[i].AutoSummon--
+						}
+					}
 
-					// publish updated state
-					match.GameState.UpdateID = match.NextUpdateID
+					oldLogsSize := len(match.EventLog)
+					match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+						Timestamp:     ie.T.UnixMilli(),
+						UpdateID:      match.NextUpdateID,
+						Type:          logs.ClearAutoSummon,
+						TeamIndex:     teamIdx,
+						CardIndex:     cardIndex,
+						AutoSummonIdx: 0,
+					})
 					match.NextUpdateID++
 					match.PublishedState = state.DeepCopyGameState(match.GameState)
-					match.BroadcastPublishedState()
+					match.BroadcastLogs(oldLogsSize)
 
 				case "ready":
 					teamIdx := ie.TeamIdx
@@ -287,7 +290,7 @@ func (match *Match) handleDuePQEvents() {
 				numTeams := len(match.GameState.Hand)
 				stagedByTeam := make([][]int, numTeams)
 				for i, c := range match.GameState.Cards {
-					if c.Zone == state.ZoneSetup {
+					if c.AutoSummon > 0 {
 						stagedByTeam[c.Team] = append(stagedByTeam[c.Team], i)
 					}
 				}
@@ -297,18 +300,10 @@ func (match *Match) handleDuePQEvents() {
 					})
 				}
 
-				// move all staged cards back to hand
-				for teamIdx, staged := range stagedByTeam {
-					for _, cardIndex := range staged {
-						match.GameState.Cards[cardIndex].Zone = state.ZoneHand
-						match.GameState.Cards[cardIndex].AutoSummon = 0
-						match.GameState.Hand[teamIdx] = append(match.GameState.Hand[teamIdx], cardIndex)
-					}
-				}
-
 				// declare in AutoSummon order
 				for teamIdx, staged := range stagedByTeam {
 					for _, cardIndex := range staged {
+						match.GameState.Cards[cardIndex].AutoSummon = 0
 						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, revealTime)
 					}
 				}
