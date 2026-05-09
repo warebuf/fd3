@@ -1,125 +1,177 @@
-# SimTime Refactor
+# Pause / SimTime Refactor
 
 ## Goal
 
-Replace wall-clock time (`time.Now()`) with a simulation clock (`gs.SimTime`) so chain reactions resolve immediately rather than waiting for real time to pass.
+Allow the simulation to be paused — for a player taking a break, or to hold open a reaction window after a card play. When paused, no events resolve. When unpaused, the simulation resumes exactly where it left off, and the reaction window extends by however long the pause lasted.
+
+---
 
 ## The Core Idea
 
-Right now, chain PopTimes are absolute Unix ms timestamps, and `ManageStackPQ` only processes a chain when `time.Now()` has caught up to its `PopTime`. This means the server literally waits 4 real seconds (REACTION_WINDOW) before resolving a card play.
+**SimTime = `wallTime - PauseOffset`**
 
-With SimTime, `gs.SimTime` is the only clock. The server advances it explicitly, and `ManageStackPQ` processes everything with `PopTime <= gs.SimTime` immediately.
+All PopTimes and log timestamps are in SimTime space, not wall-clock time.
+The server checks `PopTime <= simTime` instead of `PopTime <= time.Now()`.
+The frontend checks `PopTime <= frontendSimTime` instead of `PopTime <= wallTime`.
 
----
+Converting SimTime → WallTime: `wallTime = simTime + PauseOffset`
 
-## Changes
-
-### 1. `engine/state/GameState.go`
-
-Add `SimTime int64` to the `GameState` struct:
-
-```go
-type GameState struct {
-    SimTime   int64      // current simulation time in Unix ms
-    UpdateID  int
-    Timestamp time.Time
-    // ... rest unchanged
-}
-```
-
-Also add `SimTime` to `DeepCopyGameState`:
-```go
-newState := &GameState{
-    SimTime:   prevState.SimTime,
-    UpdateID:  prevState.UpdateID,
-    // ... rest unchanged
-}
-```
+SimTime advances in lockstep with wallTime, lagging behind by PauseOffset.
+When paused, PauseOffset grows at the same rate as wallTime — so SimTime stays frozen.
+When unpaused, PauseOffset stops growing — so SimTime resumes advancing from where it froze.
+Everything scheduled against SimTime naturally waits out any pause.
 
 ---
 
-### 2. `engine/randomFunctions/ManageStackPQ.go`
+## State
 
-Change the due-check from `time.Now()` to `gs.SimTime`:
+### `GameState`
+
+```go
+IsPaused    bool   // whether the simulation is currently paused
+PauseStart  int64  // wall-clock ms when the current pause began
+PauseOffset int64  // total accumulated paused ms (updated on each unpause)
+```
+
+All three live on `GameState`. Clients use `IsPaused` and `PauseOffset` to maintain their own SimTime
+
+Also add all three to `DeepCopyGameState`.
+
+### `SimTime()` — free function
+
+```go
+func SimTime(gs *state.GameState) int64 {
+    if gs.IsPaused {
+        return gs.PauseStart - gs.PauseOffset  // frozen
+    }
+    return time.Now().UnixMilli() - gs.PauseOffset
+}
+```
+
+---
+
+## Pause / Unpause
+
+```go
+func (m *Match) Pause() {
+    if m.GameState.IsPaused {
+        return
+    }
+    m.GameState.IsPaused = true
+    m.GameState.PauseStart = time.Now().UnixMilli()
+    m.stopPQTimer()
+    // append PauseLog, broadcast
+}
+
+func (m *Match) Unpause() {
+    if !m.GameState.IsPaused {
+        return
+    }
+    m.GameState.PauseOffset += time.Now().UnixMilli() - m.GameState.PauseStart
+    m.GameState.IsPaused = false
+    scheduleStackPQ(m)
+    m.setPQTimer()
+    // append ResumeLog, broadcast
+}
+```
+
+---
+
+## Server Changes
+
+### `ManageStackPQ` — add simTime parameter
 
 ```go
 // Before:
-if earliestStack.PopTime > time.Now().UnixMilli() {
-    return
-}
+func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
+    if earliestStack.PopTime > time.Now().UnixMilli() {
 
 // After:
-if earliestStack.PopTime > gs.SimTime {
-    return
-}
+func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int, simTime int64) {
+    if earliestStack.PopTime > simTime {
 ```
 
----
+SimTime is not stored on `GameState` — computed at the call site and passed in.
 
-### 3. `engine/randomFunctions/ScheduleDeclareCard.go`
+### Scheduling call sites — use SimTime instead of wallTime
 
-Change `scheduleDeclareCardEffects` to base PopTimes on `gs.SimTime` instead of the `popTime` parameter:
+Anywhere a PopTime or log timestamp is currently set from `time.Now()` or a raw wall-clock `popTime`, switch to `SimTime(gs)`:
 
 ```go
-// Before (in scheduleDeclareCardEffects):
-PopTime: popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+// Before (Phase 4 handler):
+randomFunctions.ScheduleDeclareCard(..., ie.T.UnixMilli())
 
 // After:
-PopTime: gs.SimTime + constants.REACTION_WINDOW,
+randomFunctions.ScheduleDeclareCard(..., SimTime(match.GameState))
 ```
 
-Same for the ChainStep's `StartTime`, `PopTime`, `OccurTime` — base them on `gs.SimTime`.
+Same applies inside `scheduleDeclareCardEffects`, `scheduleRecurringAbilities`, and any other function that stamps a PopTime or log timestamp.
 
-`ScheduleDeclareCard` needs to accept `gs *state.GameState` if it doesn't already, so it can read `gs.SimTime`.
+### Effect handler in `EventSequencer`
 
----
-
-### 4. `match/EventSequencer.go` — Effect event handler
-
-Set `gs.SimTime` from wall clock before calling `ManageStackPQ`. This keeps recurring abilities working via the real-time timer:
+Compute SimTime and pass it in. Skip if paused.
 
 ```go
 case "Effect":
-    oldLogsSize := len(match.EventLog)
-    match.GameState.SimTime = time.Now().UnixMilli()  // ADD THIS
-    randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
+    if match.GameState.IsPaused {
+        continue
+    }
+    randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID, SimTime(match.GameState))
     // ... rest unchanged
 ```
 
----
+### `scheduleStackPQ` — convert SimTime PopTime to WallTime for the timer
 
-### 5. `match/EventSequencer.go` — Phase 4 card play handler
+The Effect timer fires in wall time, but PopTimes are now SimTime. To convert:
 
-After `ScheduleDeclareCard`, advance SimTime by REACTION_WINDOW and call `ManageStackPQ` inline so the chain resolves immediately (no background wait):
+```
+wallTime = simTime + PauseOffset
+```
+
+So the timer should fire at `PopTime + PauseOffset`:
 
 ```go
-case 4: // play
-    if ie.Type != "hand" {
-        continue
-    }
-    oldLogsSize := len(match.EventLog)
+// Before:
+earliest := time.UnixMilli(earliestStack.PopTime)
 
-    match.GameState.SimTime = ie.T.UnixMilli()  // set sim clock to "now"
-    randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
-
-    if len(match.EventLog) > oldLogsSize {
-        match.NextUpdateID += 1
-
-        match.GameState.SimTime = ie.T.UnixMilli() + constants.REACTION_WINDOW  // skip ahead — resolve immediately
-        randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
-
-        match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
-        match.GameState.UpdateID = match.NextUpdateID
-        match.NextUpdateID += 1
-        match.PublishedState = state.DeepCopyGameState(match.GameState)
-        match.BroadcastLogs(oldLogsSize)
-    }
+// After:
+earliest := time.UnixMilli(earliestStack.PopTime + match.GameState.PauseOffset)
 ```
+
+Example: card played when PauseOffset = 3000ms (3s of prior pauses). PopTime = SimTime + REACTION_WINDOW = (wallTime - 3000) + 4000. Timer fires at PopTime + 3000 = wallTime + 4000 — exactly 4 seconds from now in wall time. ✓
+
+On unpause, `scheduleStackPQ` is called again with the updated PauseOffset, so the timer always reflects the current accumulated pause.
+
+---
+
+## Frontend
+
+The frontend maintains its own SimTime:
+
+```
+frontendSimTime = wallTime - totalPausedTime
+```
+
+- **PauseLog received**: record `pauseStart = wallTime`
+- **ResumeLog received**: `totalPausedTime += wallTime - pauseStart`
+
+All log timestamps are SimTime-based. To schedule an animation the frontend converts:
+
+```
+wallAnimationTime = logTimestamp + totalPausedTime
+```
+
+When paused, `totalPausedTime` grows, so `wallAnimationTime` shifts forward automatically. No timer-shifting needed.
 
 ---
 
 ## What stays the same
 
-- The Effect timer + `scheduleStackPQ` mechanism still exists and handles **recurring abilities** (they fire in real-time via the timer, which sets `SimTime = time.Now()`)
-- Log timestamps are unchanged — the client still animates events spread across the reaction window
-- The server just no longer waits for real time to pass for card-play resolutions
+- The REACTION_WINDOW constant and all scheduling logic are unchanged
+- Recurring abilities still fire in SimTime, extended by any pause duration
+- Phase 3 auto-summon staggering is unaffected
+
+## What gets wired up later
+
+- A "confirm / pass priority" client message that calls `Unpause()` early
+- Manual pause/unpause from a client UI

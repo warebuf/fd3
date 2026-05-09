@@ -4,7 +4,6 @@ import (
 	"container/heap"
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
