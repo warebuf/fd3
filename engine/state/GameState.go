@@ -27,7 +27,7 @@ type GameState struct {
 	Ready      []bool      // per team, whether the player has readied up
 }
 
-func (gs *GameState) Mode() int {
+func (gs *GameState) GetPauseMode() int {
 	if gs.PauseStack[0] != 0 {
 		return 0
 	}

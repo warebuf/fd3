@@ -82,6 +82,10 @@ func (match *Match) handleDuePQEvents() {
 
 		case "PauseEnd":
 
+			pauseEndEvent := next.Event.(*PauseEndEvent)
+			currentPauseMode := match.GameState.GetPauseMode()
+			match.UpdatePauseState(currentPauseMode, true, pauseEndEvent.T.UnixMilli())
+
 		}
 
 	}
@@ -90,113 +94,88 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-// if isEnd is false, we are starting a new PauseState
-func (match *Match) UpdatePauseState(PauseState int, isEnd bool) {
-
-	// for the pause state we are exiting
-
-	// if the pause state is 3: simulating
-	// remove the simulationPQ item from EventPQ
-	// there might be more items we remove here? idk
-
-	// if the pause state is 2: simulation pause
-	// increment the correct offsets
-	// remove the Chain item from EventPQ
-
-	// if the pause state is 1: animation pause
-	// increment the correct offsets
-	// remove the PauseEnd item to EventPQ if it exists
-
-	// if the pause state is 0: full pause
-	// increment the correct offsets
-	// remove the PauseEnd item to EventPQ if it exists
-
-	// for the pause state we are entering
-
-	// if the pause state is 3: simulating
-	// add the simulationPQ item from EventPQ
-
-	// if the pause state is 2: simulation pause
-	// update the pause state related members in game state
-	// add the Chain item from EventPQ
-
-	// if the pause state is 1: animation pause
-	// update the pause state related members in game state
-	// add a PauseEnd item to EventPQ
-
-	// if the pause state is 0: full pause
-	// increment the correct offsets
-	// add a PauseEnd item to EventPQ
-
-}
-
 // UpdatePauseState handles entering or exiting a pause state.
 // isEnd=true: exiting pauseState. isEnd=false: entering pauseState.
-// endTime is the wall ms when this pause should auto-end (only used for states 0 and 1).
+// endTime is the wall ms when this pause should auto-end (only used for exiting animation pause or full pause).
 func (match *Match) UpdatePauseState(pauseState int, isEnd bool, endTime int64) {
 	now := time.Now().UnixMilli()
 	gs := match.GameState
 
+	var startPauseState int
+	var endPauseState int
+
 	if isEnd {
-		switch pauseState {
-		case 3: // simulating
-			if match.EarliestSimItem != nil {
-				match.EventPQueue.Remove(match.EarliestSimItem)
-				match.EarliestSimItem = nil
-			}
+		startPauseState = pauseState
 
-		case 2: // sim pause
-			if gs.PauseStack[2] != 0 {
-				gs.SimPauseOffset += now - gs.PauseStack[2]
-				gs.PauseStack[2] = 0
-			}
-			if match.ChainItem != nil {
-				match.EventPQueue.Remove(match.ChainItem)
-				match.ChainItem = nil
-			}
-
-		case 1: // animation pause
-			if gs.PauseStack[1] != 0 {
-				gs.FullPauseOffset += now - gs.PauseStack[1]
-				gs.PauseStack[1] = 0
-			}
-			if match.PauseEndItem != nil {
-				match.EventPQueue.Remove(match.PauseEndItem)
-				match.PauseEndItem = nil
-			}
-
-		case 0: // full pause
-			if gs.PauseStack[0] != 0 {
-				gs.FullPauseOffset += now - gs.PauseStack[0]
-				gs.PauseStack[0] = 0
-			}
-			if match.PauseEndItem != nil {
-				match.EventPQueue.Remove(match.PauseEndItem)
-				match.PauseEndItem = nil
+		// figure out the nextPause state we need to enter
+		endPauseState = 0
+		for i := startPauseState; i >= 0; i-- {
+			if gs.PauseStack[i] > 0 {
+				endPauseState = i
 			}
 		}
 	} else {
-		switch pauseState {
-		case 3: // simulating
-			scheduleSimulationItem(match)
+		startPauseState = gs.GetPauseMode()
+		endPauseState = pauseState
+	}
 
-		case 2: // sim pause
-			gs.PauseStack[2] = now
-			scheduleChainItem(match)
+	switch startPauseState {
+	case 3: // simulating
+		if match.EarliestSimItem != nil {
+			match.EventPQueue.Remove(match.EarliestSimItem)
+			match.EarliestSimItem = nil
+		}
 
-		case 1: // animation pause
-			gs.PauseStack[1] = now
-			ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
-			match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
+	case 2: // sim pause
+		if gs.PauseStack[2] != 0 {
+			gs.SimPauseOffset += now - gs.PauseStack[2]
+			gs.PauseStack[2] = 0
+		}
+		if match.ChainItem != nil {
+			match.EventPQueue.Remove(match.ChainItem)
+			match.ChainItem = nil
+		}
 
-		case 0: // full pause
-			gs.PauseStack[0] = now
-			ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
-			match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
+	case 1: // animation pause
+		if gs.PauseStack[1] != 0 {
+			gs.FullPauseOffset += now - gs.PauseStack[1]
+			gs.PauseStack[1] = 0
+		}
+		if match.PauseEndItem != nil {
+			match.EventPQueue.Remove(match.PauseEndItem)
+			match.PauseEndItem = nil
+		}
+
+	case 0: // full pause
+		if gs.PauseStack[0] != 0 {
+			gs.FullPauseOffset += now - gs.PauseStack[0]
+			gs.PauseStack[0] = 0
+		}
+		if match.PauseEndItem != nil {
+			match.EventPQueue.Remove(match.PauseEndItem)
+			match.PauseEndItem = nil
 		}
 	}
 
-	match.setPQTimer()
+	switch endPauseState {
+	case 3: // simulating
+		scheduleSimulationItem(match)
+
+	case 2: // sim pause
+		gs.PauseStack[2] = now
+		scheduleChainItem(match)
+
+	case 1: // animation pause
+		gs.PauseStack[1] = now
+		ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
+		match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
+
+	case 0: // full pause
+		gs.PauseStack[0] = now
+		ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
+		match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
+	}
+
 }
 
 func PushNewPhase(match *Match, t int64, phase int) {
