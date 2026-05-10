@@ -10,7 +10,7 @@ type SimulationItem struct {
 
 	StartTime int64 // (denominated in SimTime ms)
 	PopTime   int64 // the time we can apply to the game state (denominated in SimTime ms)
-	OccurTIme int64 // (denominated in SimTime ms)
+	OccurTime int64 // (denominated in SimTime ms)
 
 	CardID  int
 	Effects []Effect

@@ -15,7 +15,6 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 
 	gs := &state.GameState{
 		UpdateID: 0,
-		SimTime:  0,
 		Phase:    0,
 
 		Cards:      []state.Card{},

@@ -1,7 +1,8 @@
 package state
 
 type GameState struct {
-	UpdateID int
+	UpdateID      int
+	WallTimestamp int64 // wall clock time when this state was last updated
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
@@ -43,6 +44,7 @@ func (gs *GameState) GetPauseMode() int {
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
 		UpdateID:        prevState.UpdateID,
+		WallTimestamp:   prevState.WallTimestamp,
 		Phase:           prevState.Phase,
 		PauseStack:      prevState.PauseStack,
 		FullPauseOffset: prevState.FullPauseOffset,

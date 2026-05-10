@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -79,6 +80,50 @@ func (match *Match) handleDuePQEvents() {
 		case "NewPhase":
 
 			newPhase := next.Event.(*NewPhaseEvent)
+
+			// skip stale phase events (e.g. board setup timer after early ready-up)
+			if match.GameState.Phase >= newPhase.Phase {
+				continue
+			}
+
+			switch newPhase.Phase {
+			case 1: // entering draw phase
+				oldLogsSize := len(match.EventLog)
+
+				// change the phase
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 1
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     1,
+				})
+				match.NextUpdateID += 1
+
+				// schedule draws: 5 cards per team, staggered 250ms apart
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+750)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1000)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1250)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+1500)
+
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2250)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2500)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2750)
+				randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+3000)
+
+				// schedule board setup phase after draws complete
+				PushNewPhase(match, phaseChangeTimestamp+3500, 2)
+
+				match.GameState.WallTimestamp = time.Now().UnixMilli()
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+			}
 
 		case "PauseEnd":
 

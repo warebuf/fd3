@@ -23,14 +23,3 @@ note it seems like every effect has 2 questions:
 - Pause sim? Yes / No
 - Reaction window? Pre / Post / Yes / No
 
-LLM claims we need a 
-
-FullPauseOffset
-SimPauseOffset
-
-ChainTime
-SimTIme
-
-Chain stack
-PassivePQ
-
