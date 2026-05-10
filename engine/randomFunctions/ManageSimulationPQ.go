@@ -14,7 +14,7 @@ import (
 )
 
 // returns the number of new logs created
-func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
+func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	for {
 		// get the earliest stack
@@ -23,19 +23,21 @@ func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 			return
 		}
 
+		// calculate sim time
+		
+
 		// if earliestStack is not due
 		if earliestStack.PopTime > time.Now().UnixMilli() {
 			return
 		}
 
 		// handle the top effect
-		SimulateStack(gs, logList, UpdateID)
+		HandleLatestSimulate(gs, logList, UpdateID)
 	}
 
 }
 
-// handling it as a yugioh chain, could be a mtg stack though
-func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
+func HandleLatestSimulate(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	chainHeader := gs.SimulationPQ.Peek()
 

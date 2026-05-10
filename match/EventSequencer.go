@@ -56,12 +56,14 @@ func (match *Match) handleDuePQEvents() {
 
 		case "Effect":
 
+			effEv := next.Event.(*EffectEvent)
+
 			// simulate
 			oldLogsSize := len(match.EventLog)
 			randomFunctions.ManageStackPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 			// update the published state
-			match.GameState.Timestamp = next.Event.Timestamp().Add(constants.LEAD * time.Millisecond)
+			match.GameState.WallTimestamp = effEv.T.UnixMilli() + constants.LEAD
 			match.GameState.UpdateID = match.NextUpdateID
 			match.NextUpdateID += 1
 			match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -117,19 +119,22 @@ func (match *Match) handleDuePQEvents() {
 				// schedule board setup phase after draws complete
 				PushNewPhase(match, phaseChangeTimestamp+3500, 2)
 
-				match.GameState.WallTimestamp = time.Now().UnixMilli()
+				match.GameState.WallTimestamp = phaseChangeTimestamp
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
 
 				match.BroadcastLogs(oldLogsSize)
+
+				// schedule draw cards
+				scheduleSimulationItem(match)
 			}
 
 		case "PauseEnd":
 
 			pauseEndEvent := next.Event.(*PauseEndEvent)
 			currentPauseMode := match.GameState.GetPauseMode()
-			match.UpdatePauseState(currentPauseMode, true, pauseEndEvent.T.UnixMilli())
+			match.TransitionPauseState(currentPauseMode, true, pauseEndEvent.T.UnixMilli())
 
 		}
 
@@ -139,24 +144,25 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-// UpdatePauseState handles entering or exiting a pause state.
+// TransitionPauseState handles entering or exiting a pause state.
 // isEnd=true: exiting pauseState. isEnd=false: entering pauseState.
 // endTime is the wall ms when this pause should auto-end (only used for exiting animation pause or full pause).
-func (match *Match) UpdatePauseState(pauseState int, isEnd bool, endTime int64) {
+func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int64) {
 	now := time.Now().UnixMilli()
 	gs := match.GameState
 
+	// determine startPauseState and endPauseState
 	var startPauseState int
 	var endPauseState int
-
 	if isEnd {
 		startPauseState = pauseState
 
-		// figure out the nextPause state we need to enter
-		endPauseState = 0
-		for i := startPauseState; i >= 0; i-- {
+		// find the highest-priority pause still active after removing this one
+		endPauseState = 3 // default: return to simulating
+		for i := startPauseState + 1; i < 3; i++ {
 			if gs.PauseStack[i] > 0 {
 				endPauseState = i
+				break
 			}
 		}
 	} else {

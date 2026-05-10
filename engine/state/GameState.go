@@ -6,7 +6,6 @@ type GameState struct {
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
-	// note: not sure if this belongs in GameState or Match tbh
 	// 4 states: full pause, animation pause, simulation pause, simulating
 	PauseStack      [3]int64 // the wall ms when each pause started (full pause, animation pause, sim pause), 0 if not on.
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms

@@ -3,17 +3,18 @@ package randomFunctions
 import (
 	"container/heap"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, t int64) {
+func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, occurTime int64) {
 
 	// schedule the draw
 	item := &state.SimulationItem{
-		StartTime: t,
-		PopTime:   t,
-		OccurTime: t,
+		StartTime: occurTime,
+		PopTime:   occurTime - constants.LEAD,
+		OccurTime: occurTime,
 		CardID:    -1,
 		Effects:   []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
@@ -22,7 +23,7 @@ func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, tea
 	// add the scheduling log
 	*logList = append(*logList, logs.ScheduleChainLog{
 		UpdateID:  *UpdateID,
-		Timestamp: t,
+		Timestamp: occurTime,
 		Type:      logs.ScheduleChain,
 		ChainID:   item.SeqID,
 		Step:      *item,
