@@ -23,10 +23,11 @@ type Match struct {
 	InputEventChan chan *InputEvent
 
 	// EventPQ related
-	EventPQueue    EventPQ
-	EventPQTimer   *time.Timer
-	NextSeq        int
-	EarliestEffect *EventItem
+	EventPQueue     EventPQ
+	EventPQTimer    *time.Timer
+	EarliestSimItem *EventItem
+	ChainItem       *EventItem
+	PauseEndItem    *EventItem
 }
 
 // TODO: needs to be censored per client

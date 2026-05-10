@@ -101,7 +101,7 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			PopTime:    se.PopTime,
 			ChainSteps: []state.ChainStep{se},
 		}
-		heap.Push(&gs.ReactionPQ, s)
+		heap.Push(&gs.SimulationPQ, s)
 		*logList = append(*logList, logs.ScheduleChainLog{
 			UpdateID:  *UpdateID,
 			Timestamp: popTime + constants.LEAD,
@@ -135,7 +135,7 @@ func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *i
 			PopTime:    se.PopTime,
 			ChainSteps: []state.ChainStep{se},
 		}
-		heap.Push(&gs.ReactionPQ, s)
+		heap.Push(&gs.SimulationPQ, s)
 		*logList = append(*logList, logs.ScheduleChainLog{
 			UpdateID:  *UpdateID,
 			Timestamp: popTime + constants.LEAD,

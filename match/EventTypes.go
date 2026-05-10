@@ -29,3 +29,15 @@ type EffectEvent struct {
 }
 
 func (e *EffectEvent) Timestamp() time.Time { return e.T }
+
+type ChainEvent struct {
+	T time.Time
+}
+
+func (e *ChainEvent) Timestamp() time.Time { return e.T }
+
+type PauseEndEvent struct {
+	T time.Time
+}
+
+func (e *PauseEndEvent) Timestamp() time.Time { return e.T }

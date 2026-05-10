@@ -1,55 +1,70 @@
 package match
 
-// Priority Queue stuff
+import "container/heap"
 
 type EventItem struct {
 	Event Event
 	Type  string
-	seq   int64 // strictly increasing tie-breaker
-	Index int   // current heap index
+	seq   int64
+	Index int
 }
 
-type EventPQ []*EventItem
+type EventPQ struct {
+	items   []*EventItem
+	nextSeq int64
+}
 
-func (pq EventPQ) Len() int { return len(pq) }
+func (pq EventPQ) Len() int { return len(pq.items) }
 
 func (pq EventPQ) Less(i, j int) bool {
-	ti := pq[i].Event.Timestamp()
-	tj := pq[j].Event.Timestamp()
-
+	ti := pq.items[i].Event.Timestamp()
+	tj := pq.items[j].Event.Timestamp()
 	if ti.Equal(tj) {
-		return pq[i].seq < pq[j].seq
+		return pq.items[i].seq < pq.items[j].seq
 	}
 	return ti.Before(tj)
 }
 
 func (pq EventPQ) Swap(i, j int) {
-	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].Index = i
-	pq[j].Index = j
+	pq.items[i], pq.items[j] = pq.items[j], pq.items[i]
+	pq.items[i].Index = i
+	pq.items[j].Index = j
 }
 
 func (pq *EventPQ) Push(x any) {
 	item := x.(*EventItem)
-	item.Index = len(*pq)
-	*pq = append(*pq, item)
+	item.Index = len(pq.items)
+	pq.items = append(pq.items, item)
 }
 
 func (pq *EventPQ) Pop() any {
-	old := *pq
+	old := pq.items
 	n := len(old)
 	item := old[n-1]
-	old[n-1] = nil // avoid memory leak if needed
+	old[n-1] = nil
 	item.Index = -1
-	*pq = old[:n-1]
+	pq.items = old[:n-1]
 	return item
 }
 
-// Peek returns the earliest event without removing it.
-// Returns (nil, false) if empty.
-func (pq EventPQ) Peek() (*EventItem, bool) {
-	if len(pq) == 0 {
-		return nil, false
+func (pq *EventPQ) Enqueue(ev Event, typ string) *EventItem {
+	item := &EventItem{Event: ev, Type: typ, seq: pq.nextSeq}
+	pq.nextSeq++
+	heap.Push(pq, item)
+	return item
+}
+
+func (pq *EventPQ) Remove(item *EventItem) {
+	heap.Remove(pq, item.Index)
+}
+
+func (pq *EventPQ) Fix(item *EventItem) {
+	heap.Fix(pq, item.Index)
+}
+
+func (pq *EventPQ) Peek() *EventItem {
+	if len(pq.items) == 0 {
+		return nil
 	}
-	return pq[0], true
+	return pq.items[0]
 }

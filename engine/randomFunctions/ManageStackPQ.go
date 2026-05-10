@@ -18,7 +18,7 @@ func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	for {
 		// get the earliest stack
-		earliestStack := gs.ReactionPQ.Peek()
+		earliestStack := gs.SimulationPQ.Peek()
 		if earliestStack == nil {
 			return
 		}
@@ -37,7 +37,7 @@ func ManageStackPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 // handling it as a yugioh chain, could be a mtg stack though
 func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
-	chainHeader := gs.ReactionPQ.Peek()
+	chainHeader := gs.SimulationPQ.Peek()
 
 	for len(chainHeader.ChainSteps) > 0 {
 		topStep := chainHeader.ChainSteps[len(chainHeader.ChainSteps)-1]
@@ -92,7 +92,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 					gs.Field[a] = []int{}
 				}
 
-				removedChainIDs := gs.ReactionPQ.RemoveChainsByCardIDs(destroyedIDs)
+				removedChainIDs := gs.SimulationPQ.RemoveChainsByCardIDs(destroyedIDs)
 				for _, chainID := range removedChainIDs {
 					*logList = append(*logList, logs.RemoveChainLog{
 						UpdateID:  *UpdateID,
@@ -166,7 +166,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 							gs.Cards[targetIdx].Zone = state.ZoneGraveyard
 							gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
 
-							removedChainIDs := gs.ReactionPQ.RemoveChainsByCardID(targetIdx)
+							removedChainIDs := gs.SimulationPQ.RemoveChainsByCardID(targetIdx)
 							for _, chainID := range removedChainIDs {
 								*logList = append(*logList, logs.RemoveChainLog{
 									UpdateID:  *UpdateID,
@@ -232,7 +232,7 @@ func SimulateStack(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	}
 
-	heap.Pop(&gs.ReactionPQ)
+	heap.Pop(&gs.SimulationPQ)
 	*logList = append(*logList, logs.RemoveChainLog{
 		UpdateID:  *UpdateID,
 		Timestamp: chainHeader.PopTime + constants.LEAD,
@@ -274,7 +274,7 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 			PopTime:    scheduledTime,
 			ChainSteps: []state.ChainStep{se},
 		}
-		heap.Push(&gs.ReactionPQ, s)
+		heap.Push(&gs.SimulationPQ, s)
 
 		// broadcast the new step to all clients
 		*logList = append(*logList, logs.ScheduleChainLog{

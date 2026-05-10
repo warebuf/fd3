@@ -55,7 +55,7 @@ type ScheduleChainLog struct {
 	UpdateID  int
 	Type      LogType
 	ChainID   int
-	Step      state.EffectItem
+	Step      state.SimulationItem
 }
 
 type RemoveChainLog struct {

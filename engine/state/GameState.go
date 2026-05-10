@@ -2,19 +2,14 @@ package state
 
 type GameState struct {
 	UpdateID int
-	SimTime  int64 // current sim time ms
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
-	// full pause: everything stops (player pause, animation pause)
-	IsFullPaused    bool
-	FullPauseStart  int64 // wall ms when current full pause began
-	FullPauseOffset int64 // total accumulated full-pause ms
-
-	// sim pause: passive effects freeze while interactive chain runs
-	IsSimPaused    bool
-	SimPauseStart  int64 // chain time ms when current sim pause began
-	SimPauseOffset int64 // total accumulated sim-pause ms (chain time units)
+	// note: not sure if this belongs in GameState or Match tbh
+	// 4 states: full pause, animation pause, simulation pause, simulating
+	PauseStack      [3]int64 // the wall ms when each pause started (full pause, animation pause, sim pause), 0 if not on.
+	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
+	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
 
 	// card states
 	Cards []Card
@@ -23,11 +18,8 @@ type GameState struct {
 	Field [][]int
 	Grave [][]int
 
-	// interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
-	Chain []ChainItem
-
-	// passive effects: summon windows, draws, recurring abilities; sim time PopTimes
-	ReactionPQ PriorityQueue
+	Chain        []ChainItem  // interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
+	SimulationPQ SimulationPQ // passive effects: summon windows, draws, recurring abilities; sim time PopTimes
 
 	// other states
 	Mana       []int       // per team
@@ -35,16 +27,25 @@ type GameState struct {
 	Ready      []bool      // per team, whether the player has readied up
 }
 
+func (gs *GameState) Mode() int {
+	if gs.PauseStack[0] != 0 {
+		return 0
+	}
+	if gs.PauseStack[1] != 0 {
+		return 1
+	}
+	if gs.PauseStack[2] != 0 {
+		return 2
+	}
+	return 3
+}
+
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
 		UpdateID:        prevState.UpdateID,
-		SimTime:         prevState.SimTime,
 		Phase:           prevState.Phase,
-		IsFullPaused:    prevState.IsFullPaused,
-		FullPauseStart:  prevState.FullPauseStart,
+		PauseStack:      prevState.PauseStack,
 		FullPauseOffset: prevState.FullPauseOffset,
-		IsSimPaused:     prevState.IsSimPaused,
-		SimPauseStart:   prevState.SimPauseStart,
 		SimPauseOffset:  prevState.SimPauseOffset,
 	}
 
@@ -107,23 +108,23 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		newState.Chain[i] = newItem
 	}
 
-	// ReactionPQ (passive effects)
-	newPQ := PriorityQueue{
-		total: prevState.ReactionPQ.total,
-		Items: make([]*EffectItem, len(prevState.ReactionPQ.Items)),
+	// SimulationPQ (passive effects)
+	newPQ := SimulationPQ{
+		total: prevState.SimulationPQ.total,
+		Items: make([]*SimulationItem, len(prevState.SimulationPQ.Items)),
 	}
-	for i, item := range prevState.ReactionPQ.Items {
-		newItem := &EffectItem{
-			EffectIndex: item.EffectIndex,
-			PopTime:     item.PopTime,
-			index:       item.index,
-			CardID:      item.CardID,
-			Effects:     make([]Effect, len(item.Effects)),
+	for i, item := range prevState.SimulationPQ.Items {
+		newItem := &SimulationItem{
+			SeqID:   item.SeqID,
+			PopTime: item.PopTime,
+			index:   item.index,
+			CardID:  item.CardID,
+			Effects: make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)
 		newPQ.Items[i] = newItem
 	}
-	newState.ReactionPQ = newPQ
+	newState.SimulationPQ = newPQ
 
 	return newState
 }
