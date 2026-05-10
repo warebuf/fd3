@@ -1,14 +1,20 @@
 package state
 
-import (
-	"time"
-)
-
 type GameState struct {
-	UpdateID  int
-	Timestamp time.Time // time the state is set for
+	UpdateID int
+	SimTime  int64 // current sim time ms
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
+
+	// full pause: everything stops (player pause, animation pause)
+	IsFullPaused    bool
+	FullPauseStart  int64 // wall ms when current full pause began
+	FullPauseOffset int64 // total accumulated full-pause ms
+
+	// sim pause: passive effects freeze while interactive chain runs
+	IsSimPaused    bool
+	SimPauseStart  int64 // chain time ms when current sim pause began
+	SimPauseOffset int64 // total accumulated sim-pause ms (chain time units)
 
 	// card states
 	Cards []Card
@@ -17,7 +23,10 @@ type GameState struct {
 	Field [][]int
 	Grave [][]int
 
-	// reaction state
+	// interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
+	Chain []ChainItem
+
+	// passive effects: summon windows, draws, recurring abilities; sim time PopTimes
 	ReactionPQ PriorityQueue
 
 	// other states
@@ -28,9 +37,15 @@ type GameState struct {
 
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		UpdateID:  prevState.UpdateID,
-		Timestamp: prevState.Timestamp,
-		Phase:     prevState.Phase,
+		UpdateID:        prevState.UpdateID,
+		SimTime:         prevState.SimTime,
+		Phase:           prevState.Phase,
+		IsFullPaused:    prevState.IsFullPaused,
+		FullPauseStart:  prevState.FullPauseStart,
+		FullPauseOffset: prevState.FullPauseOffset,
+		IsSimPaused:     prevState.IsSimPaused,
+		SimPauseStart:   prevState.SimPauseStart,
+		SimPauseOffset:  prevState.SimPauseOffset,
 	}
 
 	// Cards
@@ -77,34 +92,36 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Ready = make([]bool, len(prevState.Ready))
 	copy(newState.Ready, prevState.Ready)
 
-	// ReactionPQ
+	// Chain (interactive stack)
+	newState.Chain = make([]ChainItem, len(prevState.Chain))
+	for i, item := range prevState.Chain {
+		newItem := ChainItem{
+			Type:      item.Type,
+			CardID:    item.CardID,
+			StartTime: item.StartTime,
+			PopTime:   item.PopTime,
+			OccurTime: item.OccurTime,
+			Effects:   make([]Effect, len(item.Effects)),
+		}
+		copy(newItem.Effects, item.Effects)
+		newState.Chain[i] = newItem
+	}
+
+	// ReactionPQ (passive effects)
 	newPQ := PriorityQueue{
 		total: prevState.ReactionPQ.total,
-		Items: make([]*Chain, len(prevState.ReactionPQ.Items)),
+		Items: make([]*EffectItem, len(prevState.ReactionPQ.Items)),
 	}
-	for i, s := range prevState.ReactionPQ.Items {
-		newChain := &Chain{
-			ChainID:     s.ChainID,
-			EffectIndex: s.EffectIndex,
-			PopTime:     s.PopTime,
-			index:       s.index,
-			ChainSteps:  make([]ChainStep, len(s.ChainSteps)),
+	for i, item := range prevState.ReactionPQ.Items {
+		newItem := &EffectItem{
+			EffectIndex: item.EffectIndex,
+			PopTime:     item.PopTime,
+			index:       item.index,
+			CardID:      item.CardID,
+			Effects:     make([]Effect, len(item.Effects)),
 		}
-		for j, se := range s.ChainSteps {
-			newStep := ChainStep{
-				Type:            se.Type,
-				CardID:          se.CardID,
-				StartTime:       se.StartTime,
-				PopTime:         se.PopTime,
-				OccurTime:       se.OccurTime,
-				Effects:         make([]Effect, len(se.Effects)),
-				RecurringPeriod: se.RecurringPeriod,
-				Persistent:      se.Persistent,
-			}
-			copy(newStep.Effects, se.Effects)
-			newChain.ChainSteps[j] = newStep
-		}
-		newPQ.Items[i] = newChain
+		copy(newItem.Effects, item.Effects)
+		newPQ.Items[i] = newItem
 	}
 	newState.ReactionPQ = newPQ
 

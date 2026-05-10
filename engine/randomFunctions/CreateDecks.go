@@ -1,8 +1,6 @@
 package randomFunctions
 
 import (
-	"time"
-
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -16,9 +14,9 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 	}
 
 	gs := &state.GameState{
-		UpdateID:  0,
-		Timestamp: time.Now(),
-		Phase:     0,
+		UpdateID: 0,
+		SimTime:  0,
+		Phase:    0,
 
 		Cards:      []state.Card{},
 		Deck:       make([][]int, len(deckDefs)),
