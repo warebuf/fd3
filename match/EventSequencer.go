@@ -177,7 +177,7 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 
 	case 2: // sim pause
 		if gs.PauseStack[2] != 0 {
-			gs.SimPauseOffset += now - gs.PauseStack[2]
+			gs.SimPauseOffset += endTime - gs.PauseStack[2]
 			gs.PauseStack[2] = 0
 		}
 		if match.ChainItem != nil {
@@ -187,7 +187,8 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 
 	case 1: // animation pause
 		if gs.PauseStack[1] != 0 {
-			gs.FullPauseOffset += now - gs.PauseStack[1]
+			gs.SimPauseOffset += endTime - gs.PauseStack[1]
+			gs.FullPauseOffset += endTime - gs.PauseStack[1]
 			gs.PauseStack[1] = 0
 		}
 		if match.PauseEndItem != nil {
@@ -197,7 +198,8 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 
 	case 0: // full pause
 		if gs.PauseStack[0] != 0 {
-			gs.FullPauseOffset += now - gs.PauseStack[0]
+			gs.SimPauseOffset += endTime - gs.PauseStack[0]
+			gs.FullPauseOffset += endTime - gs.PauseStack[0]
 			gs.PauseStack[0] = 0
 		}
 		if match.PauseEndItem != nil {
@@ -211,16 +213,16 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 		scheduleSimulationItem(match)
 
 	case 2: // sim pause
-		gs.PauseStack[2] = now
+		gs.PauseStack[2] = endTime
 		scheduleChainItem(match)
 
 	case 1: // animation pause
-		gs.PauseStack[1] = now
+		gs.PauseStack[1] = endTime
 		ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
 		match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
 
 	case 0: // full pause
-		gs.PauseStack[0] = now
+		gs.PauseStack[0] = endTime
 		ev := &PauseEndEvent{T: time.UnixMilli(endTime)}
 		match.PauseEndItem = match.EventPQueue.Enqueue(ev, "PauseEnd")
 	}
