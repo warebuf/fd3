@@ -31,12 +31,12 @@ func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 		}
 
 		// handle the top effect
-		HandleLatestSimulate(gs, logList, UpdateID)
+		handleLatestSimulationItem(gs, logList, UpdateID)
 	}
 
 }
 
-func HandleLatestSimulate(gs *state.GameState, logList *[]any, UpdateID *int) {
+func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
 
