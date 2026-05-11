@@ -4,6 +4,41 @@ import (
 	"container/heap"
 )
 
+func (pq *SimulationPQ) RemoveSimItemsByCardIDs(cardIDs map[int]bool) []int {
+	var toRemove []*SimulationItem
+	for _, item := range pq.Items {
+		if cardIDs[item.CardID] {
+			toRemove = append(toRemove, item)
+		}
+	}
+	var removedSeqIDs []int
+	for _, item := range toRemove {
+		removedSeqIDs = append(removedSeqIDs, item.SeqID)
+		heap.Remove(pq, item.index)
+	}
+	return removedSeqIDs
+}
+
+func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) []int {
+	var toRemove []*SimulationItem
+	for _, item := range pq.Items {
+		if item.CardID == cardID {
+			toRemove = append(toRemove, item)
+		}
+	}
+	var removedSeqIDs []int
+	for _, item := range toRemove {
+		removedSeqIDs = append(removedSeqIDs, item.SeqID)
+		heap.Remove(pq, item.index)
+	}
+	return removedSeqIDs
+}
+
+const (
+	SimItemSummon = iota
+	SimItemRecurring
+)
+
 type SimulationItem struct {
 	SeqID int // the latest effect gets the biggest index
 	index int // heap position (internal)
@@ -13,6 +48,7 @@ type SimulationItem struct {
 	OccurTime int64 // (denominated in SimTime ms)
 
 	CardID  int
+	Type    int
 	Effects []Effect
 }
 

@@ -1,7 +1,6 @@
 package randomFunctions
 
 import (
-	"container/heap"
 	"fmt"
 	"math/rand"
 	"time"
@@ -17,17 +16,17 @@ import (
 func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	for {
-		// get the earliest stack
-		earliestStack := gs.SimulationPQ.Peek()
-		if earliestStack == nil {
+		// get the earliest simulation item
+		earliestSimItem := gs.SimulationPQ.Peek()
+		if earliestSimItem == nil {
 			return
 		}
 
 		// calculate sim time
-		
+		currentSimTime := GetSimTime(gs, time.Now().UnixMilli())
 
 		// if earliestStack is not due
-		if earliestStack.PopTime > time.Now().UnixMilli() {
+		if earliestSimItem.PopTime > currentSimTime {
 			return
 		}
 
@@ -39,202 +38,192 @@ func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 func HandleLatestSimulate(gs *state.GameState, logList *[]any, UpdateID *int) {
 
-	chainHeader := gs.SimulationPQ.Peek()
+	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
 
-	for len(chainHeader.ChainSteps) > 0 {
-		topStep := chainHeader.ChainSteps[len(chainHeader.ChainSteps)-1]
+	// handling all effects of the SimItem
+	for i := 0; i < len(currSimItem.Effects); i++ {
 
-		// handling all effects of a step
-		for i := 0; i < len(topStep.Effects); i++ {
+		currentEffect := currSimItem.Effects[i]
 
-			currentEffect := topStep.Effects[i]
+		// apply effect
+		switch currentEffect.Type {
 
-			// apply effect
-			switch currentEffect.Type {
+		case state.EffectDraw:
+			effects.ApplyEffectDraw(gs, currentEffect)
 
-			case state.EffectDraw:
-				effects.ApplyEffectDraw(gs, currentEffect)
+			// create log
+			*logList = append(*logList, logs.DrawLog{
+				UpdateID:  *UpdateID,
+				Timestamp: currSimItem.PopTime + constants.LEAD,
+				Type:      logs.Draw,
+				TeamIndex: currentEffect.A,
+				NumCards:  1,
+			})
+			*UpdateID += 1
 
-				// create log
-				*logList = append(*logList, logs.DrawLog{
-					UpdateID:  *UpdateID,
-					Timestamp: topStep.PopTime + constants.LEAD,
-					Type:      logs.Draw,
-					TeamIndex: currentEffect.A,
-					NumCards:  1,
-				})
-				*UpdateID += 1
+		case state.SummonResolution:
 
-			case state.SummonResolution:
+			// create a summon resolution log
+			*logList = append(*logList, logs.SummonLog{
+				UpdateID:  *UpdateID,
+				Timestamp: currSimItem.PopTime + constants.LEAD,
+				Type:      logs.Summon,
+				TeamIndex: currentEffect.A,
+				CardIndex: currentEffect.B,
+			})
+			*UpdateID += 1
 
-				// create a summon resolution log
-				*logList = append(*logList, logs.SummonLog{
-					UpdateID:  *UpdateID,
-					Timestamp: topStep.PopTime + constants.LEAD,
-					Type:      logs.Summon,
-					TeamIndex: currentEffect.A,
-					CardIndex: currentEffect.B,
-				})
-				*UpdateID += 1
+			// schedule recurring abilities
+			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopTime+constants.LEAD)
 
-				// schedule recurring abilities
-				scheduleRecurringAbilities(gs, logList, UpdateID, topStep.CardID, topStep.PopTime+constants.LEAD)
+		case state.EffectDestroy:
 
-			case state.EffectDestroy:
-
-				// put all field units into the grave, may have to handle the ordering differently tbh (in order of summon or last move/action)
-				destroyedIDs := map[int]bool{}
-				for a := 0; a < len(gs.Field); a++ {
-					for b := 0; b < len(gs.Field[a]); b++ {
-						cardIndex := gs.Field[a][b]
-						gs.Cards[cardIndex].Zone = state.ZoneGraveyard
-						gs.Grave[a] = append(gs.Grave[a], cardIndex)
-						destroyedIDs[cardIndex] = true
-					}
-					gs.Field[a] = []int{}
+			// put all field units into the grave, may have to handle the ordering differently tbh (in order of summon or last move/action)
+			destroyedIDs := map[int]bool{}
+			for a := 0; a < len(gs.Field); a++ {
+				for b := 0; b < len(gs.Field[a]); b++ {
+					cardIndex := gs.Field[a][b]
+					gs.Cards[cardIndex].Zone = state.ZoneGraveyard
+					gs.Grave[a] = append(gs.Grave[a], cardIndex)
+					destroyedIDs[cardIndex] = true
 				}
+				gs.Field[a] = []int{}
+			}
 
-				removedChainIDs := gs.SimulationPQ.RemoveChainsByCardIDs(destroyedIDs)
-				for _, chainID := range removedChainIDs {
-					*logList = append(*logList, logs.RemoveChainLog{
-						UpdateID:  *UpdateID,
-						Timestamp: topStep.PopTime + constants.LEAD,
-						Type:      logs.RemoveChain,
-						ChainID:   chainID,
+			removedChainIDs := gs.SimulationPQ.RemoveSimItemsByCardIDs(destroyedIDs)
+			for _, chainID := range removedChainIDs {
+				*logList = append(*logList, logs.RemoveChainLog{
+					UpdateID:  *UpdateID,
+					Timestamp: currSimItem.PopTime + constants.LEAD,
+					Type:      logs.RemoveChain,
+					ChainID:   chainID,
+				})
+				*UpdateID += 1
+			}
+
+			// create log
+			*logList = append(*logList, logs.DestroyCardLog{
+				UpdateID:        *UpdateID,
+				Timestamp:       currSimItem.PopTime + constants.LEAD,
+				Type:            logs.DestroyCard,
+				TeamIndex:       gs.Cards[currentEffect.C].Team,
+				CardIndex:       currentEffect.C,
+				TargetAll:       currentEffect.A == 0,
+				TargetTeamIndex: -1,
+				TargetCardIndex: -1,
+			})
+			*UpdateID += 1
+
+		case state.EffectMana:
+			// increase mana for team by the amount
+			team := currentEffect.A
+			amount := currentEffect.B
+			gs.Mana[team] += amount
+
+			// create log
+			*logList = append(*logList, logs.GainManaLog{
+				UpdateID:  *UpdateID,
+				Timestamp: currSimItem.PopTime + constants.LEAD,
+				Type:      logs.GainMana,
+				TeamIndex: team,
+				Amount:    amount,
+			})
+			*UpdateID += 1
+
+		case state.EffectAttack:
+			unitIndex := currSimItem.CardID
+			teamIndex := gs.Cards[unitIndex].Team
+			enemyTeam := 1 - teamIndex
+			damage := currentEffect.B
+
+			if currentEffect.A == 0 { // random target
+				enemyField := gs.Field[enemyTeam]
+				if len(enemyField) > 0 {
+					targetIdx := enemyField[rand.Intn(len(enemyField))]
+					gs.Cards[targetIdx].HP -= damage
+
+					*logList = append(*logList, logs.AttackLog{
+						UpdateID:        *UpdateID,
+						Timestamp:       currSimItem.PopTime + constants.LEAD,
+						Type:            logs.Attack,
+						AttackerIndex:   unitIndex,
+						TargetIsUnit:    true,
+						TargetTeamIndex: enemyTeam,
+						TargetCardIndex: targetIdx,
+						Damage:          damage,
 					})
 					*UpdateID += 1
-				}
 
-				// create log
-				*logList = append(*logList, logs.DestroyCardLog{
-					UpdateID:        *UpdateID,
-					Timestamp:       topStep.PopTime + constants.LEAD,
-					Type:            logs.DestroyCard,
-					TeamIndex:       gs.Cards[currentEffect.C].Team,
-					CardIndex:       currentEffect.C,
-					TargetAll:       currentEffect.A == 0,
-					TargetTeamIndex: -1,
-					TargetCardIndex: -1,
-				})
-				*UpdateID += 1
-
-			case state.EffectMana:
-				// increase mana for team by the amount
-				team := currentEffect.A
-				amount := currentEffect.B
-				gs.Mana[team] += amount
-
-				// create log
-				*logList = append(*logList, logs.GainManaLog{
-					UpdateID:  *UpdateID,
-					Timestamp: topStep.PopTime + constants.LEAD,
-					Type:      logs.GainMana,
-					TeamIndex: team,
-					Amount:    amount,
-				})
-				*UpdateID += 1
-
-			case state.EffectAttack:
-				unitIndex := topStep.CardID
-				teamIndex := gs.Cards[unitIndex].Team
-				enemyTeam := 1 - teamIndex
-				damage := currentEffect.B
-
-				if currentEffect.A == 0 { // random target
-					enemyField := gs.Field[enemyTeam]
-					if len(enemyField) > 0 {
-						targetIdx := enemyField[rand.Intn(len(enemyField))]
-						gs.Cards[targetIdx].HP -= damage
-
-						*logList = append(*logList, logs.AttackLog{
-							UpdateID:        *UpdateID,
-							Timestamp:       topStep.PopTime + constants.LEAD,
-							Type:            logs.Attack,
-							AttackerIndex:   unitIndex,
-							TargetIsUnit:    true,
-							TargetTeamIndex: enemyTeam,
-							TargetCardIndex: targetIdx,
-							Damage:          damage,
-						})
-						*UpdateID += 1
-
-						if gs.Cards[targetIdx].HP <= 0 { // if killed
-							for i, ci := range gs.Field[enemyTeam] { // remove from field arr
-								if ci == targetIdx {
-									gs.Field[enemyTeam] = append(gs.Field[enemyTeam][:i], gs.Field[enemyTeam][i+1:]...)
-									break
-								}
+					if gs.Cards[targetIdx].HP <= 0 { // if killed
+						for i, ci := range gs.Field[enemyTeam] { // remove from field arr
+							if ci == targetIdx {
+								gs.Field[enemyTeam] = append(gs.Field[enemyTeam][:i], gs.Field[enemyTeam][i+1:]...)
+								break
 							}
-							gs.Cards[targetIdx].Zone = state.ZoneGraveyard
-							gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
+						}
+						gs.Cards[targetIdx].Zone = state.ZoneGraveyard
+						gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
 
-							removedChainIDs := gs.SimulationPQ.RemoveChainsByCardID(targetIdx)
-							for _, chainID := range removedChainIDs {
-								*logList = append(*logList, logs.RemoveChainLog{
-									UpdateID:  *UpdateID,
-									Timestamp: topStep.PopTime + constants.LEAD,
-									Type:      logs.RemoveChain,
-									ChainID:   chainID,
-								})
-								*UpdateID += 1
-							}
-
-							*logList = append(*logList, logs.DestroyCardLog{
-								UpdateID:        *UpdateID,
-								Timestamp:       topStep.PopTime + constants.LEAD,
-								Type:            logs.DestroyCard,
-								TeamIndex:       teamIndex,
-								CardIndex:       targetIdx,
-								TargetAll:       false,
-								TargetTeamIndex: enemyTeam,
-								TargetCardIndex: targetIdx,
+						removedChainIDs := gs.SimulationPQ.RemoveSimItemByCardID(targetIdx)
+						for _, chainID := range removedChainIDs {
+							*logList = append(*logList, logs.RemoveChainLog{
+								UpdateID:  *UpdateID,
+								Timestamp: currSimItem.PopTime + constants.LEAD,
+								Type:      logs.RemoveChain,
+								ChainID:   chainID,
 							})
 							*UpdateID += 1
 						}
-					} else {
-						gs.Structures[enemyTeam].HP -= damage
 
-						*logList = append(*logList, logs.AttackLog{
+						*logList = append(*logList, logs.DestroyCardLog{
 							UpdateID:        *UpdateID,
-							Timestamp:       topStep.PopTime + constants.LEAD,
-							Type:            logs.Attack,
-							AttackerIndex:   unitIndex,
-							TargetIsUnit:    false,
+							Timestamp:       currSimItem.PopTime + constants.LEAD,
+							Type:            logs.DestroyCard,
+							TeamIndex:       teamIndex,
+							CardIndex:       targetIdx,
+							TargetAll:       false,
 							TargetTeamIndex: enemyTeam,
-							TargetCardIndex: -1,
-							Damage:          damage,
+							TargetCardIndex: targetIdx,
 						})
 						*UpdateID += 1
 					}
-				}
+				} else {
+					gs.Structures[enemyTeam].HP -= damage
 
-			default:
-				fmt.Println("this effect isnt handled")
-			}
-
-		}
-
-		// finishing the handling of a step
-		if topStep.CardID >= 0 {
-			if topStep.Type == state.ChainStepSummon {
-				teamIndex := gs.Cards[topStep.CardID].Team
-				gs.Cards[topStep.CardID].Zone = state.ZoneField                   // complete the summon
-				gs.Field[teamIndex] = append(gs.Field[teamIndex], topStep.CardID) // add card to the field
-			} else if topStep.Type == state.ChainStepSpell {
-				gs.Cards[topStep.CardID].Zone = state.ZoneGraveyard
-			} else if topStep.Type == state.ChainStepRecurring {
-				if gs.Cards[topStep.CardID].Zone == state.ZoneField {
-					scheduleRecurringAbilities(gs, logList, UpdateID, topStep.CardID, topStep.PopTime+constants.LEAD)
+					*logList = append(*logList, logs.AttackLog{
+						UpdateID:        *UpdateID,
+						Timestamp:       currSimItem.PopTime + constants.LEAD,
+						Type:            logs.Attack,
+						AttackerIndex:   unitIndex,
+						TargetIsUnit:    false,
+						TargetTeamIndex: enemyTeam,
+						TargetCardIndex: -1,
+						Damage:          damage,
+					})
+					*UpdateID += 1
 				}
 			}
-		}
 
-		// removing the top step from the chain
-		chainHeader.ChainSteps = chainHeader.ChainSteps[:len(chainHeader.ChainSteps)-1]
+		default:
+			fmt.Println("this effect isnt handled")
+		}
 
 	}
 
-	heap.Pop(&gs.SimulationPQ)
+	// finishing the handling of the SimItem
+	if currSimItem.CardID >= 0 {
+		if currSimItem.Type == state.SimItemSummon {
+			teamIndex := gs.Cards[currSimItem.CardID].Team
+			gs.Cards[currSimItem.CardID].Zone = state.ZoneField                   // complete the summon
+			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID) // add card to the field
+		} else if currSimItem.Type == state.SimItemRecurring {
+			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
+				scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopTime+constants.LEAD)
+			}
+		}
+	}
+
+	// add a log
 	*logList = append(*logList, logs.RemoveChainLog{
 		UpdateID:  *UpdateID,
 		Timestamp: chainHeader.PopTime + constants.LEAD,
@@ -260,23 +249,18 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 			effs = append(effs, newEff)
 		}
 
-		// create the step/chain
+		// create the SimulationItem and add it to the SimulationPQ
 		scheduledTime := startTime + entry.Milliseconds - constants.LEAD
-		se := state.ChainStep{
-			Type:            state.ChainStepRecurring,
-			CardID:          cardID,
-			StartTime:       startTime,
-			PopTime:         scheduledTime,
-			OccurTime:       scheduledTime + constants.LEAD,
-			Effects:         effs,
-			RecurringPeriod: entry.Milliseconds,
-			Persistent:      entry.Persistent,
+		item := state.SimulationItem{
+			StartTime: startTime,
+			PopTime:   scheduledTime,
+			OccurTime: scheduledTime + constants.LEAD,
+
+			CardID:  cardID,
+			Type:    state.SimItemRecurring,
+			Effects: effs,
 		}
-		s := &state.Chain{
-			PopTime:    scheduledTime,
-			ChainSteps: []state.ChainStep{se},
-		}
-		heap.Push(&gs.SimulationPQ, s)
+		gs.SimulationPQ.Push(item)
 
 		// broadcast the new step to all clients
 		*logList = append(*logList, logs.ScheduleChainLog{
