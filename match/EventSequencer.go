@@ -144,11 +144,9 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-// TransitionPauseState handles entering or exiting a pause state.
-// isEnd=true: exiting pauseState. isEnd=false: entering pauseState.
-// endTime is the wall ms when this pause should auto-end (only used for exiting animation pause or full pause).
+// call when you want to transition the pause state. isEnd is whether pauseState is the 'ending' state.
 func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int64) {
-	now := time.Now().UnixMilli()
+
 	gs := match.GameState
 
 	// determine startPauseState and endPauseState
