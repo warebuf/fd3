@@ -2,6 +2,7 @@ package match
 
 import (
 	"container/heap"
+	"sort"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -127,7 +128,123 @@ func (match *Match) handleDuePQEvents() {
 				match.BroadcastLogs(oldLogsSize)
 
 				// schedule draw cards
-				scheduleSimulationItem(match)
+				scheduleEarliestSimItem(match)
+
+			case 2: // entering board set up phase
+
+				oldLogsSize := len(match.EventLog)
+
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 2
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     2,
+				})
+				match.NextUpdateID += 1
+
+				// initialize ready flags
+				numTeams := len(match.GameState.Hand)
+				match.GameState.Ready = make([]bool, numTeams)
+
+				// schedule reveal in 90 seconds; can be triggered early by both players readying up
+				PushNewPhase(match, phaseChangeTimestamp+90000, 3)
+
+				match.GameState.WallTimestamp = phaseChangeTimestamp
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+
+			case 3: // entering reveal
+
+				oldLogsSize := len(match.EventLog)
+
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 3
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     3,
+				})
+				match.NextUpdateID += 1
+
+				// collect staged cards per team, sorted by AutoSummon order
+				revealTime := phaseChangeTimestamp + 500
+				numTeams := len(match.GameState.Hand)
+				stagedByTeam := make([][]int, numTeams)
+				for i, c := range match.GameState.Cards {
+					if c.AutoSummon > 0 {
+						stagedByTeam[c.Team] = append(stagedByTeam[c.Team], i)
+					}
+				}
+				for teamIdx := range stagedByTeam {
+					sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool {
+						return match.GameState.Cards[stagedByTeam[teamIdx][a]].AutoSummon < match.GameState.Cards[stagedByTeam[teamIdx][b]].AutoSummon
+					})
+				}
+
+				// declare in AutoSummon order, alternating between teams
+				maxStaged := 0
+				for _, staged := range stagedByTeam {
+					if len(staged) > maxStaged {
+						maxStaged = len(staged)
+					}
+				}
+				declareTime := revealTime
+				const declareDelay = int64(800) // ms between each auto-summon declaration
+				for i := 0; i < maxStaged; i++ {
+					for teamIdx, staged := range stagedByTeam {
+						if i >= len(staged) {
+							continue
+						}
+						cardIndex := staged[i]
+						match.GameState.Cards[cardIndex].AutoSummon = 0
+						randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
+						declareTime += declareDelay
+					}
+				}
+				match.GameState.Ready = make([]bool, len(match.GameState.Ready))
+
+				// schedule play phase after reveal effects resolve
+				PushNewPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
+
+				match.GameState.WallTimestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+
+			case 4: // entering play
+
+				oldLogsSize := len(match.EventLog)
+
+				phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+				match.GameState.Phase = 4
+				match.EventLog = append(match.EventLog, logs.PhaseLog{
+					UpdateID:  match.NextUpdateID,
+					Timestamp: phaseChangeTimestamp,
+					Type:      logs.Phase,
+					Phase:     4,
+				})
+				match.NextUpdateID += 1
+
+				randomFunctions.InitBoard(match.GameState)
+
+				match.GameState.WallTimestamp = phaseChangeTimestamp
+				match.GameState.UpdateID = match.NextUpdateID
+				match.NextUpdateID += 1
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+
+				match.BroadcastLogs(oldLogsSize)
+
+			case 5: // entering game over
+				// TODO: end game logic
+
 			}
 
 		case "PauseEnd":
@@ -272,7 +389,7 @@ func (match *Match) setPQTimer() {
 
 }
 
-func scheduleSimulationItem(match *Match) {
+func scheduleEarliestSimItem(match *Match) {
 
 	// get the timestamp of earliest in StackPQ
 	earliestSimItem := match.GameState.SimulationPQ.Peek()
