@@ -144,6 +144,8 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
+				// TODO: enter animation pause phase ?
+
 				// initialize ready flags
 				numTeams := len(match.GameState.Hand)
 				match.GameState.Ready = make([]bool, numTeams)
@@ -212,7 +214,7 @@ func (match *Match) handleDuePQEvents() {
 				// schedule play phase after reveal effects resolve
 				PushNewPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
 
-				match.GameState.WallTimestamp = time.Unix(0, phaseChangeTimestamp*int64(time.Millisecond))
+				match.GameState.WallTimestamp = phaseChangeTimestamp
 				match.GameState.UpdateID = match.NextUpdateID
 				match.NextUpdateID += 1
 				match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -232,6 +234,8 @@ func (match *Match) handleDuePQEvents() {
 					Phase:     4,
 				})
 				match.NextUpdateID += 1
+
+				// TODO: enter simulating pause phase
 
 				randomFunctions.InitBoard(match.GameState)
 
@@ -261,6 +265,8 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
+// right now, i think the pause phases determine how long the offsets are and what can be scheduled in eventPQ
+// im really not sure if this is right
 // call when you want to transition the pause state. isEnd is whether pauseState is the 'ending' state.
 func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int64) {
 
@@ -285,6 +291,7 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 		endPauseState = pauseState
 	}
 
+	// exiting
 	switch startPauseState {
 	case 3: // simulating
 		if match.EarliestSimItem != nil {
@@ -325,6 +332,7 @@ func (match *Match) TransitionPauseState(pauseState int, isEnd bool, endTime int
 		}
 	}
 
+	// entering
 	switch endPauseState {
 	case 3: // simulating
 		scheduleSimulationItem(match)

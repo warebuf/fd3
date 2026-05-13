@@ -6,7 +6,13 @@ type GameState struct {
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
-	// 4 states: full pause, animation pause, simulation pause, simulating
+	// defining pause states:
+	// 0: indefinite pause - no inputs, stop after system allows it.
+	// 1: player pause - no inputs, stops after a player's time bank runs out.
+	// 2: chain pause - no inputs. potentially a player can buffer inputs here?
+	// 3: sim pause - only pauses sim time
+	// 4: simulating
+
 	PauseStack      [3]int64 // the wall ms when each pause started (full pause, animation pause, sim pause), 0 if not on.
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
