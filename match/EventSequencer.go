@@ -144,7 +144,7 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
-				// TODO: enter animation pause phase ?
+				// TODO: enter animation pause phase ? maybe not ? it can be something specific to phase 2
 
 				// initialize ready flags
 				numTeams := len(match.GameState.Hand)
@@ -173,6 +173,8 @@ func (match *Match) handleDuePQEvents() {
 					Phase:     3,
 				})
 				match.NextUpdateID += 1
+
+				// TODO: also animation pause phase. can also be something specific to phase 3
 
 				// collect staged cards per team, sorted by AutoSummon order
 				revealTime := phaseChangeTimestamp + 500
@@ -235,7 +237,8 @@ func (match *Match) handleDuePQEvents() {
 				})
 				match.NextUpdateID += 1
 
-				// TODO: enter simulating pause phase
+				// TODO: enter simulating phase
+				match.TransitionPauseState(3, true, phaseChangeTimestamp)
 
 				randomFunctions.InitBoard(match.GameState)
 
