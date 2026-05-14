@@ -43,7 +43,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// schedule board setup phase after draws complete
 		PushNewPhase(match, phaseChangeTimestamp+3500, 2)
 
-		match.publishStateAtTime(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 		// schedule draw cards
 		scheduleEarliestSimItem(match)
@@ -71,7 +71,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
 		PushNewPhase(match, phaseChangeTimestamp+90000, 3)
 
-		match.publishStateAtTime(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 	case 3: // entering reveal
 
@@ -129,7 +129,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// schedule play phase after reveal effects resolve
 		PushNewPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
 
-		match.publishStateAtTime(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 	case 4: // entering play
 
@@ -149,7 +149,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.TransitionPauseState(2, phaseChangeTimestamp)
 
 		// update the published state and broadcast to clients
-		match.publishStateAtTime(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 	case 5: // entering game over
 		// TODO: end game logic

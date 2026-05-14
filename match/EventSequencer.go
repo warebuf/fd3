@@ -76,12 +76,12 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	randomFunctions.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 	// update the published state and publish the new logs
-	match.publishStateAtTime(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
+	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
 
 }
 
-// publishStateAtTime updates WallTimestamp, snapshots GameState into PublishedState, and broadcasts new logs.
-func (match *Match) publishStateAtTime(wallTime int64, oldLogsSize int) {
+// publish updates WallTimestamp, snapshots GameState into PublishedState, and broadcasts new logs.
+func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.GameState.WallTimestamp = wallTime
 	match.GameState.UpdateID = match.NextUpdateID
 	match.NextUpdateID += 1

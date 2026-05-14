@@ -78,7 +78,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		oldLogsSize := len(match.EventLog)
 		randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
 		if len(match.EventLog) > oldLogsSize {
-			match.publishStateAtTime(ie.T.UnixMilli()+constants.LEAD, oldLogsSize)
+			match.publish(ie.T.UnixMilli()+constants.LEAD, oldLogsSize)
 		}
 	}
 
