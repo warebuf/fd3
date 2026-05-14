@@ -82,7 +82,7 @@ func (match *Match) handleDuePQEvents() {
 			case "hand":
 
 				// do not accept if we are not in phase 2 (board set up) or 4 (play)
-				if match.GameState.Phase != 2 || match.GameState.Phase != 4 {
+				if match.GameState.Phase != 2 && match.GameState.Phase != 4 {
 					continue
 				}
 
