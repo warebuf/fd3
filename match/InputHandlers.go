@@ -43,7 +43,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// if we are in phase 2 (board set up)
+	// if we are in phase 2 (board set up), stage the card
 	if match.GameState.Phase == 2 {
 
 		if card.AutoSummon != 0 {
@@ -73,7 +73,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		match.BroadcastLogs(oldLogsSize)
 	}
 
-	// if we are in phase 4 (play)
+	// if we are in phase 4 (play), declare the card
 	if match.GameState.Phase == 4 {
 		oldLogsSize := len(match.EventLog)
 		randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())

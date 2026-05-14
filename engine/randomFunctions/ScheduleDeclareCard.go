@@ -33,86 +33,110 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	if gs.Mana[teamIndex] < cost {
 		return
 	}
-	gs.Mana[teamIndex] -= cost
-	*logList = append(*logList, logs.SpendManaLog{
-		UpdateID:  *UpdateID,
-		Timestamp: popTime,
-		Type:      logs.SpendMana,
-		TeamIndex: teamIndex,
-		Amount:    cost,
-	})
-	*UpdateID += 1
 
-	// create a log for the activation/declaration
-	*logList = append(*logList, logs.DeclareCardLog{
-		UpdateID:  *UpdateID,
-		Timestamp: popTime + constants.LEAD,
-		Type:      logs.DeclareCard,
-		TeamIndex: teamIndex,
-		CardIndex: cardIndex,
-	})
+	// TODO: okay now we have to determine chain or sim stuff
+	//
+	// if it is chain stuff, run the pause
+	//
+	// if it is a unit, just summon
+	//
+	curPausePhase := gs.GetPauseMode()
+	if curPausePhase == 0 { // currently in indefinite pause, cannot play a declaration
+		return
+	}
 
-	// schedule the effect
-	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
-		// updating the card's state
-		gs.Cards[cardIndex].Zone = state.ZoneTemporaryUnaccessible
+	if curPausePhase == 1 { // sim pause, validate whether the card can be played in the current chain
 
-		// remove card from hand
-		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+		// TODO:
 
-		// schedule the resolution
-		scheduleDeclareCardEffects(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+	} else if curPausePhase == 2 { // simulating
 
-	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
+		// can either start a chain or summon a card (for now)
 
-		// make the card temporarily unaccessible while resolving
-		gs.Cards[cardIndex].Zone = state.ZoneTemporaryUnaccessible
+		if gs.Cards[cardIndex].Type == state.CardTypeUnit { // summon a card
+			// updating the card's state
+			gs.Cards[cardIndex].Zone = state.ZoneField
 
-		// remove card from hand
-		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+			// remove card from hand
+			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
-		// schedule the resolution
-		scheduleDeclareCardEffects(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+			// summon
+			handleSummonDeclaration(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+
+		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell { // start a chain
+
+			// remove the mana
+			gs.Mana[teamIndex] -= cost
+			*logList = append(*logList, logs.SpendManaLog{
+				UpdateID:  *UpdateID,
+				Timestamp: popTime,
+				Type:      logs.SpendMana,
+				TeamIndex: teamIndex,
+				Amount:    cost,
+			})
+			*UpdateID += 1
+
+			// create a log for the activation/declaration
+			*logList = append(*logList, logs.DeclareCardLog{
+				UpdateID:  *UpdateID,
+				Timestamp: popTime + constants.LEAD,
+				Type:      logs.DeclareCard,
+				TeamIndex: teamIndex,
+				CardIndex: cardIndex,
+			})
+
+			// remove card from hand
+			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+
+			// add it to grave
+			gs.Cards[cardIndex].Zone = state.ZoneChain
+
+			// add it to the chain
+		}
+
 	}
 
 }
 
-func scheduleDeclareCardEffects(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
 	card := gs.Cards[cardIndex]
 
 	// create summon resolution effect if it's a unit
-	if card.Type == state.CardTypeUnit {
-		eff := state.Effect{
-			Type: state.SummonResolution,
-			A:    teamIndex,
-			B:    cardIndex, // index of card played
-		}
-		se := state.ChainStep{
-			Type:       state.ChainStepSummon,
-			CardID:     cardIndex,
-			StartTime:  popTime + constants.LEAD,
-			PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
-			Effects:    []state.Effect{eff},
-			Persistent: false,
-		}
-		s := &state.Chain{
-			PopTime:    se.PopTime,
-			ChainSteps: []state.ChainStep{se},
-		}
-		heap.Push(&gs.SimulationPQ, s)
-		*logList = append(*logList, logs.ScheduleChainLog{
-			UpdateID:  *UpdateID,
-			Timestamp: popTime + constants.LEAD,
-			Type:      logs.ScheduleChain,
-			ChainID:   s.ChainID,
-			Step:      se,
-		})
-		*UpdateID += 1
+	eff := state.Effect{
+		Type: state.SummonResolution,
+		A:    teamIndex,
+		B:    cardIndex, // index of card played
 	}
+	se := state.ChainStep{
+		Type:       state.ChainStepSummon,
+		CardID:     cardIndex,
+		StartTime:  popTime + constants.LEAD,
+		PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+		OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
+		Effects:    []state.Effect{eff},
+		Persistent: false,
+	}
+	s := &state.Chain{
+		PopTime:    se.PopTime,
+		ChainSteps: []state.ChainStep{se},
+	}
+	heap.Push(&gs.SimulationPQ, s)
+	*logList = append(*logList, logs.ScheduleChainLog{
+		UpdateID:  *UpdateID,
+		Timestamp: popTime + constants.LEAD,
+		Type:      logs.ScheduleChain,
+		ChainID:   s.ChainID,
+		Step:      se,
+	})
+	*UpdateID += 1
 
-	// create the ChainSteps for a card
+}
+
+func handleSummonResolution(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+
+	card := gs.Cards[cardIndex]
+
 	abilities := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(abilities); i++ {
 
