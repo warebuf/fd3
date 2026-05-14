@@ -13,6 +13,7 @@ import (
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
 type Ticket struct {
@@ -164,7 +165,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		EventLog:       []any{},
 		NextUpdateID:   1, // starts as 1 because the GameState already is UpdateID 0
 
-		InputEventChan: make(chan *match.InputEvent, 1024),
+		InputEventChan: make(chan *eventpq.InputEvent, 1024),
 		EventPQTimer:   nil,
 	}
 	heap.Init(&m.EventPQueue) // init event handling PQ
