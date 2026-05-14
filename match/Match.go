@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/state"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
 type Match struct {
@@ -20,14 +21,14 @@ type Match struct {
 	NextUpdateID int
 
 	// networking related
-	InputEventChan chan *InputEvent
+	InputEventChan chan *eventpq.InputEvent
 
 	// EventPQ related
-	EventPQueue     EventPQ
+	EventPQueue     eventpq.EventPQ
 	EventPQTimer    *time.Timer
-	EarliestSimItem *EventItem
-	ChainItem       *EventItem
-	PauseEndItem    *EventItem
+	EarliestSimItem *eventpq.EventItem
+	ChainItem       *eventpq.EventItem
+	PauseEndItem    *eventpq.EventItem
 }
 
 // TODO: needs to be censored per client

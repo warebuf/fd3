@@ -7,9 +7,10 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
-func (match *Match) handleNewPhaseEvent(newPhase *NewPhaseEvent) {
+func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 	// skip stale phase events (e.g. board setup timer after early ready-up)
 	if match.GameState.Phase >= newPhase.Phase {

@@ -7,9 +7,10 @@ import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
-func (match *Match) handleInputEvent(ie *InputEvent) {
+func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 
 	switch ie.Type {
 	case "fullPause":
@@ -24,7 +25,7 @@ func (match *Match) handleInputEvent(ie *InputEvent) {
 
 }
 
-func (match *Match) handleInputHand(ie *InputEvent) {
+func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 
 	// do not accept if we are not in phase 2 (board set up) or 4 (play)
 	if match.GameState.Phase != 2 && match.GameState.Phase != 4 {
@@ -83,7 +84,7 @@ func (match *Match) handleInputHand(ie *InputEvent) {
 
 }
 
-func (match *Match) handleInputUndoHand(ie *InputEvent) {
+func (match *Match) handleInputUndoHand(ie *eventpq.InputEvent) {
 
 	// only accept if we are in phase 2 (board set up)
 	if match.GameState.Phase != 2 {
@@ -129,7 +130,7 @@ func (match *Match) handleInputUndoHand(ie *InputEvent) {
 
 }
 
-func (match *Match) handleInputReady(ie *InputEvent) {
+func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 
 	// only accept if we are in stage 2 (board set up)
 	if match.GameState.Phase != 2 {

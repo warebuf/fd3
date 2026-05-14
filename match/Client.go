@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
 type handMessage struct {
@@ -34,7 +35,7 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 		return
 	}
 
-	ie := &InputEvent{
+	ie := &eventpq.InputEvent{
 		T:         timestamp,
 		Type:      eventType,
 		TeamIdx:   int(clientIdx),

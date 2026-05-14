@@ -7,6 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
+	"github.com/warebuf/fd3/match/eventpq"
 )
 
 func (match *Match) EventScheduler() {
@@ -52,13 +53,13 @@ func (match *Match) handleDuePQEvents() {
 
 		switch next.Type {
 		case "Effect":
-			match.handleEffectEvent(next.Event.(*EffectEvent))
+			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
 		case "Input":
-			match.handleInputEvent(next.Event.(*InputEvent))
+			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
-			match.handleNewPhaseEvent(next.Event.(*NewPhaseEvent))
+			match.handleNewPhaseEvent(next.Event.(*eventpq.NewPhaseEvent))
 		case "PauseEnd":
-			pauseEndEvent := next.Event.(*PauseEndEvent)
+			pauseEndEvent := next.Event.(*eventpq.PauseEndEvent)
 			match.TransitionPauseState(-1, pauseEndEvent.T.UnixMilli())
 		}
 
@@ -68,7 +69,7 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-func (match *Match) handleEffectEvent(effEvent *EffectEvent) {
+func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 
 	// simulate
 	oldLogsSize := len(match.EventLog)
@@ -89,14 +90,14 @@ func (match *Match) publishStateAtTime(wallTime int64, oldLogsSize int) {
 }
 
 func PushNewPhase(match *Match, t int64, phase int) {
-	newPhase := &NewPhaseEvent{
+	newPhase := &eventpq.NewPhaseEvent{
 		T:     time.UnixMilli(t - constants.LEAD), // schedule 200 ms early
 		Phase: phase,
 	}
 	match.EventPQueue.Enqueue(newPhase, "NewPhase")
 }
 
-func pushInputEvent(match *Match, ev *InputEvent) {
+func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
 	ev.T = time.Now() // relabel the timestamp when putting it into PQ
 	match.EventPQueue.Enqueue(ev, "Input")
 }
@@ -151,14 +152,14 @@ func scheduleEarliestSimItem(match *Match) {
 	// if EffectEvent exists and is in the EventPQ, update and reheapify in EventPQ
 	if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 {
 		// update and reheapify
-		effEv, _ := match.EarliestSimItem.Event.(*EffectEvent)
+		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
 		effEv.T = earliest
 		match.EventPQueue.Fix(match.EarliestSimItem)
 		return
 	}
 
 	// otherwise add EffectEvent to EventPQ
-	ev := &EffectEvent{T: earliest}
+	ev := &eventpq.EffectEvent{T: earliest}
 	match.EarliestSimItem = match.EventPQueue.Enqueue(ev, "Effect")
 
 }
