@@ -92,14 +92,19 @@ func (match *Match) handleDuePQEvents() {
 					continue
 				}
 
+				card := match.GameState.Cards[cardIndex]
+				if card.Zone != state.ZoneHand || card.Team != teamIdx {
+					continue
+				}
+
 				// if we are in phase 2 (board set up)
 				if match.GameState.Phase == 2 {
 
-					card := match.GameState.Cards[cardIndex]
-					if card.Zone != state.ZoneHand || card.Team != teamIdx || card.AutoSummon != 0 {
+					if card.AutoSummon != 0 {
 						continue
 					}
 
+					// stage the card
 					nextAutoSummon := 1
 					for _, c := range match.GameState.Cards {
 						if c.Team == teamIdx && c.AutoSummon >= nextAutoSummon {
