@@ -58,14 +58,14 @@ func (match *Match) handleDuePQEvents() {
 
 		case "Effect":
 
-			effEv := next.Event.(*EffectEvent)
+			effEvent := next.Event.(*EffectEvent)
 
 			// simulate
 			oldLogsSize := len(match.EventLog)
 			randomFunctions.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 			// update the published state
-			match.GameState.WallTimestamp = effEv.T.UnixMilli() + constants.LEAD
+			match.GameState.WallTimestamp = effEvent.T.UnixMilli() + constants.LEAD
 			match.GameState.UpdateID = match.NextUpdateID
 			match.NextUpdateID += 1
 			match.PublishedState = state.DeepCopyGameState(match.GameState)
@@ -77,8 +77,150 @@ func (match *Match) handleDuePQEvents() {
 			ie := next.Event.(*InputEvent)
 
 			switch ie.Type {
-			case "FullPause":
+			case "fullPause":
 				// set GameState
+			case "hand":
+
+				// do not accept if we are not in phase 2 (board set up) or 4 (play)
+				if match.GameState.Phase != 2 || match.GameState.Phase != 4 {
+					continue
+				}
+
+				cardIndex := ie.CardIndex
+				teamIdx := ie.TeamIdx
+				if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
+					continue
+				}
+
+				// if we are in phase 2 (board set up)
+				if match.GameState.Phase == 2 {
+
+					card := match.GameState.Cards[cardIndex]
+					if card.Zone != state.ZoneHand || card.Team != teamIdx || card.AutoSummon != 0 {
+						continue
+					}
+
+					nextAutoSummon := 1
+					for _, c := range match.GameState.Cards {
+						if c.Team == teamIdx && c.AutoSummon >= nextAutoSummon {
+							nextAutoSummon = c.AutoSummon + 1
+						}
+					}
+					match.GameState.Cards[cardIndex].AutoSummon = nextAutoSummon
+
+					oldLogsSize := len(match.EventLog)
+					match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+						Timestamp:     ie.T.UnixMilli(),
+						UpdateID:      match.NextUpdateID,
+						Type:          logs.AutoSummonIndex,
+						TeamIndex:     teamIdx,
+						CardIndex:     cardIndex,
+						AutoSummonIdx: nextAutoSummon,
+					})
+					match.NextUpdateID++
+					match.PublishedState = state.DeepCopyGameState(match.GameState)
+					match.BroadcastLogs(oldLogsSize)
+				}
+
+				// if we are in phase 4 (play)
+				if match.GameState.Phase == 4 {
+					oldLogsSize := len(match.EventLog)
+					randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+					if len(match.EventLog) > oldLogsSize {
+						match.GameState.WallTimestamp = ie.T.UnixMilli() + constants.LEAD
+						match.GameState.UpdateID = match.NextUpdateID
+						match.NextUpdateID += 1
+						match.PublishedState = state.DeepCopyGameState(match.GameState)
+						match.BroadcastLogs(oldLogsSize)
+					}
+				}
+
+			case "undoHand":
+				// only accept if we are in phase 2 (board set up)
+				if match.GameState.Phase != 2 {
+					continue
+				}
+
+				cardIndex := ie.CardIndex
+				teamIdx := ie.TeamIdx
+
+				// do not accept a card that does not exist
+				if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
+					continue
+				}
+
+				// card must be in hand, must match the user's team, must be staged
+				card := match.GameState.Cards[cardIndex]
+				if card.Zone != state.ZoneHand || card.Team != teamIdx || card.AutoSummon == 0 {
+					continue
+				}
+
+				// unstage the card, shift all subsequent staged cards
+				cleared := match.GameState.Cards[cardIndex].AutoSummon
+				match.GameState.Cards[cardIndex].AutoSummon = 0
+				for i := range match.GameState.Cards {
+					if match.GameState.Cards[i].Team == teamIdx && match.GameState.Cards[i].AutoSummon > cleared {
+						match.GameState.Cards[i].AutoSummon--
+					}
+				}
+
+				// create the log, update game state, broadcast the log
+				oldLogsSize := len(match.EventLog)
+				match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+					Timestamp:     ie.T.UnixMilli(),
+					UpdateID:      match.NextUpdateID,
+					Type:          logs.AutoSummonIndex,
+					TeamIndex:     teamIdx,
+					CardIndex:     cardIndex,
+					AutoSummonIdx: 0,
+				})
+				match.NextUpdateID++
+				match.PublishedState = state.DeepCopyGameState(match.GameState)
+				match.BroadcastLogs(oldLogsSize)
+
+			case "ready":
+				// only accept if we are in stage 2 (board set up)
+				if match.GameState.Phase != 2 {
+					continue
+				}
+
+				// do not accept if not acceptable team index
+				teamIdx := ie.TeamIdx
+				if teamIdx < 0 || teamIdx >= len(match.GameState.Ready) {
+					continue
+				}
+
+				// if the player is already ready, do not accept
+				if match.GameState.Ready[teamIdx] {
+					continue
+				}
+
+				// update ready arr
+				match.GameState.Ready[teamIdx] = true
+
+				// create the log and broadcast
+				oldLogsSize := len(match.EventLog)
+				match.EventLog = append(match.EventLog, logs.ReadyLog{
+					Timestamp: ie.T.UnixMilli(),
+					UpdateID:  match.NextUpdateID,
+					Type:      logs.Ready,
+					TeamIndex: teamIdx,
+				})
+				match.NextUpdateID++
+				match.BroadcastLogs(oldLogsSize)
+
+				// if all ready, increment the phase to board set up
+				allReady := true
+				for _, r := range match.GameState.Ready {
+					if !r {
+						allReady = false
+						break
+					}
+				}
+				if allReady {
+					PushNewPhase(match, time.Now().UnixMilli(), 3)
+				}
+
 			}
 
 		case "NewPhase":
