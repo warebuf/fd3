@@ -134,10 +134,10 @@ func (match *Match) setPQTimer() {
 
 func scheduleEarliestSimItem(match *Match) {
 
-	// get the timestamp of earliest in StackPQ
+	// get the timestamp of earliest in the SimulationPQ
 	earliestSimItem := match.GameState.SimulationPQ.Peek()
 
-	// if no effect events, remove the EffectEvent from the EventPQ
+	// if no earliest item, just clean everything
 	if earliestSimItem == nil {
 		if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 { // EarliestEffect exists AND is in EventPQ (indicated by index > 0)
 			match.EventPQueue.Remove(match.EarliestSimItem)
@@ -149,7 +149,7 @@ func scheduleEarliestSimItem(match *Match) {
 	// popTime is denominated in sim time, so we convert sim time to wall time by adding accumulated pause offset
 	earliest := time.UnixMilli(earliestSimItem.PopTime + match.GameState.SimPauseOffset)
 
-	// if EffectEvent exists and is in the EventPQ, update and reheapify in EventPQ
+	// if the simItem exists and is in the EventPQ, update and reheapify in EventPQ
 	if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 {
 		// update and reheapify
 		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
@@ -158,7 +158,7 @@ func scheduleEarliestSimItem(match *Match) {
 		return
 	}
 
-	// otherwise add EffectEvent to EventPQ
+	// otherwise schedule the simItem in the EventPQ
 	ev := &eventpq.EffectEvent{T: earliest}
 	match.EarliestSimItem = match.EventPQueue.Enqueue(ev, "Effect")
 

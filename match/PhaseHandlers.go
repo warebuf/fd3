@@ -173,7 +173,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64
 			gameState.PausePhase = 2 // enter simulating phase
 			gameState.SimPauseOffset += transitionTime - gameState.PauseStack[1]
 			gameState.PauseStack[1] = 0
-			scheduleSimulationItem(match)
+			scheduleEarliestSimItem(match)
 			return
 		case 0: // end indefinite pause
 			// entering sim pause
@@ -193,7 +193,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64
 			gameState.FullPauseOffset += transitionTime - gameState.PauseStack[0]
 			gameState.PauseStack[0] = 0
 			scheduleChainItem(match)
-			scheduleSimulationItem(match)
+			scheduleEarliestSimItem(match)
 			return
 		}
 	}
