@@ -76,7 +76,10 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 	// if we are in phase 4 (play), declare the card
 	if match.GameState.Phase == 4 {
 		oldLogsSize := len(match.EventLog)
-		randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+		chainStarted := randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+		if chainStarted {
+			match.TransitionPauseState(1, ie.T.UnixMilli())
+		}
 		if len(match.EventLog) > oldLogsSize {
 			match.publish(ie.T.UnixMilli()+constants.LEAD, oldLogsSize)
 		}

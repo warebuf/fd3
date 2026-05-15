@@ -9,11 +9,12 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+// Returns true if a chain was started (caller should enter sim pause).
+func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) bool {
 
 	// check if card is in hand state
 	if gs.Cards[cardIndex].Zone != 1 {
-		return
+		return false
 	}
 
 	// check if card is in hand arr
@@ -24,19 +25,19 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		}
 	}
 	if handIndex < 0 {
-		return
+		return false
 	}
 
 	// check cost condition
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
-		return
+		return false
 	}
 
 	// check if we are in an indefinite pause
 	curPausePhase := gs.GetPauseMode()
 	if curPausePhase == 0 {
-		return
+		return false
 	}
 
 	// check if we are in chain phase or sim phase
@@ -81,7 +82,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell { // start a chain
 
-			// change it to change state
+			// change it to chain state
 			gs.Cards[cardIndex].Zone = state.ZoneChain
 
 			// remove card from hand
@@ -89,10 +90,12 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 			// add it to the chain
 			startChain(gs, logList, UpdateID, teamIndex, cardIndex, popTime+constants.LEAD)
+			return true
 		}
 
 	}
 
+	return false
 }
 
 func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {

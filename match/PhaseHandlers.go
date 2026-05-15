@@ -120,6 +120,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 				}
 				cardIndex := staged[i]
 				match.GameState.Cards[cardIndex].AutoSummon = 0
+				// TODO: handle chain pause during reveal if spells can be auto-played
 				randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
 				declareTime += declareDelay
 			}
