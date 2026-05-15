@@ -58,8 +58,8 @@ func (match *Match) handleDuePQEvents() {
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
 			match.handleNewPhaseEvent(next.Event.(*eventpq.NewPhaseEvent))
-		case "PauseEvent":
-			pauseEndEvent := next.Event.(*eventpq.PauseEvent)
+		case "PauseEndEvent":
+			pauseEndEvent := next.Event.(*eventpq.PauseEndEvent)
 			match.TransitionPauseState(-1, pauseEndEvent.T.UnixMilli())
 		}
 

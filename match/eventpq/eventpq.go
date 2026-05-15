@@ -37,12 +37,11 @@ type ChainEvent struct {
 
 func (e *ChainEvent) Timestamp() time.Time { return e.T }
 
-type PauseEvent struct {
-	T         time.Time
-	PauseType int // -1 is end of current pause, 0 is indefinite pause, 1 is sim pause
+type PauseEndEvent struct {
+	T time.Time
 }
 
-func (e *PauseEvent) Timestamp() time.Time { return e.T }
+func (e *PauseEndEvent) Timestamp() time.Time { return e.T }
 
 type EventItem struct {
 	Event Event
