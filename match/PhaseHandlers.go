@@ -162,19 +162,15 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 // TODO: there are probably more events that need to be handled tbh
 func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64) {
 
-	// 0: indefinite pause
-	// 1: sim pause
-	// 2: simulating
-
 	gameState := match.GameState
-	currentPauseState := match.GameState.GetPauseMode()
 
 	// if newPauseState < 0, end the current pause state
 	if newPauseState < 0 {
-		switch currentPauseState {
+		switch gameState.PausePhase {
 		case 2: // already in simulating, do nothing
 			return
-		case 1: // end sim pause by incrementing SimPauseOffset, schedule simEvents
+		case 1: // end sim pause
+			gameState.PausePhase = 2 // enter simulating phase
 			gameState.SimPauseOffset += transitionTime - gameState.PauseStack[1]
 			gameState.PauseStack[1] = 0
 			scheduleSimulationItem(match)
@@ -185,12 +181,14 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64
 				// some notes on why how we increment in this case:
 				// say simPause at t=3, indefinitePause at t=4, unpause indefinitePause at t=5, unpause simPause at t=6
 				// SimPauseOffset +3, FullPauseOffsest at +1
+				gameState.PausePhase = 1 // entering sim pause phase
 				gameState.FullPauseOffset += transitionTime - gameState.PauseStack[0]
 				gameState.PauseStack[0] = 0
 				scheduleChainItem(match)
 				return
 			}
 			// entering simulating
+			gameState.PausePhase = 2 // entering simulating phase
 			gameState.SimPauseOffset += transitionTime - gameState.PauseStack[0]
 			gameState.FullPauseOffset += transitionTime - gameState.PauseStack[0]
 			gameState.PauseStack[0] = 0
@@ -203,6 +201,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64
 	// if newPause >= 0, entering a pause state
 	switch newPauseState {
 	case 0: // entering indefinite pause
+		gameState.PausePhase = 0 // entering indefinite pause
 		gameState.PauseStack[0] = transitionTime
 		if match.EarliestSimItem != nil {
 			match.EventPQueue.Remove(match.EarliestSimItem)
@@ -213,6 +212,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64
 			match.ChainItem = nil
 		}
 	case 1: // entering sim pause
+		gameState.PausePhase = 1 // entering sim pause
 		gameState.PauseStack[1] = transitionTime
 		match.EventPQueue.Remove(match.EarliestSimItem)
 		match.EarliestSimItem = nil
