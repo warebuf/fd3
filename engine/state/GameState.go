@@ -6,7 +6,8 @@ type GameState struct {
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
-	PauseStack      [2]int64 // the wall ms when each pause started (3 pause phases: indefinite pause, sim pause, simulating)
+	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating
+	PauseStack      [2]int64 // the wall ms when each pause started
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
 
@@ -24,16 +25,6 @@ type GameState struct {
 	Mana       []int       // per team
 	Structures []Structure // per team
 	Ready      []bool      // per team, whether the player has readied up
-}
-
-func (gs *GameState) GetPauseMode() int {
-	if gs.PauseStack[0] != 0 { // indefinite pause
-		return 0
-	}
-	if gs.PauseStack[1] != 0 { // sim pause
-		return 1
-	}
-	return 2 // currently simulating
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {

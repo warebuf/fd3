@@ -2,7 +2,6 @@ package randomFunctions
 
 import (
 	"container/heap"
-	"log"
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
@@ -34,25 +33,42 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return
 	}
 
-	// TODO: okay now we have to determine chain or sim stuff
-	//
-	// if it is chain stuff, run the pause
-	//
-	// if it is a unit, just summon
-	//
+	// check if we are in an indefinite pause
 	curPausePhase := gs.GetPauseMode()
-	if curPausePhase == 0 { // currently in indefinite pause, cannot play a declaration
+	if curPausePhase == 0 {
 		return
 	}
 
+	// check if we are in chain phase or sim phase
 	if curPausePhase == 1 { // sim pause, validate whether the card can be played in the current chain
 
 		// TODO:
+		// reject any sim phase cards
+		// add the card to the chain
 
 	} else if curPausePhase == 2 { // simulating
 
-		// can either start a chain or summon a card (for now)
+		// remove the mana
+		gs.Mana[teamIndex] -= cost
+		*logList = append(*logList, logs.SpendManaLog{
+			UpdateID:  *UpdateID,
+			Timestamp: popTime,
+			Type:      logs.SpendMana,
+			TeamIndex: teamIndex,
+			Amount:    cost,
+		})
+		*UpdateID += 1
 
+		// create a log for the activation/declaration
+		*logList = append(*logList, logs.DeclareCardLog{
+			UpdateID:  *UpdateID,
+			Timestamp: popTime + constants.LEAD,
+			Type:      logs.DeclareCard,
+			TeamIndex: teamIndex,
+			CardIndex: cardIndex,
+		})
+
+		// can either start a chain or summon a card (for now)
 		if gs.Cards[cardIndex].Type == state.CardTypeUnit { // summon a card
 			// updating the card's state
 			gs.Cards[cardIndex].Zone = state.ZoneField
@@ -65,33 +81,14 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell { // start a chain
 
-			// remove the mana
-			gs.Mana[teamIndex] -= cost
-			*logList = append(*logList, logs.SpendManaLog{
-				UpdateID:  *UpdateID,
-				Timestamp: popTime,
-				Type:      logs.SpendMana,
-				TeamIndex: teamIndex,
-				Amount:    cost,
-			})
-			*UpdateID += 1
-
-			// create a log for the activation/declaration
-			*logList = append(*logList, logs.DeclareCardLog{
-				UpdateID:  *UpdateID,
-				Timestamp: popTime + constants.LEAD,
-				Type:      logs.DeclareCard,
-				TeamIndex: teamIndex,
-				CardIndex: cardIndex,
-			})
+			// change it to change state
+			gs.Cards[cardIndex].Zone = state.ZoneChain
 
 			// remove card from hand
 			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
-			// add it to grave
-			gs.Cards[cardIndex].Zone = state.ZoneChain
-
 			// add it to the chain
+			startChain(gs, logList, UpdateID, teamIndex, cardIndex, popTime+constants.LEAD)
 		}
 
 	}
@@ -100,28 +97,26 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
-	card := gs.Cards[cardIndex]
-
-	// create summon resolution effect if it's a unit
+	// create summon resolution effect for a unit
 	eff := state.Effect{
 		Type: state.SummonResolution,
 		A:    teamIndex,
 		B:    cardIndex, // index of card played
 	}
-	se := state.ChainStep{
-		Type:       state.ChainStepSummon,
-		CardID:     cardIndex,
-		StartTime:  popTime + constants.LEAD,
-		PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-		OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
-		Effects:    []state.Effect{eff},
-		Persistent: false,
+
+	// create the item
+	simItem := &state.SimulationItem{
+		StartTime: popTime + constants.LEAD,
+		PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
+		OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
+
+		CardID:  cardIndex,
+		Type:    state.SimItemSummon,
+		Effects: []state.Effect{eff},
 	}
-	s := &state.Chain{
-		PopTime:    se.PopTime,
-		ChainSteps: []state.ChainStep{se},
-	}
-	heap.Push(&gs.SimulationPQ, s)
+	heap.Push(&gs.SimulationPQ, simItem)
+
+	// create the log
 	*logList = append(*logList, logs.ScheduleChainLog{
 		UpdateID:  *UpdateID,
 		Timestamp: popTime + constants.LEAD,
@@ -133,9 +128,10 @@ func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int,
 
 }
 
-func handleSummonResolution(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
-
+func startChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
+
+	// TODO: pause the sim phase
 
 	abilities := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(abilities); i++ {
@@ -146,20 +142,18 @@ func handleSummonResolution(gs *state.GameState, logList *[]any, UpdateID *int, 
 		// fill out the template
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
-		se := state.ChainStep{
-			Type:       state.ChainStepSpell,
-			CardID:     cardIndex,
-			StartTime:  popTime + constants.LEAD,
-			PopTime:    popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime:  popTime + constants.LEAD + constants.REACTION_WINDOW,
-			Effects:    []state.Effect{newEff},
-			Persistent: false,
+		// push the chain item
+		chainItem := &state.ChainItem{
+			StartTime: declarationTime,
+			PopTime:   declarationTime + constants.REACTION_WINDOW - constants.LEAD,
+			OccurTime: declarationTime + constants.REACTION_WINDOW,
+
+			CardID:  cardIndex,
+			Type:    state.SimItemSummon,
+			Effects: []state.Effect{newEff},
 		}
-		s := &state.Chain{
-			PopTime:    se.PopTime,
-			ChainSteps: []state.ChainStep{se},
-		}
-		heap.Push(&gs.SimulationPQ, s)
+		gs.Chain = append(gs.Chain, *chainItem)
+
 		*logList = append(*logList, logs.ScheduleChainLog{
 			UpdateID:  *UpdateID,
 			Timestamp: popTime + constants.LEAD,
@@ -169,22 +163,4 @@ func handleSummonResolution(gs *state.GameState, logList *[]any, UpdateID *int, 
 		})
 		*UpdateID += 1
 	}
-
-}
-
-func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
-
-	switch templ.Type {
-	case state.EffectDestroy:
-		templ.C = cardIndex
-		return templ
-	case state.EffectMana:
-		templ.A = teamIndex
-		return templ
-	case state.EffectAttack:
-		return templ
-	}
-
-	log.Printf("unknown effect type: %v", templ.Type)
-	return templ
 }

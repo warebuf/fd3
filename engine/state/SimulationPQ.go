@@ -40,7 +40,7 @@ const (
 )
 
 type SimulationItem struct {
-	SeqID int // the latest effect gets the biggest index
+	SeqID int // the latest effect gets the biggest index (internal)
 	index int // heap position (internal)
 
 	StartTime int64 // (denominated in SimTime ms)

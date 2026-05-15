@@ -1,6 +1,7 @@
 package randomFunctions
 
 import (
+	"container/heap"
 	"fmt"
 	"math/rand"
 	"time"
@@ -72,6 +73,9 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 				CardIndex: currentEffect.B,
 			})
 			*UpdateID += 1
+
+			// apply on summon effects (scheduled immediately after)
+			applyOnSummonEffects(gs, logList, UpdateID, currentEffect.A, currentEffect.B, currSimItem.PopTime)
 
 			// schedule recurring abilities
 			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopTime+constants.LEAD)
@@ -232,6 +236,58 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	})
 	*UpdateID += 1
 
+}
+
+func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, currentTime int64) {
+
+	card := gs.Cards[cardIndex]
+
+	abilities := defs.CardDefs[card.DefNo].OnPlay
+	for i := 0; i < len(abilities); i++ {
+
+		// create the template
+		templ := abilities[i]
+
+		// fill out the template
+		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
+
+		simItem := &state.SimulationItem{
+			StartTime: currentTime,
+			PopTime:   currentTime,
+			OccurTime: currentTime + constants.LEAD,
+
+			CardID:  cardIndex,
+			Type:    state.SimItemSummon,
+			Effects: []state.Effect{newEff},
+		}
+		heap.Push(&gs.SimulationPQ, simItem)
+
+		*logList = append(*logList, logs.ScheduleChainLog{
+			UpdateID:  *UpdateID,
+			Timestamp: popTime + constants.LEAD,
+			Type:      logs.ScheduleChain,
+			ChainID:   s.ChainID,
+			Step:      se,
+		})
+		*UpdateID += 1
+	}
+
+}
+
+func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
+
+	switch templ.Type {
+	case state.EffectDestroy:
+		templ.C = cardIndex
+		return templ
+	case state.EffectMana:
+		templ.A = teamIndex
+		return templ
+	case state.EffectAttack:
+		return templ
+	}
+
+	return templ
 }
 
 func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *int, cardID int, startTime int64) {
