@@ -1,7 +1,5 @@
 package logs
 
-import "github.com/warebuf/fd3/engine/state"
-
 type LogType int
 
 const (
@@ -42,7 +40,7 @@ type DeclareCardLog struct {
 	CardIndex int
 }
 
-type SummonLog struct {
+type SummonResolutionLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
@@ -50,19 +48,31 @@ type SummonLog struct {
 	CardIndex int
 }
 
-type ScheduleChainLog struct {
-	Timestamp int64
-	UpdateID  int
-	Type      LogType
-	ChainID   int
-	Step      state.SimulationItem
+type AddSimItemLog struct {
+	Timestamp   int64
+	UpdateID    int
+	Type        LogType
+	SeqID       int
+	StartTime   int64
+	OccurTime   int64
+	CardID      int
+	SimItemType int
 }
 
-type RemoveChainLog struct {
+type RemoveSimItemLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType
-	ChainID   int
+	CardID    int
+}
+
+type AddChainLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	StartTime int64
+	OccurTime int64
+	CardID    int
 }
 
 type DestroyCardLog struct {

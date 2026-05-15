@@ -35,25 +35,24 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	}
 
 	// check if we are in an indefinite pause
-	curPausePhase := gs.GetPauseMode()
-	if curPausePhase == 0 {
+	if gs.PausePhase == 0 {
 		return false
 	}
 
 	// check if we are in chain phase or sim phase
-	if curPausePhase == 1 { // sim pause, validate whether the card can be played in the current chain
+	if gs.PausePhase == 1 { // sim pause, validate whether the card can be played in the current chain
 
 		// TODO:
 		// reject any sim phase cards
 		// add the card to the chain
 
-	} else if curPausePhase == 2 { // simulating
+	} else if gs.PausePhase == 2 { // simulating
 
 		// remove the mana
 		gs.Mana[teamIndex] -= cost
 		*logList = append(*logList, logs.SpendManaLog{
 			UpdateID:  *UpdateID,
-			Timestamp: popTime,
+			Timestamp: popTime + constants.LEAD,
 			Type:      logs.SpendMana,
 			TeamIndex: teamIndex,
 			Amount:    cost,
@@ -120,12 +119,16 @@ func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int,
 	heap.Push(&gs.SimulationPQ, simItem)
 
 	// create the log
-	*logList = append(*logList, logs.ScheduleChainLog{
+	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: popTime + constants.LEAD,
 		Type:      logs.ScheduleChain,
-		ChainID:   s.ChainID,
-		Step:      se,
+
+		SeqID:       simItem.SeqID,
+		StartTime:   simItem.StartTime,
+		OccurTime:   simItem.OccurTime,
+		CardID:      simItem.CardID,
+		SimItemType: int(state.SimItemSummon),
 	})
 	*UpdateID += 1
 
@@ -152,17 +155,18 @@ func startChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex in
 			OccurTime: declarationTime + constants.REACTION_WINDOW,
 
 			CardID:  cardIndex,
-			Type:    state.SimItemSummon,
+			Type:    state.ChainItemSpell,
 			Effects: []state.Effect{newEff},
 		}
 		gs.Chain = append(gs.Chain, *chainItem)
 
-		*logList = append(*logList, logs.ScheduleChainLog{
+		*logList = append(*logList, logs.AddChainLog{
 			UpdateID:  *UpdateID,
-			Timestamp: popTime + constants.LEAD,
+			Timestamp: declarationTime,
 			Type:      logs.ScheduleChain,
-			ChainID:   s.ChainID,
-			Step:      se,
+			StartTime: chainItem.StartTime,
+			OccurTime: chainItem.OccurTime,
+			CardID:    chainItem.CardID,
 		})
 		*UpdateID += 1
 	}

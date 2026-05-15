@@ -16,17 +16,22 @@ func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, tea
 		PopTime:   occurTime - constants.LEAD,
 		OccurTime: occurTime,
 		CardID:    -1,
+		Type:      state.SimItemDraw,
 		Effects:   []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
 	heap.Push(pq, item)
 
 	// add the scheduling log
-	*logList = append(*logList, logs.ScheduleChainLog{
+	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: occurTime,
 		Type:      logs.ScheduleChain,
-		ChainID:   item.SeqID,
-		Step:      *item,
+
+		SeqID:       item.SeqID,
+		StartTime:   item.StartTime,
+		OccurTime:   item.OccurTime,
+		CardID:      item.CardID,
+		SimItemType: int(state.SimItemDraw),
 	})
 	*UpdateID += 1
 }

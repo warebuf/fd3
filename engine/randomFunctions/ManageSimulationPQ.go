@@ -65,7 +65,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 		case state.SummonResolution:
 
 			// create a summon resolution log
-			*logList = append(*logList, logs.SummonLog{
+			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:  *UpdateID,
 				Timestamp: currSimItem.PopTime + constants.LEAD,
 				Type:      logs.Summon,
@@ -94,13 +94,13 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 				gs.Field[a] = []int{}
 			}
 
-			removedChainIDs := gs.SimulationPQ.RemoveSimItemsByCardIDs(destroyedIDs)
-			for _, chainID := range removedChainIDs {
-				*logList = append(*logList, logs.RemoveChainLog{
+			removedCardIDs := gs.SimulationPQ.RemoveSimItemsByCardIDs(destroyedIDs)
+			for _, cardID := range removedCardIDs {
+				*logList = append(*logList, logs.RemoveSimItemLog{
 					UpdateID:  *UpdateID,
 					Timestamp: currSimItem.PopTime + constants.LEAD,
 					Type:      logs.RemoveChain,
-					ChainID:   chainID,
+					CardID:    cardID,
 				})
 				*UpdateID += 1
 			}
@@ -168,13 +168,13 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 						gs.Cards[targetIdx].Zone = state.ZoneGraveyard
 						gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
 
-						removedChainIDs := gs.SimulationPQ.RemoveSimItemByCardID(targetIdx)
-						for _, chainID := range removedChainIDs {
-							*logList = append(*logList, logs.RemoveChainLog{
+						removedCardIDs := gs.SimulationPQ.RemoveSimItemByCardID(targetIdx)
+						for _, cardID := range removedCardIDs {
+							*logList = append(*logList, logs.RemoveSimItemLog{
 								UpdateID:  *UpdateID,
 								Timestamp: currSimItem.PopTime + constants.LEAD,
 								Type:      logs.RemoveChain,
-								ChainID:   chainID,
+								CardID:    cardID,
 							})
 							*UpdateID += 1
 						}
@@ -228,11 +228,11 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	}
 
 	// add a log
-	*logList = append(*logList, logs.RemoveChainLog{
+	*logList = append(*logList, logs.RemoveSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: chainHeader.PopTime + constants.LEAD,
+		Timestamp: currSimItem.PopTime + constants.LEAD,
 		Type:      logs.RemoveChain,
-		ChainID:   chainHeader.ChainID,
+		CardID:    currSimItem.CardID,
 	})
 	*UpdateID += 1
 
@@ -252,7 +252,7 @@ func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, te
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
 		simItem := &state.SimulationItem{
-			StartTime: currentTime,
+			StartTime: currentTime + constants.LEAD,
 			PopTime:   currentTime,
 			OccurTime: currentTime + constants.LEAD,
 
@@ -262,12 +262,16 @@ func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, te
 		}
 		heap.Push(&gs.SimulationPQ, simItem)
 
-		*logList = append(*logList, logs.ScheduleChainLog{
+		*logList = append(*logList, logs.AddSimItemLog{
 			UpdateID:  *UpdateID,
-			Timestamp: popTime + constants.LEAD,
+			Timestamp: currentTime + constants.LEAD,
 			Type:      logs.ScheduleChain,
-			ChainID:   s.ChainID,
-			Step:      se,
+
+			SeqID:       simItem.SeqID,
+			StartTime:   simItem.StartTime,
+			OccurTime:   simItem.OccurTime,
+			CardID:      simItem.CardID,
+			SimItemType: int(state.SimItemSummon),
 		})
 		*UpdateID += 1
 	}
@@ -319,12 +323,16 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 		gs.SimulationPQ.Push(item)
 
 		// broadcast the new step to all clients
-		*logList = append(*logList, logs.ScheduleChainLog{
+		*logList = append(*logList, logs.AddSimItemLog{
 			UpdateID:  *UpdateID,
 			Timestamp: startTime, // when the effect occurs, process the log
 			Type:      logs.ScheduleChain,
-			ChainID:   s.ChainID,
-			Step:      se,
+
+			SeqID:       item.SeqID,
+			StartTime:   item.StartTime,
+			OccurTime:   item.OccurTime,
+			CardID:      item.CardID,
+			SimItemType: int(state.SimItemRecurring),
 		})
 		*UpdateID += 1
 	}

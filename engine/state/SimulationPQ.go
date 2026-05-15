@@ -34,9 +34,12 @@ func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) []int {
 	return removedSeqIDs
 }
 
+type SimItemType int
+
 const (
-	SimItemSummon = iota
+	SimItemSummon SimItemType = iota
 	SimItemRecurring
+	SimItemDraw
 )
 
 type SimulationItem struct {
@@ -48,7 +51,7 @@ type SimulationItem struct {
 	OccurTime int64 // (denominated in SimTime ms)
 
 	CardID  int
-	Type    int
+	Type    SimItemType
 	Effects []Effect
 }
 
