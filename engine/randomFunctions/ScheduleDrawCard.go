@@ -25,7 +25,7 @@ func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, tea
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: occurTime,
-		Type:      logs.ScheduleChain,
+		Type:      logs.AddSimItem,
 
 		SeqID:       item.SeqID,
 		StartTime:   item.StartTime,

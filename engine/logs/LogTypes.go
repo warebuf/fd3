@@ -6,8 +6,10 @@ const (
 	Phase LogType = iota
 	Draw
 	DeclareCard
-	Summon
-	ScheduleChain
+	SummonResolution
+	AddSimItem
+	RemoveSimItem
+	AddChain
 	RemoveChain
 	DestroyCard
 	GainMana
@@ -60,6 +62,13 @@ type AddSimItemLog struct {
 }
 
 type RemoveSimItemLog struct {
+	Timestamp int64
+	UpdateID  int
+	Type      LogType
+	CardID    int
+}
+
+type RemoveChainLog struct {
 	Timestamp int64
 	UpdateID  int
 	Type      LogType

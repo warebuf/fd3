@@ -51,7 +51,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:  *UpdateID,
 				Timestamp: wallTime,
-				Type:      logs.Summon,
+				Type:      logs.SummonResolution,
 				TeamIndex: currentEffect.A,
 				CardIndex: currentEffect.B,
 			})
@@ -253,7 +253,7 @@ func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, te
 		*logList = append(*logList, logs.AddSimItemLog{
 			UpdateID:  *UpdateID,
 			Timestamp: currentTime + constants.LEAD,
-			Type:      logs.ScheduleChain,
+			Type:      logs.AddSimItem,
 
 			SeqID:       simItem.SeqID,
 			StartTime:   simItem.StartTime,
@@ -314,7 +314,7 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 		*logList = append(*logList, logs.AddSimItemLog{
 			UpdateID:  *UpdateID,
 			Timestamp: startTime,
-			Type:      logs.ScheduleChain,
+			Type:      logs.AddSimItem,
 
 			SeqID:       item.SeqID,
 			StartTime:   item.StartTime,

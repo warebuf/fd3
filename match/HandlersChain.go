@@ -22,7 +22,6 @@ func (match *Match) handleChainResolution() {
 	// pop the top of the chain
 	chainTop := gs.Chain[len(gs.Chain)-1]
 	gs.Chain = gs.Chain[:len(gs.Chain)-1]
-	match.ChainItem = nil
 
 	wallTime := chainTop.OccurTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
@@ -40,7 +39,7 @@ func (match *Match) handleChainResolution() {
 	}
 
 	// log chain item removal
-	match.EventLog = append(match.EventLog, logs.RemoveSimItemLog{
+	match.EventLog = append(match.EventLog, logs.RemoveChainLog{
 		UpdateID:  match.NextUpdateID,
 		Timestamp: wallTime,
 		Type:      logs.RemoveChain,

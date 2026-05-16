@@ -125,7 +125,7 @@ func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int,
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: popTime + constants.LEAD,
-		Type:      logs.ScheduleChain,
+		Type:      logs.AddSimItem,
 
 		SeqID:       simItem.SeqID,
 		StartTime:   simItem.StartTime,
@@ -169,7 +169,7 @@ func startChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex in
 		*logList = append(*logList, logs.AddChainLog{
 			UpdateID:  *UpdateID,
 			Timestamp: declarationTime,
-			Type:      logs.ScheduleChain,
+			Type:      logs.AddChain,
 			StartTime: chainItem.StartTime,
 			OccurTime: chainItem.OccurTime,
 			CardID:    chainItem.CardID,
