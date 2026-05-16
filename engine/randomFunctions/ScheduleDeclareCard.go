@@ -106,11 +106,14 @@ func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int,
 		B:    cardIndex, // index of card played
 	}
 
+	// convert to sim time
+	simTime := popTime - gs.SimPauseOffset
+
 	// create the item
 	simItem := &state.SimulationItem{
-		StartTime: popTime + constants.LEAD,
-		PopTime:   popTime + constants.LEAD + constants.REACTION_WINDOW - constants.LEAD,
-		OccurTime: popTime + constants.LEAD + constants.REACTION_WINDOW,
+		StartTime: simTime + constants.LEAD,
+		PopTime:   simTime + constants.REACTION_WINDOW,
+		OccurTime: simTime + constants.REACTION_WINDOW + constants.LEAD,
 
 		CardID:  cardIndex,
 		Type:    state.SimItemSummon,
@@ -148,11 +151,14 @@ func startChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex in
 		// fill out the template
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
+		// convert to chain time (wall time minus accumulated indefinite-pause offset)
+		chainTime := declarationTime - gs.FullPauseOffset
+
 		// push the chain item
 		chainItem := &state.ChainItem{
-			StartTime: declarationTime,
-			PopTime:   declarationTime + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime: declarationTime + constants.REACTION_WINDOW,
+			StartTime: chainTime,
+			PopTime:   chainTime + constants.REACTION_WINDOW - constants.LEAD,
+			OccurTime: chainTime + constants.REACTION_WINDOW,
 
 			CardID:  cardIndex,
 			Type:    state.ChainItemSpell,

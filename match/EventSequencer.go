@@ -54,6 +54,8 @@ func (match *Match) handleDuePQEvents() {
 		switch next.Type {
 		case "Effect":
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
+		case "ChainResolution":
+			match.handleChainResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
@@ -146,7 +148,7 @@ func scheduleEarliestSimItem(match *Match) {
 		return
 	}
 
-	// popTime is denominated in sim time, so we convert sim time to wall time by adding accumulated pause offset
+	// popTime is denominated in sim time
 	earliest := time.UnixMilli(earliestSimItem.PopTime + match.GameState.SimPauseOffset)
 
 	// if the simItem exists and is in the EventPQ, update it
@@ -179,7 +181,7 @@ func scheduleChainResolution(match *Match) {
 	latestChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
 
 	// pop time is denominated in chain time
-	earliest := time.UnixMilli(latestChainItem.PopTime + match.GameState.WallTimestamp)
+	earliest := time.UnixMilli(latestChainItem.PopTime + match.GameState.FullPauseOffset)
 
 	// if the chain item exists and is in the EventPQ, update it
 	if match.ChainItem != nil && match.ChainItem.Index > 0 {
