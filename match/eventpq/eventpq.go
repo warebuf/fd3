@@ -31,11 +31,11 @@ type EffectEvent struct {
 
 func (e *EffectEvent) Timestamp() time.Time { return e.T }
 
-type ChainEvent struct {
+type ChainResolutionEvent struct {
 	T time.Time
 }
 
-func (e *ChainEvent) Timestamp() time.Time { return e.T }
+func (e *ChainResolutionEvent) Timestamp() time.Time { return e.T }
 
 type PauseEndEvent struct {
 	T time.Time
@@ -88,7 +88,7 @@ func (pq *EventPQ) Pop() any {
 	return item
 }
 
-func (pq *EventPQ) Enqueue(ev Event, typ string) *EventItem {
+func (pq *EventPQ) CreateAndPushEventItem(ev Event, typ string) *EventItem {
 	item := &EventItem{Event: ev, Type: typ, Seq: pq.NextSeq}
 	pq.NextSeq++
 	heap.Push(pq, item)

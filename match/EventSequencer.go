@@ -94,12 +94,12 @@ func PushNewPhase(match *Match, t int64, phase int) {
 		T:     time.UnixMilli(t - constants.LEAD), // schedule 200 ms early
 		Phase: phase,
 	}
-	match.EventPQueue.Enqueue(newPhase, "NewPhase")
+	match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
 }
 
 func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
 	ev.T = time.Now() // relabel the timestamp when putting it into PQ
-	match.EventPQueue.Enqueue(ev, "Input")
+	match.EventPQueue.CreateAndPushEventItem(ev, "Input")
 }
 
 func (match *Match) setPQTimer() {
@@ -149,7 +149,7 @@ func scheduleEarliestSimItem(match *Match) {
 	// popTime is denominated in sim time, so we convert sim time to wall time by adding accumulated pause offset
 	earliest := time.UnixMilli(earliestSimItem.PopTime + match.GameState.SimPauseOffset)
 
-	// if the simItem exists and is in the EventPQ, update and reheapify in EventPQ
+	// if the simItem exists and is in the EventPQ, update it
 	if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 {
 		// update and reheapify
 		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
@@ -160,7 +160,7 @@ func scheduleEarliestSimItem(match *Match) {
 
 	// otherwise schedule the simItem in the EventPQ
 	ev := &eventpq.EffectEvent{T: earliest}
-	match.EarliestSimItem = match.EventPQueue.Enqueue(ev, "Effect")
+	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "Effect")
 
 }
 
@@ -178,6 +178,19 @@ func scheduleChainResolution(match *Match) {
 	// get last chain item
 	latestChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
 
-	//
+	// pop time is denominated in chain time
+	earliest := time.UnixMilli(latestChainItem.PopTime + match.GameState.WallTimestamp)
 
+	// if the chain item exists and is in the EventPQ, update it
+	if match.ChainItem != nil && match.ChainItem.Index > 0 {
+		// update and reheapify
+		effEv, _ := match.ChainItem.Event.(*eventpq.ChainResolutionEvent)
+		effEv.T = earliest
+		match.EventPQueue.Fix(match.ChainItem)
+		return
+	}
+
+	// otherwise add it to EventPQ
+	ev := &eventpq.ChainResolutionEvent{T: earliest}
+	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
 }
