@@ -192,5 +192,5 @@ func scheduleChainResolution(match *Match) {
 
 	// otherwise add it to EventPQ
 	ev := &eventpq.ChainResolutionEvent{T: earliest}
-	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
+	match.ChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
 }
