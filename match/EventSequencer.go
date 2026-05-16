@@ -163,3 +163,21 @@ func scheduleEarliestSimItem(match *Match) {
 	match.EarliestSimItem = match.EventPQueue.Enqueue(ev, "Effect")
 
 }
+
+func scheduleChainResolution(match *Match) {
+
+	// if no chain items, clean the pointer
+	if len(match.GameState.Chain) == 0 {
+		if match.ChainItem != nil && match.ChainItem.Index > 0 {
+			match.EventPQueue.Remove(match.ChainItem)
+		}
+		match.ChainItem = nil
+		return
+	}
+
+	// get last chain item
+	latestChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
+
+	//
+
+}
