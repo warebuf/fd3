@@ -13,12 +13,10 @@ import (
 // ScheduleDeclareCard returns true if a chain was started (caller should enter sim pause).
 func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) bool {
 
-	// check if card is in hand state
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false
 	}
 
-	// check if card is in hand arr
 	handIndex := -1
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
 		if cardIndex == gs.Hand[teamIndex][i] {
@@ -29,13 +27,11 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return false
 	}
 
-	// check cost condition
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
 		return false
 	}
 
-	// check if we are in an indefinite pause
 	if gs.PausePhase == 0 {
 		return false
 	}
@@ -44,7 +40,6 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	} else if gs.PausePhase == 2 { // simulating
 
-		// spend mana
 		gs.Mana[teamIndex] -= cost
 		*logList = append(*logList, logs.SpendManaLog{
 			UpdateID:  *UpdateID,
@@ -55,7 +50,6 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		})
 		*UpdateID += 1
 
-		// declare
 		*logList = append(*logList, logs.DeclareCardLog{
 			UpdateID:  *UpdateID,
 			Timestamp: popTime + constants.LEAD,
@@ -68,12 +62,12 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 			gs.Cards[cardIndex].Zone = state.ZoneField
 			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			handleSummonDeclaration(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+			scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
 
 		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 			gs.Cards[cardIndex].Zone = state.ZoneChain
 			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			startChain(gs, logList, UpdateID, teamIndex, cardIndex, popTime+constants.LEAD)
+			scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, popTime+constants.LEAD)
 			return true
 		}
 	}
@@ -81,7 +75,33 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	return false
 }
 
-func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, occurTime int64) {
+
+	item := &state.SimulationItem{
+		StartTime: occurTime,
+		PopTime:   occurTime - constants.LEAD,
+		OccurTime: occurTime,
+		CardID:    -1,
+		Type:      state.SimItemDraw,
+		Effects:   []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
+	}
+	heap.Push(pq, item)
+
+	*logList = append(*logList, logs.AddSimItemLog{
+		UpdateID:  *UpdateID,
+		Timestamp: occurTime,
+		Type:      logs.AddSimItem,
+
+		SeqID:       item.SeqID,
+		StartTime:   item.StartTime,
+		OccurTime:   item.OccurTime,
+		CardID:      item.CardID,
+		SimItemType: int(state.SimItemDraw),
+	})
+	*UpdateID += 1
+}
+
+func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
 
 	eff := state.Effect{
 		Type: state.SummonResolution,
@@ -116,14 +136,13 @@ func handleSummonDeclaration(gs *state.GameState, logList *[]any, UpdateID *int,
 	*UpdateID += 1
 }
 
-func startChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
+func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
 
 	abilities := defs.CardDefs[card.DefNo].OnPlay
 	for i := 0; i < len(abilities); i++ {
 
 		newEff := sim.FulfillEffectTemplate(abilities[i], teamIndex, cardIndex)
-
 		chainTime := declarationTime - gs.FullPauseOffset
 
 		chainItem := &state.ChainItem{

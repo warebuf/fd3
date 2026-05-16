@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -158,66 +157,3 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 }
 
-// TODO: there are probably more events that need to be handled tbh
-func (match *Match) TransitionPauseState(newPauseState int, transitionTime int64) {
-
-	gameState := match.GameState
-
-	// if newPauseState < 0, end the current pause state
-	if newPauseState < 0 {
-		switch gameState.PausePhase {
-		case 2: // already in simulating, do nothing
-			return
-		case 1: // end sim pause
-			gameState.PausePhase = 2 // enter simulating phase
-			gameState.SimPauseOffset += transitionTime - gameState.PauseStack[1]
-			gameState.PauseStack[1] = 0
-			scheduleEarliestSimItem(match)
-			return
-		case 0: // end indefinite pause
-			// entering sim pause
-			if gameState.PauseStack[1] > 0 {
-				// some notes on why how we increment in this case:
-				// say simPause at t=3, indefinitePause at t=4, unpause indefinitePause at t=5, unpause simPause at t=6
-				// SimPauseOffset +3, FullPauseOffsest at +1
-				gameState.PausePhase = 1 // entering sim pause phase
-				gameState.FullPauseOffset += transitionTime - gameState.PauseStack[0]
-				gameState.PauseStack[0] = 0
-				scheduleChainResolution(match)
-				return
-			}
-			// entering simulating
-			gameState.PausePhase = 2 // entering simulating phase
-			gameState.SimPauseOffset += transitionTime - gameState.PauseStack[0]
-			gameState.FullPauseOffset += transitionTime - gameState.PauseStack[0]
-			gameState.PauseStack[0] = 0
-			scheduleChainResolution(match)
-			scheduleEarliestSimItem(match)
-			return
-		}
-	}
-
-	// if newPause >= 0, entering a pause state
-	switch newPauseState {
-	case 0: // entering indefinite pause
-		gameState.PausePhase = 0 // entering indefinite pause
-		gameState.PauseStack[0] = transitionTime
-		if match.EarliestSimItem != nil {
-			match.EventPQueue.Remove(match.EarliestSimItem)
-			match.EarliestSimItem = nil
-		}
-		if match.ChainItem != nil {
-			match.EventPQueue.Remove(match.ChainItem)
-			match.ChainItem = nil
-		}
-	case 1: // entering sim pause
-		gameState.PausePhase = 1 // entering sim pause
-		gameState.PauseStack[1] = transitionTime
-		match.EventPQueue.Remove(match.EarliestSimItem)
-		match.EarliestSimItem = nil
-
-	case 2: // entering simulating. do nothing, should not be using the function this way
-		fmt.Println("please do not use the function this way. just unpause by passing -1 into newPauseState")
-	}
-
-}
