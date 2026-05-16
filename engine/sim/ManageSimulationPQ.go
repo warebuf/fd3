@@ -1,4 +1,4 @@
-package randomFunctions
+package sim
 
 import (
 	"container/heap"

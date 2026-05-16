@@ -6,7 +6,6 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
@@ -34,10 +33,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		// schedule draws: 5 cards per team, staggered 250ms apart
 		for i := 0; i < 5; i++ {
-			randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500+int64(i)*250)
+			ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500+int64(i)*250)
 		}
 		for i := 0; i < 5; i++ {
-			randomFunctions.ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000+int64(i)*250)
+			ScheduleDrawCard(&match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000+int64(i)*250)
 		}
 
 		// schedule board setup phase after draws complete
@@ -121,7 +120,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 				cardIndex := staged[i]
 				match.GameState.Cards[cardIndex].AutoSummon = 0
 				// TODO: handle chain pause during reveal if spells can be auto-played
-				randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
+				ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
 				declareTime += declareDelay
 			}
 		}

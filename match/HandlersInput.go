@@ -5,7 +5,6 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/randomFunctions"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -76,7 +75,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 	// if we are in phase 4 (play), declare the card
 	if match.GameState.Phase == 4 {
 		oldLogsSize := len(match.EventLog)
-		chainStarted := randomFunctions.ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
+		chainStarted := ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.T.UnixMilli())
 		if chainStarted {
 			match.TransitionPauseState(1, ie.T.UnixMilli()+constants.LEAD)
 			scheduleChainResolution(match)

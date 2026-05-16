@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/randomFunctions"
+	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -75,7 +75,7 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 
 	// simulate
 	oldLogsSize := len(match.EventLog)
-	randomFunctions.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
+	sim.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
 
 	// update the published state and publish the new logs
 	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)

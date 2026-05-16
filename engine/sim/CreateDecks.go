@@ -1,4 +1,4 @@
-package randomFunctions
+package sim
 
 import (
 	"github.com/warebuf/fd3/engine/defs"

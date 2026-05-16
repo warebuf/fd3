@@ -1,4 +1,4 @@
-package randomFunctions
+package match
 
 import (
 	"container/heap"
@@ -10,7 +10,6 @@ import (
 
 func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, occurTime int64) {
 
-	// schedule the draw
 	item := &state.SimulationItem{
 		StartTime: occurTime,
 		PopTime:   occurTime - constants.LEAD,
@@ -21,7 +20,6 @@ func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, tea
 	}
 	heap.Push(pq, item)
 
-	// add the scheduling log
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: occurTime,

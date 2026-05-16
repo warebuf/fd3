@@ -2,14 +2,12 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/randomFunctions"
+	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 )
 
 // right now chain size should only be 1
 // we have to edit this file down the line to handle multiple chains
-
-// NOTE VERY INCOMPLETE, JUST A WIP
 
 func (match *Match) handleChainResolution() {
 
@@ -28,7 +26,7 @@ func (match *Match) handleChainResolution() {
 
 	// apply effects
 	for _, eff := range chainTop.Effects {
-		randomFunctions.ApplyEffect(gs, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardID, wallTime)
+		sim.ApplyEffect(gs, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardID, wallTime)
 	}
 
 	// move spell to graveyard

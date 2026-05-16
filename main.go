@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	// our imports
-	"github.com/warebuf/fd3/engine/randomFunctions"
+	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
@@ -55,7 +55,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !randomFunctions.IsValidDeck(reqBody.Deck, reqBody.StructNo) {
+	if !sim.IsValidDeck(reqBody.Deck, reqBody.StructNo) {
 		http.Error(w, "invalid deck", http.StatusBadRequest)
 		return
 	}
