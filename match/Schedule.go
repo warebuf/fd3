@@ -79,9 +79,9 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
 
 	item := &state.SimulationItem{
-		SimTimeAtStart: executeAtSimTime,
-		SimTimeAtPop:   executeAtSimTime - constants.LEAD,
-		SimTimeAtOccur: executeAtSimTime,
+		StartAtSimTime:   executeAtSimTime,
+		PopAtSimTime:     executeAtSimTime - constants.LEAD,
+		ExecuteAtSimTime: executeAtSimTime,
 		CardID:         -1,
 		Type:           state.SimItemDraw,
 		Effects:        []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
@@ -94,8 +94,8 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 		Type:      logs.AddSimItem,
 
 		SeqID:       item.SeqID,
-		StartTime:   item.SimTimeAtStart,
-		OccurTime:   item.SimTimeAtOccur,
+		StartTime:   item.StartAtSimTime,
+		OccurTime:   item.ExecuteAtSimTime,
 		CardID:      item.CardID,
 		SimItemType: int(state.SimItemDraw),
 	})
@@ -113,9 +113,9 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 	simTime := popTime - gs.SimPauseOffset
 
 	simItem := &state.SimulationItem{
-		SimTimeAtStart: simTime + constants.LEAD,
-		SimTimeAtPop:   simTime + constants.REACTION_WINDOW,
-		SimTimeAtOccur: simTime + constants.REACTION_WINDOW + constants.LEAD,
+		StartAtSimTime:   simTime + constants.LEAD,
+		PopAtSimTime:     simTime + constants.REACTION_WINDOW,
+		ExecuteAtSimTime: simTime + constants.REACTION_WINDOW + constants.LEAD,
 
 		CardID:  cardIndex,
 		Type:    state.SimItemSummon,
@@ -129,8 +129,8 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		Type:      logs.AddSimItem,
 
 		SeqID:       simItem.SeqID,
-		StartTime:   simItem.SimTimeAtStart,
-		OccurTime:   simItem.SimTimeAtOccur,
+		StartTime:   simItem.StartAtSimTime,
+		OccurTime:   simItem.ExecuteAtSimTime,
 		CardID:      simItem.CardID,
 		SimItemType: int(state.SimItemSummon),
 	})

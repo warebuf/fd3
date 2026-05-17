@@ -27,7 +27,7 @@ func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 		currentSimTime := GetSimTime(gs, time.Now().UnixMilli())
 
 		// if earliestStack is not due
-		if earliestSimItem.SimTimeAtPop > currentSimTime {
+		if earliestSimItem.PopAtSimTime > currentSimTime {
 			return
 		}
 
@@ -42,7 +42,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
 
 	// handling all effects of the SimItem
-	wallTime := currSimItem.SimTimeAtPop + gs.SimPauseOffset + constants.LEAD
+	wallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
 
 		currentEffect := currSimItem.Effects[i]
@@ -56,8 +56,8 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 				CardIndex: currentEffect.B,
 			})
 			*UpdateID += 1
-			applyOnSummonEffects(gs, logList, UpdateID, currentEffect.A, currentEffect.B, currSimItem.SimTimeAtPop)
-			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.SimTimeAtPop+constants.LEAD)
+			applyOnSummonEffects(gs, logList, UpdateID, currentEffect.A, currentEffect.B, currSimItem.PopAtSimTime)
+			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 			continue
 		}
 
@@ -73,7 +73,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID) // add card to the field
 		} else if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.SimTimeAtPop+constants.LEAD)
+				scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 			}
 		}
 	}
@@ -81,7 +81,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	// add a log
 	*logList = append(*logList, logs.RemoveSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: currSimItem.SimTimeAtPop + constants.LEAD,
+		Timestamp: currSimItem.PopAtSimTime + constants.LEAD,
 		Type:      logs.RemoveChain,
 		CardID:    currSimItem.CardID,
 	})
@@ -240,9 +240,9 @@ func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, te
 		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
 
 		simItem := &state.SimulationItem{
-			SimTimeAtStart: currentTime + constants.LEAD,
-			SimTimeAtPop:   currentTime,
-			SimTimeAtOccur: currentTime + constants.LEAD,
+			StartAtSimTime:   currentTime + constants.LEAD,
+			PopAtSimTime:     currentTime,
+			ExecuteAtSimTime: currentTime + constants.LEAD,
 
 			CardID:  cardIndex,
 			Type:    state.SimItemSummon,
@@ -256,8 +256,8 @@ func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, te
 			Type:      logs.AddSimItem,
 
 			SeqID:       simItem.SeqID,
-			StartTime:   simItem.SimTimeAtStart,
-			OccurTime:   simItem.SimTimeAtOccur,
+			StartTime:   simItem.StartAtSimTime,
+			OccurTime:   simItem.ExecuteAtSimTime,
 			CardID:      simItem.CardID,
 			SimItemType: int(state.SimItemSummon),
 		})
@@ -300,9 +300,9 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 		// create the SimulationItem and add it to the SimulationPQ
 		scheduledTime := startTime + entry.Milliseconds - constants.LEAD
 		item := &state.SimulationItem{
-			SimTimeAtStart: startTime,
-			SimTimeAtPop:   scheduledTime,
-			SimTimeAtOccur: scheduledTime + constants.LEAD,
+			StartAtSimTime:   startTime,
+			PopAtSimTime:     scheduledTime,
+			ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
 			CardID:  cardID,
 			Type:    state.SimItemRecurring,
@@ -317,8 +317,8 @@ func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 			Type:      logs.AddSimItem,
 
 			SeqID:       item.SeqID,
-			StartTime:   item.SimTimeAtStart,
-			OccurTime:   item.SimTimeAtOccur,
+			StartTime:   item.StartAtSimTime,
+			OccurTime:   item.ExecuteAtSimTime,
 			CardID:      item.CardID,
 			SimItemType: int(state.SimItemRecurring),
 		})

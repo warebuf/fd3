@@ -106,9 +106,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			SeqID: item.SeqID,
 			index: item.index,
 
-			SimTimeAtStart: item.SimTimeAtStart,
-			SimTimeAtPop:   item.SimTimeAtPop,
-			SimTimeAtOccur: item.SimTimeAtOccur,
+			StartAtSimTime:   item.StartAtSimTime,
+			PopAtSimTime:     item.PopAtSimTime,
+			ExecuteAtSimTime: item.ExecuteAtSimTime,
 
 			CardID:  item.CardID,
 			Type:    item.Type,
