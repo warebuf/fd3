@@ -11,7 +11,7 @@ import (
 )
 
 // ScheduleDeclareCard returns true if a chain was started (caller should enter sim pause).
-func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) bool {
+func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false
@@ -34,16 +34,14 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	if gs.PausePhase == 0 {
 		return false
-	}
-
-	if gs.PausePhase == 1 { // sim pause — TODO: handle counter-spells
+	} else if gs.PausePhase == 1 { // sim pause — TODO: handle counter-spells
 
 	} else if gs.PausePhase == 2 { // simulating
 
 		gs.Mana[teamIndex] -= cost
 		*logList = append(*logList, logs.SpendManaLog{
 			UpdateID:  *UpdateID,
-			Timestamp: popTime + constants.LEAD,
+			Timestamp: wallTimeAtPop + constants.LEAD,
 			Type:      logs.SpendMana,
 			TeamIndex: teamIndex,
 			Amount:    cost,
@@ -52,7 +50,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 		*logList = append(*logList, logs.DeclareCardLog{
 			UpdateID:  *UpdateID,
-			Timestamp: popTime + constants.LEAD,
+			Timestamp: wallTimeAtPop + constants.LEAD,
 			Type:      logs.DeclareCard,
 			TeamIndex: teamIndex,
 			CardIndex: cardIndex,
@@ -62,12 +60,12 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 			gs.Cards[cardIndex].Zone = state.ZoneField
 			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, popTime)
+			scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
 
 		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 			gs.Cards[cardIndex].Zone = state.ZoneChain
 			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, popTime+constants.LEAD)
+			scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 			return true
 		}
 	}
@@ -75,26 +73,29 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	return false
 }
 
-func ScheduleDrawCard(pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, occurTime int64) {
+func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
+
+	// convert the 'execute at wall time' to sim time
+	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
 
 	item := &state.SimulationItem{
-		StartTime: occurTime,
-		PopTime:   occurTime - constants.LEAD,
-		OccurTime: occurTime,
-		CardID:    -1,
-		Type:      state.SimItemDraw,
-		Effects:   []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
+		SimTimeAtStart: executeAtSimTime,
+		SimTimeAtPop:   executeAtSimTime - constants.LEAD,
+		SimTimeAtOccur: executeAtSimTime,
+		CardID:         -1,
+		Type:           state.SimItemDraw,
+		Effects:        []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
 	heap.Push(pq, item)
 
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: occurTime,
+		Timestamp: executeAtWallTime,
 		Type:      logs.AddSimItem,
 
 		SeqID:       item.SeqID,
-		StartTime:   item.StartTime,
-		OccurTime:   item.OccurTime,
+		StartTime:   item.SimTimeAtStart,
+		OccurTime:   item.SimTimeAtOccur,
 		CardID:      item.CardID,
 		SimItemType: int(state.SimItemDraw),
 	})
@@ -112,9 +113,9 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 	simTime := popTime - gs.SimPauseOffset
 
 	simItem := &state.SimulationItem{
-		StartTime: simTime + constants.LEAD,
-		PopTime:   simTime + constants.REACTION_WINDOW,
-		OccurTime: simTime + constants.REACTION_WINDOW + constants.LEAD,
+		SimTimeAtStart: simTime + constants.LEAD,
+		SimTimeAtPop:   simTime + constants.REACTION_WINDOW,
+		SimTimeAtOccur: simTime + constants.REACTION_WINDOW + constants.LEAD,
 
 		CardID:  cardIndex,
 		Type:    state.SimItemSummon,
@@ -128,8 +129,8 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		Type:      logs.AddSimItem,
 
 		SeqID:       simItem.SeqID,
-		StartTime:   simItem.StartTime,
-		OccurTime:   simItem.OccurTime,
+		StartTime:   simItem.SimTimeAtStart,
+		OccurTime:   simItem.SimTimeAtOccur,
 		CardID:      simItem.CardID,
 		SimItemType: int(state.SimItemSummon),
 	})

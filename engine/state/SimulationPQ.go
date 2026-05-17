@@ -46,9 +46,9 @@ type SimulationItem struct {
 	SeqID int // the latest effect gets the biggest index (internal)
 	index int // heap position (internal)
 
-	StartTime int64 // (denominated in SimTime ms)
-	PopTime   int64 // the time we can apply to the game state (denominated in SimTime ms)
-	OccurTime int64 // (denominated in SimTime ms)
+	SimTimeAtStart int64 // when the countdown starts for this item (denominated in SimTime ms)
+	SimTimeAtPop   int64 // the time we can apply to the game state (denominated in SimTime ms)
+	SimTimeAtOccur int64 // the time the item executes (denominated in SimTime ms)
 
 	CardID  int
 	Type    SimItemType
@@ -63,8 +63,8 @@ type SimulationPQ struct {
 func (pq SimulationPQ) Len() int { return len(pq.Items) }
 
 func (pq SimulationPQ) Less(i, j int) bool {
-	if pq.Items[i].PopTime != pq.Items[j].PopTime {
-		return pq.Items[i].PopTime < pq.Items[j].PopTime
+	if pq.Items[i].SimTimeAtPop != pq.Items[j].SimTimeAtPop {
+		return pq.Items[i].SimTimeAtPop < pq.Items[j].SimTimeAtPop
 	}
 	return pq.Items[i].SeqID < pq.Items[j].SeqID
 }
@@ -97,7 +97,7 @@ func (pq *SimulationPQ) Update(item *SimulationItem, newPopTime int64) {
 	if item == nil || item.index < 0 || item.index >= len(pq.Items) {
 		return
 	}
-	item.PopTime = newPopTime
+	item.SimTimeAtPop = newPopTime
 	heap.Fix(pq, item.index)
 }
 

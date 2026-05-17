@@ -149,7 +149,7 @@ func scheduleEarliestSimItem(match *Match) {
 	}
 
 	// popTime is denominated in sim time
-	earliest := time.UnixMilli(earliestSimItem.PopTime + match.GameState.SimPauseOffset)
+	earliest := time.UnixMilli(earliestSimItem.SimTimeAtPop + match.GameState.SimPauseOffset)
 
 	// if the simItem exists and is in the EventPQ, update it
 	if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 {

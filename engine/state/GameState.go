@@ -103,10 +103,15 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	}
 	for i, item := range prevState.SimulationPQ.Items {
 		newItem := &SimulationItem{
-			SeqID:   item.SeqID,
-			PopTime: item.PopTime,
-			index:   item.index,
+			SeqID: item.SeqID,
+			index: item.index,
+
+			SimTimeAtStart: item.SimTimeAtStart,
+			SimTimeAtPop:   item.SimTimeAtPop,
+			SimTimeAtOccur: item.SimTimeAtOccur,
+
 			CardID:  item.CardID,
+			Type:    item.Type,
 			Effects: make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)
