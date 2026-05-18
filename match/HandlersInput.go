@@ -174,7 +174,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		}
 	}
 	if allReady {
-		PushNewPhase(match, time.Now().UnixMilli(), 3)
+		PushPhase(match, time.Now().UnixMilli(), 3)
 	}
 
 }

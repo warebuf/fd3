@@ -39,7 +39,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		// schedule board setup phase after draws complete
-		PushNewPhase(match, phaseChangeTimestamp+3500, 2)
+		PushPhase(match, phaseChangeTimestamp+3500, 2)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
@@ -67,7 +67,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushNewPhase(match, phaseChangeTimestamp+90000, 3)
+		PushPhase(match, phaseChangeTimestamp+90000, 3)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
@@ -126,7 +126,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
 		// schedule play phase after reveal effects resolve
-		PushNewPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
+		PushPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
