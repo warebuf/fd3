@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
@@ -66,7 +67,22 @@ func (match *Match) handleDuePQEvents() {
 		case "PauseEndEvent":
 			match.PauseEndItem = nil
 			pauseEndEvent := next.Event.(*eventpq.PauseEndEvent)
-			match.TransitionPauseState(-1, pauseEndEvent.T.UnixMilli())
+			wallTime := pauseEndEvent.T.UnixMilli()
+			if match.GameState.PausePhase == 0 {
+				teamIdx := match.GameState.TeamPaused
+				match.GameState.TimeBank[teamIdx] = 0
+				oldLogsSize := len(match.EventLog)
+				match.EventLog = append(match.EventLog, logs.UnpauseLog{
+					Timestamp:     wallTime,
+					UpdateID:      match.NextUpdateID,
+					Type:          logs.Unpause,
+					TeamIndex:     teamIdx,
+					TimeRemaining: 0,
+				})
+				match.NextUpdateID++
+				match.TransitionPauseState(-1, wallTime)
+				match.publish(wallTime, oldLogsSize)
+			}
 		}
 
 	}
@@ -77,11 +93,9 @@ func (match *Match) handleDuePQEvents() {
 
 func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 
-	// simulate
 	oldLogsSize := len(match.EventLog)
 	sim.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
-
-	// update the published state and publish the new logs
+	scheduleEarliestSimItem(match)
 	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
 
 }

@@ -3,6 +3,7 @@ package sim
 import (
 	"math/rand"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -15,16 +16,25 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		structures[i] = state.Structure{DefNo: defNo, HP: defs.StructureDefs[defNo].BaseHP}
 	}
 
+	numTeams := len(deckDefs)
+	timeBank := make([]int64, numTeams)
+	for i := range timeBank {
+		timeBank[i] = constants.PAUSE_BANK
+	}
+
 	gs := &state.GameState{
-		UpdateID: 0,
-		Phase:    0,
+		UpdateID:   0,
+		Phase:      0,
+		PausePhase: 2, // start in simulating state
+
+		TimeBank: timeBank,
 
 		Cards:      []state.Card{},
-		Deck:       make([][]int, len(deckDefs)),
-		Hand:       make([][]int, len(deckDefs)),
-		Field:      make([][]int, len(deckDefs)),
-		Grave:      make([][]int, len(deckDefs)),
-		Mana:       make([]int, len(deckDefs)),
+		Deck:       make([][]int, numTeams),
+		Hand:       make([][]int, numTeams),
+		Field:      make([][]int, numTeams),
+		Grave:      make([][]int, numTeams),
+		Mana:       make([]int, numTeams),
 		Structures: structures,
 	}
 	for i := range len(deckDefs) {

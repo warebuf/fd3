@@ -179,9 +179,68 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 
 func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
-	// if pause is invalid, return (not enough time bank or inappropriate phase)
+	gs := match.GameState
+	teamIdx := ie.TeamIdx
 
-	// otherwise, let's set the pause state
-	match.TransitionPauseState(0, ie.T.UnixMilli()+constants.LEAD)
+	executeTime := ie.T.UnixMilli() + constants.LEAD
+
+	if gs.Phase != 4 {
+		return
+	}
+	if teamIdx < 0 || teamIdx >= len(gs.TimeBank) {
+		return
+	}
+
+	if gs.PausePhase == 2 {
+		// entering pause
+		if gs.TimeBank[teamIdx] <= 0 {
+			return
+		}
+		gs.TeamPaused = teamIdx
+		match.TransitionPauseState(0, executeTime)
+
+		pauseEnd := &eventpq.PauseEndEvent{T: time.UnixMilli(executeTime + gs.TimeBank[teamIdx] - constants.LEAD)}
+		match.PauseEndItem = match.EventPQueue.CreateAndPushEventItem(pauseEnd, "PauseEndEvent")
+
+		oldLogsSize := len(match.EventLog)
+		match.EventLog = append(match.EventLog, logs.PauseLog{
+			Timestamp:     executeTime,
+			UpdateID:      match.NextUpdateID,
+			Type:          logs.Pause,
+			TeamIndex:     teamIdx,
+			TimeRemaining: gs.TimeBank[teamIdx],
+		})
+		match.NextUpdateID++
+		match.publish(executeTime, oldLogsSize)
+
+	} else if gs.PausePhase == 0 && gs.TeamPaused == teamIdx { // early unpause by the same team
+
+		elapsed := executeTime - gs.PauseStack[0]
+		if elapsed < 0 {
+			elapsed = 0
+		}
+		gs.TimeBank[teamIdx] -= elapsed
+		if gs.TimeBank[teamIdx] < 0 {
+			gs.TimeBank[teamIdx] = 0
+		}
+
+		if match.PauseEndItem != nil {
+			match.EventPQueue.Remove(match.PauseEndItem)
+			match.PauseEndItem = nil
+		}
+
+		match.TransitionPauseState(-1, executeTime)
+
+		oldLogsSize := len(match.EventLog)
+		match.EventLog = append(match.EventLog, logs.UnpauseLog{
+			Timestamp:     executeTime,
+			UpdateID:      match.NextUpdateID,
+			Type:          logs.Unpause,
+			TeamIndex:     teamIdx,
+			TimeRemaining: gs.TimeBank[teamIdx],
+		})
+		match.NextUpdateID++
+		match.publish(executeTime, oldLogsSize)
+	}
 
 }

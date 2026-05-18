@@ -17,6 +17,8 @@ const (
 	Attack
 	Ready
 	AutoSummonIndex
+	Pause
+	Unpause
 )
 
 type PhaseLog struct {
@@ -136,4 +138,20 @@ type AutoSummonLog struct {
 	TeamIndex     int
 	CardIndex     int
 	AutoSummonIdx int // 0 when cleared, assigned order when set
+}
+
+type PauseLog struct {
+	Timestamp     int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	TimeRemaining int64 // ms remaining in this team's time bank at pause start
+}
+
+type UnpauseLog struct {
+	Timestamp     int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	TimeRemaining int64 // ms remaining in this team's time bank after unpause
 }

@@ -6,10 +6,13 @@ type GameState struct {
 
 	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
 
+	// pause related
 	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating
 	PauseStack      [2]int64 // the wall ms when each pause started
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
+	TeamPaused      int      // which team paused the game
+	TimeBank        []int64  // remaining pause ms per team
 
 	// card states
 	Cards []Card
@@ -32,9 +35,11 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		UpdateID:        prevState.UpdateID,
 		WallTimestamp:   prevState.WallTimestamp,
 		Phase:           prevState.Phase,
+		PausePhase:      prevState.PausePhase,
 		PauseStack:      prevState.PauseStack,
 		FullPauseOffset: prevState.FullPauseOffset,
 		SimPauseOffset:  prevState.SimPauseOffset,
+		TeamPaused:      prevState.TeamPaused,
 	}
 
 	// Cards
@@ -80,6 +85,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// Ready
 	newState.Ready = make([]bool, len(prevState.Ready))
 	copy(newState.Ready, prevState.Ready)
+
+	// TimeBank
+	newState.TimeBank = make([]int64, len(prevState.TimeBank))
+	copy(newState.TimeBank, prevState.TimeBank)
 
 	// Chain (interactive stack)
 	newState.Chain = make([]ChainItem, len(prevState.Chain))
