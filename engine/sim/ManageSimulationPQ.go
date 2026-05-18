@@ -84,7 +84,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	*logList = append(*logList, logs.RemoveSimItemLog{
 		UpdateID:  *UpdateID,
 		Timestamp: currSimItem.PopAtSimTime + constants.LEAD,
-		Type:      logs.RemoveChain,
+		Type:      logs.RemoveSimItem,
 		CardID:    currSimItem.CardID,
 	})
 	*UpdateID += 1
@@ -122,7 +122,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 			*logList = append(*logList, logs.RemoveSimItemLog{
 				UpdateID:  *UpdateID,
 				Timestamp: wallTime,
-				Type:      logs.RemoveChain,
+				Type:      logs.RemoveSimItem,
 				CardID:    cardID,
 			})
 			*UpdateID += 1

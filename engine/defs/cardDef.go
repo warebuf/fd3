@@ -7,7 +7,6 @@ import (
 type Recurring struct {
 	Milliseconds int64
 	Effects      []state.Effect
-	Persistent   bool
 }
 
 type CardDef struct {
@@ -40,7 +39,6 @@ var CardDefs = []CardDef{
 						B:    1, // amount
 					},
 				},
-				Persistent: false,
 			},
 		},
 	},
@@ -71,7 +69,6 @@ var CardDefs = []CardDef{
 						B:    1,                // amount
 					},
 				},
-				Persistent: false,
 			},
 		},
 	},

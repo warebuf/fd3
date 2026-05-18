@@ -37,13 +37,6 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Mana:       make([]int, numTeams),
 		Structures: structures,
 	}
-	for i := range len(deckDefs) {
-		gs.Deck[i] = []int{}
-		gs.Hand[i] = []int{}
-		gs.Field[i] = []int{}
-		gs.Grave[i] = []int{}
-	}
-
 	nextCardID := 0
 	for team := 0; team < len(deckDefs); team++ {
 		defNos := deckDefs[team]
@@ -57,19 +50,16 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 			def := defs.CardDefs[defNo]
 
 			card := state.Card{
-				//
 				DefNo:       defNo,
 				Name:        def.Name,
 				Description: def.Description,
 				Cost:        def.Cost,
 				HP:          def.BaseHP,
 
-				//
-				CardID: nextCardID,
-				Team:   team,
-				Type:   def.Type,
-				Zone:   state.ZoneDeck,
-				Armed:  false,
+				Team:  team,
+				Type:  def.Type,
+				Zone:  state.ZoneDeck,
+				Armed: false,
 			}
 
 			gs.Cards = append(gs.Cards, card)

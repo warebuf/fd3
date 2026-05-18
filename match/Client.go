@@ -114,7 +114,7 @@ func (c *Client) Read() {
 		case "hand":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
-				return
+				continue
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "hand", c.ID, msg.CardIndex)
 

@@ -35,10 +35,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		// schedule draws: 5 cards per team, staggered 250ms apart
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500+int64(i)*250)
+			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500+int64(i)*250)
 		}
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.GameState.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000+int64(i)*250)
+			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000+int64(i)*250)
 		}
 
 		// schedule board setup phase after draws complete

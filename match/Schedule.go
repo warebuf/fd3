@@ -73,7 +73,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	return false
 }
 
-func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
+func ScheduleDrawCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
 
 	// convert the 'execute at wall time' to sim time
 	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
@@ -86,7 +86,7 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 		Type:             state.SimItemDraw,
 		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
-	heap.Push(pq, item)
+	heap.Push(&gs.SimulationPQ, item)
 
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
