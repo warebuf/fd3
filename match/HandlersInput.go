@@ -68,8 +68,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 			AutoSummonIdx: nextAutoSummon,
 		})
 		match.NextUpdateID++
-		match.PublishedState = state.DeepCopyGameState(match.GameState)
-		match.BroadcastLogs(oldLogsSize)
+		match.publish(ie.T.UnixMilli(), oldLogsSize)
 	}
 
 	// if we are in phase 4 (play), declare the card
@@ -128,8 +127,7 @@ func (match *Match) handleInputUndoHand(ie *eventpq.InputEvent) {
 		AutoSummonIdx: 0,
 	})
 	match.NextUpdateID++
-	match.PublishedState = state.DeepCopyGameState(match.GameState)
-	match.BroadcastLogs(oldLogsSize)
+	match.publish(ie.T.UnixMilli(), oldLogsSize)
 
 }
 
@@ -163,7 +161,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		TeamIndex: teamIdx,
 	})
 	match.NextUpdateID++
-	match.BroadcastLogs(oldLogsSize)
+	match.publish(ie.T.UnixMilli(), oldLogsSize)
 
 	// if all ready, increment the phase to board set up
 	allReady := true
