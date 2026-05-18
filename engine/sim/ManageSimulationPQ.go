@@ -8,8 +8,8 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/defs/effects"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/effects"
 	"github.com/warebuf/fd3/engine/state"
 )
 

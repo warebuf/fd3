@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
-	"github.com/warebuf/fd3/engine/defs/primitives"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
@@ -151,7 +150,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 	// shuffle the decks
 	for i := 0; i < len(gs.Deck); i++ {
-		primitives.ShuffleDeck(gs, i)
+		sim.ShuffleDeck(gs, i)
 	}
 
 	// create match object

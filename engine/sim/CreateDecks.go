@@ -1,6 +1,8 @@
 package sim
 
 import (
+	"math/rand"
+
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -68,6 +70,14 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 	}
 
 	return gs
+}
+
+func ShuffleDeck(gs *state.GameState, team int) {
+	deck := gs.Deck[team]
+
+	rand.Shuffle(len(deck), func(i, j int) {
+		deck[i], deck[j] = deck[j], deck[i]
+	})
 }
 
 func IsValidDeck(deck []int, structNo int) bool {
