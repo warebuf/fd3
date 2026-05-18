@@ -71,11 +71,11 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 			})
 			*UpdateID += 1
 
-			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+			ScheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 
 		} else if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+				ScheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 			}
 		}
 	}
@@ -242,7 +242,7 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 	return templ
 }
 
-func scheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *int, cardID int, startTime int64) {
+func ScheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *int, cardID int, startTime int64) {
 	teamIndex := gs.Cards[cardID].Team
 	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
 

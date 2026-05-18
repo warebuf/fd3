@@ -19,7 +19,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 	match.PendingPhaseTime = 0
 
 	switch newPhase.Phase {
-	case 1: // entering draw phase
+	case 1: // entering draw phase, we are in pause phase 2 here since we want to draw cards
 		oldLogsSize := len(match.EventLog)
 
 		// change the phase
@@ -49,7 +49,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// schedule draw cards
 		scheduleEarliestSimItem(match)
 
-	case 2: // entering board set up phase
+	case 2: // entering board set up phase, enter pause phase 1
 
 		oldLogsSize := len(match.EventLog)
 
@@ -63,7 +63,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		// TODO: enter animation pause phase ? maybe not ? it can be something specific to phase 2
+		match.TransitionPauseState(1, phaseChangeTimestamp)
 
 		// initialize ready flags
 		numTeams := len(match.GameState.Hand)
@@ -74,7 +74,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
-	case 3: // entering reveal
+	case 3: // entering reveal, remain pause phase 2.
 
 		oldLogsSize := len(match.EventLog)
 

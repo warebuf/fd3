@@ -184,7 +184,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 	executeTime := ie.T.UnixMilli() + constants.LEAD
 
-	if gs.Phase != 4 {
+	if gs.Phase < 1 {
 		return
 	}
 	if teamIdx < 0 || teamIdx >= len(gs.TimeBank) {
