@@ -93,7 +93,7 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 
 func PushNewPhase(match *Match, t int64, phase int) {
 	newPhase := &eventpq.NewPhaseEvent{
-		T:     time.UnixMilli(t - constants.LEAD), // schedule 200 ms early
+		T:     time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
 		Phase: phase,
 	}
 	match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
