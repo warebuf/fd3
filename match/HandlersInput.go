@@ -13,7 +13,7 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 
 	switch ie.Type {
 	case "fullPause":
-		// set GameState
+		match.handleInputPause(ie)
 	case "hand":
 		match.handleInputHand(ie)
 	case "undoHand":
@@ -174,5 +174,14 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 	if allReady {
 		PushPhase(match, time.Now().UnixMilli(), 3)
 	}
+
+}
+
+func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
+
+	// if pause is invalid, return (not enough time bank or inappropriate phase)
+
+	// otherwise, let's set the pause state
+	match.TransitionPauseState(0, ie.T.UnixMilli()+constants.LEAD)
 
 }
