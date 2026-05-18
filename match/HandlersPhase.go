@@ -15,6 +15,9 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		return
 	}
 
+	match.PendingPhase = 0
+	match.PendingPhaseTime = 0
+
 	switch newPhase.Phase {
 	case 1: // entering draw phase
 		oldLogsSize := len(match.EventLog)

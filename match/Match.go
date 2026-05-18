@@ -24,11 +24,14 @@ type Match struct {
 	InputEventChan chan *eventpq.InputEvent
 
 	// EventPQ related
-	EventPQueue     eventpq.EventPQ
-	EventPQTimer    *time.Timer
-	EarliestSimItem *eventpq.EventItem
-	ChainItem       *eventpq.EventItem
-	PauseEndItem    *eventpq.EventItem
+	EventPQueue      eventpq.EventPQ
+	EventPQTimer     *time.Timer
+	EarliestSimItem  *eventpq.EventItem
+	ChainItem        *eventpq.EventItem
+	PauseEndItem     *eventpq.EventItem
+	PhaseItem        *eventpq.EventItem
+	PendingPhase     int
+	PendingPhaseTime int64 // denominated in chain time
 }
 
 // TODO: needs to be censored per client

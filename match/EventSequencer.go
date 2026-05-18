@@ -53,14 +53,18 @@ func (match *Match) handleDuePQEvents() {
 
 		switch next.Type {
 		case "Effect":
+			match.EarliestSimItem = nil
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
 		case "ChainResolution":
+			match.ChainItem = nil
 			match.handleChainResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
+			match.PhaseItem = nil
 			match.handleNewPhaseEvent(next.Event.(*eventpq.NewPhaseEvent))
 		case "PauseEndEvent":
+			match.PauseEndItem = nil
 			pauseEndEvent := next.Event.(*eventpq.PauseEndEvent)
 			match.TransitionPauseState(-1, pauseEndEvent.T.UnixMilli())
 		}
@@ -82,7 +86,7 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 
 }
 
-// publish updates WallTimestamp, snapshots GameState into PublishedState, and broadcasts new logs.
+// publishes the latest updates
 func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.GameState.WallTimestamp = wallTime
 	match.GameState.UpdateID = match.NextUpdateID
@@ -96,7 +100,9 @@ func PushPhase(match *Match, t int64, phase int) {
 		T:     time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
 		Phase: phase,
 	}
-	match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
+	match.PendingPhase = phase
+	match.PendingPhaseTime = t
+	match.PhaseItem = match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
 }
 
 func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
@@ -141,19 +147,18 @@ func scheduleEarliestSimItem(match *Match) {
 
 	// if no earliest item, just clean everything
 	if earliestSimItem == nil {
-		if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 { // EarliestEffect exists AND is in EventPQ (indicated by index > 0)
+		if match.EarliestSimItem != nil {
 			match.EventPQueue.Remove(match.EarliestSimItem)
+			match.EarliestSimItem = nil
 		}
-		match.EarliestSimItem = nil
 		return
 	}
 
 	// popTime is denominated in sim time
 	earliest := time.UnixMilli(earliestSimItem.PopAtSimTime + match.GameState.SimPauseOffset)
 
-	// if the simItem exists and is in the EventPQ, update it
-	if match.EarliestSimItem != nil && match.EarliestSimItem.Index > 0 {
-		// update and reheapify
+	// if the simItem exists and is in the EventPQ, update and reheapify
+	if match.EarliestSimItem != nil {
 		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
 		effEv.T = earliest
 		match.EventPQueue.Fix(match.EarliestSimItem)
@@ -170,10 +175,6 @@ func scheduleChainResolution(match *Match) {
 
 	// if no chain items, clean the pointer
 	if len(match.GameState.Chain) == 0 {
-		if match.ChainItem != nil && match.ChainItem.Index > 0 {
-			match.EventPQueue.Remove(match.ChainItem)
-		}
-		match.ChainItem = nil
 		return
 	}
 
@@ -183,9 +184,8 @@ func scheduleChainResolution(match *Match) {
 	// pop time is denominated in chain time
 	earliest := time.UnixMilli(latestChainItem.PopTime + match.GameState.FullPauseOffset)
 
-	// if the chain item exists and is in the EventPQ, update it
-	if match.ChainItem != nil && match.ChainItem.Index > 0 {
-		// update and reheapify
+	// if the chain item exists and is in the EventPQ, update and reheapify
+	if match.ChainItem != nil {
 		effEv, _ := match.ChainItem.Event.(*eventpq.ChainResolutionEvent)
 		effEv.T = earliest
 		match.EventPQueue.Fix(match.ChainItem)
