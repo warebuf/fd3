@@ -66,23 +66,7 @@ func (match *Match) handleDuePQEvents() {
 			match.handleNewPhaseEvent(next.Event.(*eventpq.NewPhaseEvent))
 		case "PauseEndEvent":
 			match.PauseEndItem = nil
-			pauseEndEvent := next.Event.(*eventpq.PauseEndEvent)
-			wallTime := pauseEndEvent.T.UnixMilli()
-			if match.GameState.PausePhase == 0 {
-				teamIdx := match.GameState.TeamPaused
-				match.GameState.TimeBank[teamIdx] = 0
-				oldLogsSize := len(match.EventLog)
-				match.EventLog = append(match.EventLog, logs.UnpauseLog{
-					Timestamp:     wallTime,
-					UpdateID:      match.NextUpdateID,
-					Type:          logs.Unpause,
-					TeamIndex:     teamIdx,
-					TimeRemaining: 0,
-				})
-				match.NextUpdateID++
-				match.TransitionPauseState(-1, wallTime)
-				match.publish(wallTime, oldLogsSize)
-			}
+			match.handlePauseEndEvent(next.Event.(*eventpq.PauseEndEvent))
 		}
 
 	}
@@ -98,6 +82,25 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	scheduleEarliestSimItem(match)
 	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
 
+}
+
+func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
+	wallTime := pauseEndEvent.T.UnixMilli()
+	if match.GameState.PausePhase == 0 {
+		teamIdx := match.GameState.TeamPaused
+		match.GameState.TimeBank[teamIdx] = 0
+		oldLogsSize := len(match.EventLog)
+		match.EventLog = append(match.EventLog, logs.UnpauseLog{
+			Timestamp:     wallTime,
+			UpdateID:      match.NextUpdateID,
+			Type:          logs.Unpause,
+			TeamIndex:     teamIdx,
+			TimeRemaining: 0,
+		})
+		match.NextUpdateID++
+		match.TransitionPauseState(-1, wallTime)
+		match.publish(wallTime, oldLogsSize)
+	}
 }
 
 // publishes the latest updates
