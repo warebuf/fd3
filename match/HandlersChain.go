@@ -6,9 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// right now chain size should only be 1
-// we have to edit this file down the line to handle multiple chains
-
+// only handles chain size 1, down the line will change to handle multiple
 func (match *Match) handleChainResolution() {
 
 	gs := match.GameState

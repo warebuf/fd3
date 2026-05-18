@@ -23,15 +23,20 @@ func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 			return
 		}
 
-		// calculate sim time
-		currentSimTime := GetSimTime(gs, time.Now().UnixMilli())
+		// if we are not in simulating pause, we cannot pop a sim item
+		if gs.PausePhase != 2 {
+			return
+		}
 
-		// if earliestStack is not due
+		// calculate sim time
+		currentSimTime := time.Now().UnixMilli() - gs.SimPauseOffset
+
+		// check if earliest item is due
 		if earliestSimItem.PopAtSimTime > currentSimTime {
 			return
 		}
 
-		// handle the top effect
+		// handle the earliest sim item
 		handleLatestSimulationItem(gs, logList, UpdateID)
 	}
 
@@ -41,36 +46,33 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 
 	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
 
-	// handling all effects of the SimItem
+	// applying all effects
 	wallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
-
-		currentEffect := currSimItem.Effects[i]
-
-		if currentEffect.Type == state.SummonResolution {
-			*logList = append(*logList, logs.SummonResolutionLog{
-				UpdateID:  *UpdateID,
-				Timestamp: wallTime,
-				Type:      logs.SummonResolution,
-				TeamIndex: currentEffect.A,
-				CardIndex: currentEffect.B,
-			})
-			*UpdateID += 1
-			applyOnSummonEffects(gs, logList, UpdateID, currentEffect.A, currentEffect.B, currSimItem.PopAtSimTime)
-			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
-			continue
-		}
-
-		ApplyEffect(gs, logList, UpdateID, currentEffect, currSimItem.CardID, wallTime)
-
+		ApplyEffect(gs, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, wallTime)
 	}
 
 	// finishing the handling of the SimItem
 	if currSimItem.CardID >= 0 {
-		if currSimItem.Type == state.SimItemSummon {
+		if currSimItem.Type == state.SimItemSummonResolve {
+
+			// putting the card on the field
 			teamIndex := gs.Cards[currSimItem.CardID].Team
 			gs.Cards[currSimItem.CardID].Zone = state.ZoneField                   // complete the summon
 			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID) // add card to the field
+
+			// adding summon log
+			*logList = append(*logList, logs.SummonResolutionLog{
+				UpdateID:  *UpdateID,
+				Timestamp: wallTime,
+				Type:      logs.SummonResolution,
+				TeamIndex: teamIndex,
+				CardIndex: currSimItem.CardID,
+			})
+			*UpdateID += 1
+
+			scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+
 		} else if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
 				scheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
@@ -89,8 +91,6 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 
 }
 
-// ApplyEffect applies a single effect to the game state and appends logs.
-// wallTime is the wall-clock ms timestamp to use for all logs emitted by this effect.
 // sourceCardID is the card that triggered the effect (used for attack targeting).
 func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, wallTime int64) {
 	switch eff.Type {
@@ -224,46 +224,6 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}
-}
-
-func applyOnSummonEffects(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, currentTime int64) {
-
-	card := gs.Cards[cardIndex]
-
-	abilities := defs.CardDefs[card.DefNo].OnPlay
-	for i := 0; i < len(abilities); i++ {
-
-		// create the template
-		templ := abilities[i]
-
-		// fill out the template
-		newEff := FulfillEffectTemplate(templ, teamIndex, cardIndex)
-
-		simItem := &state.SimulationItem{
-			StartAtSimTime:   currentTime + constants.LEAD,
-			PopAtSimTime:     currentTime,
-			ExecuteAtSimTime: currentTime + constants.LEAD,
-
-			CardID:  cardIndex,
-			Type:    state.SimItemSummon,
-			Effects: []state.Effect{newEff},
-		}
-		heap.Push(&gs.SimulationPQ, simItem)
-
-		*logList = append(*logList, logs.AddSimItemLog{
-			UpdateID:  *UpdateID,
-			Timestamp: currentTime + constants.LEAD,
-			Type:      logs.AddSimItem,
-
-			SeqID:       simItem.SeqID,
-			StartTime:   simItem.StartAtSimTime,
-			OccurTime:   simItem.ExecuteAtSimTime,
-			CardID:      simItem.CardID,
-			SimItemType: int(state.SimItemSummon),
-		})
-		*UpdateID += 1
-	}
-
 }
 
 func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {

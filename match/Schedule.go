@@ -82,9 +82,9 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 		StartAtSimTime:   executeAtSimTime,
 		PopAtSimTime:     executeAtSimTime - constants.LEAD,
 		ExecuteAtSimTime: executeAtSimTime,
-		CardID:         -1,
-		Type:           state.SimItemDraw,
-		Effects:        []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
+		CardID:           -1,
+		Type:             state.SimItemDraw,
+		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
 	heap.Push(pq, item)
 
@@ -102,7 +102,7 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 	*UpdateID += 1
 }
 
-func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, popTime int64) {
+func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
 
 	eff := state.Effect{
 		Type: state.SummonResolution,
@@ -110,29 +110,29 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		B:    cardIndex,
 	}
 
-	simTime := popTime - gs.SimPauseOffset
+	simTime := wallTimeAtPop - gs.SimPauseOffset
 
 	simItem := &state.SimulationItem{
 		StartAtSimTime:   simTime + constants.LEAD,
 		PopAtSimTime:     simTime + constants.REACTION_WINDOW,
-		ExecuteAtSimTime: simTime + constants.REACTION_WINDOW + constants.LEAD,
+		ExecuteAtSimTime: simTime + constants.LEAD + constants.REACTION_WINDOW,
 
 		CardID:  cardIndex,
-		Type:    state.SimItemSummon,
+		Type:    state.SimItemSummonResolve,
 		Effects: []state.Effect{eff},
 	}
 	heap.Push(&gs.SimulationPQ, simItem)
 
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: popTime + constants.LEAD,
+		Timestamp: wallTimeAtPop + constants.LEAD,
 		Type:      logs.AddSimItem,
 
 		SeqID:       simItem.SeqID,
 		StartTime:   simItem.StartAtSimTime,
 		OccurTime:   simItem.ExecuteAtSimTime,
 		CardID:      simItem.CardID,
-		SimItemType: int(state.SimItemSummon),
+		SimItemType: int(state.SimItemSummonResolve),
 	})
 	*UpdateID += 1
 }
