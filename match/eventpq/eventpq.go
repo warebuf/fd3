@@ -43,6 +43,12 @@ type PauseEndEvent struct {
 
 func (e *PauseEndEvent) Timestamp() time.Time { return e.T }
 
+type RevealEvent struct {
+	T time.Time
+}
+
+func (e *RevealEvent) Timestamp() time.Time { return e.T }
+
 type EventItem struct {
 	Event Event
 	Type  string

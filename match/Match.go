@@ -30,8 +30,16 @@ type Match struct {
 	ChainItem        *eventpq.EventItem
 	PauseEndItem     *eventpq.EventItem
 	PhaseItem        *eventpq.EventItem
+	RevealItem       *eventpq.EventItem
 	PendingPhase     int   // if paused, this is the next phase scheduled. is 0 by default. if 0, no pending phases
 	PendingPhaseTime int64 // denominated in chain time
+
+	RevealQueue []RevealEntry
+}
+
+type RevealEntry struct {
+	TeamIdx   int
+	CardIndex int
 }
 
 // TODO: needs to be censored per client

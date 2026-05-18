@@ -34,40 +34,38 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	if gs.PausePhase == 0 {
 		return false
-	} else if gs.PausePhase == 1 { // sim pause — TODO: handle counter-spells
+	} else if gs.PausePhase == 1 && gs.Phase != 3 { // sim pause — TODO: handle counter-spells
+		return false
+	}
 
-	} else if gs.PausePhase == 2 { // simulating
+	gs.Mana[teamIndex] -= cost
+	*logList = append(*logList, logs.SpendManaLog{
+		UpdateID:  *UpdateID,
+		Timestamp: wallTimeAtPop + constants.LEAD,
+		Type:      logs.SpendMana,
+		TeamIndex: teamIndex,
+		Amount:    cost,
+	})
+	*UpdateID += 1
 
-		gs.Mana[teamIndex] -= cost
-		*logList = append(*logList, logs.SpendManaLog{
-			UpdateID:  *UpdateID,
-			Timestamp: wallTimeAtPop + constants.LEAD,
-			Type:      logs.SpendMana,
-			TeamIndex: teamIndex,
-			Amount:    cost,
-		})
-		*UpdateID += 1
+	*logList = append(*logList, logs.DeclareCardLog{
+		UpdateID:  *UpdateID,
+		Timestamp: wallTimeAtPop + constants.LEAD,
+		Type:      logs.DeclareCard,
+		TeamIndex: teamIndex,
+		CardIndex: cardIndex,
+	})
+	*UpdateID += 1
 
-		*logList = append(*logList, logs.DeclareCardLog{
-			UpdateID:  *UpdateID,
-			Timestamp: wallTimeAtPop + constants.LEAD,
-			Type:      logs.DeclareCard,
-			TeamIndex: teamIndex,
-			CardIndex: cardIndex,
-		})
-		*UpdateID += 1
-
-		if gs.Cards[cardIndex].Type == state.CardTypeUnit {
-			gs.Cards[cardIndex].Zone = state.ZoneField
-			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
-
-		} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
-			gs.Cards[cardIndex].Zone = state.ZoneChain
-			gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-			scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
-			return true
-		}
+	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
+		gs.Cards[cardIndex].Zone = state.ZoneField
+		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+		scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
+	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
+		gs.Cards[cardIndex].Zone = state.ZoneChain
+		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+		scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
+		return true
 	}
 
 	return false

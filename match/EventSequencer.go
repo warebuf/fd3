@@ -67,6 +67,9 @@ func (match *Match) handleDuePQEvents() {
 		case "PauseEndEvent":
 			match.PauseEndItem = nil
 			match.handlePauseEndEvent(next.Event.(*eventpq.PauseEndEvent))
+		case "Reveal":
+			match.RevealItem = nil
+			match.handleRevealEvent()
 		}
 
 	}
@@ -186,6 +189,11 @@ func scheduleEarliestSimItem(match *Match) {
 	ev := &eventpq.EffectEvent{T: earliest}
 	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "Effect")
 
+}
+
+func scheduleReveal(match *Match, at int64) {
+	ev := &eventpq.RevealEvent{T: time.UnixMilli(at)}
+	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
 }
 
 func scheduleChainResolution(match *Match) {

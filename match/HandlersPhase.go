@@ -74,7 +74,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
-	case 3: // entering reveal, remain pause phase 2.
+	case 3: // entering reveal, remain pause phase 1
 
 		oldLogsSize := len(match.EventLog)
 
@@ -88,10 +88,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		// TODO: also animation pause phase. can also be something specific to phase 3
-
 		// collect staged cards per team, sorted by AutoSummon order
-		revealTime := phaseChangeTimestamp + 500
 		numTeams := len(match.GameState.Hand)
 		stagedByTeam := make([][]int, numTeams)
 		for i, c := range match.GameState.Cards {
@@ -105,15 +102,14 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 			})
 		}
 
-		// declare in AutoSummon order, alternating between teams
+		// build reveal queue: alternating teams in AutoSummon order
 		maxStaged := 0
 		for _, staged := range stagedByTeam {
 			if len(staged) > maxStaged {
 				maxStaged = len(staged)
 			}
 		}
-		declareTime := revealTime
-		const declareDelay = int64(800) // ms between each auto-summon declaration
+		match.RevealQueue = match.RevealQueue[:0]
 		for i := 0; i < maxStaged; i++ {
 			for teamIdx, staged := range stagedByTeam {
 				if i >= len(staged) {
@@ -121,15 +117,13 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 				}
 				cardIndex := staged[i]
 				match.GameState.Cards[cardIndex].AutoSummon = 0
-				// TODO: handle chain pause during reveal if spells can be auto-played
-				ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, declareTime)
-				declareTime += declareDelay
+				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIdx: teamIdx, CardIndex: cardIndex})
 			}
 		}
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
-		// schedule play phase after reveal effects resolve
-		PushPhase(match, declareTime+int64(constants.REACTION_WINDOW)+2000, 4)
+		// schedule first reveal; phase 4 is pushed by handleRevealEvent when queue empties
+		scheduleReveal(match, phaseChangeTimestamp+500)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
