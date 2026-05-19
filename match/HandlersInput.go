@@ -60,7 +60,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 
 		oldLogsSize := len(match.EventLog)
 		match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-			Timestamp:     ie.T.UnixMilli(),
+			WallTimestamp: ie.T.UnixMilli(),
 			UpdateID:      match.NextUpdateID,
 			Type:          logs.AutoSummonIndex,
 			TeamIndex:     teamIdx,
@@ -119,7 +119,7 @@ func (match *Match) handleInputUndoHand(ie *eventpq.InputEvent) {
 	// create the log, update game state, broadcast the log
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		Timestamp:     ie.T.UnixMilli(),
+		WallTimestamp: ie.T.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.AutoSummonIndex,
 		TeamIndex:     teamIdx,
@@ -155,7 +155,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 	// create the log and broadcast
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.ReadyLog{
-		Timestamp: ie.T.UnixMilli(),
+		WallTimestamp: ie.T.UnixMilli(),
 		UpdateID:  match.NextUpdateID,
 		Type:      logs.Ready,
 		TeamIndex: teamIdx,
@@ -204,7 +204,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 		oldLogsSize := len(match.EventLog)
 		match.EventLog = append(match.EventLog, logs.PauseLog{
-			Timestamp:     executeTime,
+			WallTimestamp: executeTime,
 			UpdateID:      match.NextUpdateID,
 			Type:          logs.Pause,
 			TeamIndex:     teamIdx,
@@ -233,7 +233,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 		oldLogsSize := len(match.EventLog)
 		match.EventLog = append(match.EventLog, logs.UnpauseLog{
-			Timestamp:     executeTime,
+			WallTimestamp: executeTime,
 			UpdateID:      match.NextUpdateID,
 			Type:          logs.Unpause,
 			TeamIndex:     teamIdx,

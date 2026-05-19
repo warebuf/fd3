@@ -101,7 +101,7 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 		match.GameState.TimeBank[teamIdx] = 0
 		oldLogsSize := len(match.EventLog)
 		match.EventLog = append(match.EventLog, logs.UnpauseLog{
-			Timestamp:     wallTime,
+			WallTimestamp: wallTime,
 			UpdateID:      match.NextUpdateID,
 			Type:          logs.Unpause,
 			TeamIndex:     teamIdx,

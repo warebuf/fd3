@@ -41,7 +41,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	gs.Mana[teamIndex] -= cost
 	*logList = append(*logList, logs.SpendManaLog{
 		UpdateID:  *UpdateID,
-		Timestamp: wallTimeAtPop + constants.LEAD,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
 		Type:      logs.SpendMana,
 		TeamIndex: teamIndex,
 		Amount:    cost,
@@ -50,7 +50,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	*logList = append(*logList, logs.DeclareCardLog{
 		UpdateID:  *UpdateID,
-		Timestamp: wallTimeAtPop + constants.LEAD,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
 		Type:      logs.DeclareCard,
 		TeamIndex: teamIndex,
 		CardIndex: cardIndex,
@@ -88,7 +88,7 @@ func ScheduleDrawCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIn
 
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: executeAtWallTime,
+		WallTimestamp: executeAtWallTime,
 		Type:      logs.AddSimItem,
 
 		SeqID:       item.SeqID,
@@ -123,7 +123,7 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 
 	*logList = append(*logList, logs.AddSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: wallTimeAtPop + constants.LEAD,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
 		Type:      logs.AddSimItem,
 
 		SeqID:       simItem.SeqID,
@@ -157,7 +157,7 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 
 		*logList = append(*logList, logs.AddChainLog{
 			UpdateID:  *UpdateID,
-			Timestamp: declarationTime,
+			WallTimestamp: declarationTime,
 			Type:      logs.AddChain,
 			StartTime: chainItem.StartTime,
 			OccurTime: chainItem.OccurTime,

@@ -65,7 +65,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 			// adding summon log
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:  *UpdateID,
-				Timestamp: wallTime,
+				WallTimestamp: wallTime,
 				Type:      logs.SummonResolution,
 				TeamIndex: teamIndex,
 				CardIndex: currSimItem.CardID,
@@ -84,7 +84,7 @@ func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *i
 	// add a log
 	*logList = append(*logList, logs.RemoveSimItemLog{
 		UpdateID:  *UpdateID,
-		Timestamp: currSimItem.PopAtSimTime + constants.LEAD,
+		WallTimestamp: currSimItem.PopAtSimTime + constants.LEAD,
 		Type:      logs.RemoveSimItem,
 		CardID:    currSimItem.CardID,
 	})
@@ -100,7 +100,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 		effects.ApplyEffectDraw(gs, eff)
 		*logList = append(*logList, logs.DrawLog{
 			UpdateID:  *UpdateID,
-			Timestamp: wallTime,
+			WallTimestamp: wallTime,
 			Type:      logs.Draw,
 			TeamIndex: eff.A,
 			NumCards:  1,
@@ -122,7 +122,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 		for _, cardID := range removedCardIDs {
 			*logList = append(*logList, logs.RemoveSimItemLog{
 				UpdateID:  *UpdateID,
-				Timestamp: wallTime,
+				WallTimestamp: wallTime,
 				Type:      logs.RemoveSimItem,
 				CardID:    cardID,
 			})
@@ -130,7 +130,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
-			Timestamp:       wallTime,
+			WallTimestamp: wallTime,
 			Type:            logs.DestroyCard,
 			TeamIndex:       gs.Cards[eff.C].Team,
 			CardIndex:       eff.C,
@@ -144,7 +144,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 		gs.Mana[eff.A] += eff.B
 		*logList = append(*logList, logs.GainManaLog{
 			UpdateID:  *UpdateID,
-			Timestamp: wallTime,
+			WallTimestamp: wallTime,
 			Type:      logs.GainMana,
 			TeamIndex: eff.A,
 			Amount:    eff.B,
@@ -164,7 +164,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 				gs.Cards[targetIdx].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					Timestamp:       wallTime,
+					WallTimestamp: wallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    true,
@@ -188,7 +188,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 					for _, cardID := range removedCardIDs {
 						*logList = append(*logList, logs.RemoveSimItemLog{
 							UpdateID:  *UpdateID,
-							Timestamp: wallTime,
+							WallTimestamp: wallTime,
 							Type:      logs.RemoveChain,
 							CardID:    cardID,
 						})
@@ -196,7 +196,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 					}
 					*logList = append(*logList, logs.DestroyCardLog{
 						UpdateID:        *UpdateID,
-						Timestamp:       wallTime,
+						WallTimestamp: wallTime,
 						Type:            logs.DestroyCard,
 						TeamIndex:       teamIndex,
 						CardIndex:       targetIdx,
@@ -210,7 +210,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 				gs.Structures[enemyTeam].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					Timestamp:       wallTime,
+					WallTimestamp: wallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    false,
@@ -274,7 +274,7 @@ func ScheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *i
 		// broadcast the new step to all clients
 		*logList = append(*logList, logs.AddSimItemLog{
 			UpdateID:  *UpdateID,
-			Timestamp: startTime,
+			WallTimestamp: startTime,
 			Type:      logs.AddSimItem,
 
 			SeqID:       item.SeqID,

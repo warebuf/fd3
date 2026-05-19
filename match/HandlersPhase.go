@@ -26,19 +26,22 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 1
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
-			UpdateID:  match.NextUpdateID,
-			Timestamp: phaseChangeTimestamp,
-			Type:      logs.Phase,
-			Phase:     1,
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: phaseChangeTimestamp,
+			Type:          logs.Phase,
+			Phase:         1,
 		})
 		match.NextUpdateID += 1
 
 		// schedule draws: 5 cards per team, staggered 250ms apart
+		init := int64(5000)
+		timeApart := int64(2500)
+		secondInit := (init * 2) + (timeApart * 5)
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+500+int64(i)*250)
+			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+init+int64(i)*timeApart)
 		}
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+2000+int64(i)*250)
+			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+secondInit+int64(i)*timeApart)
 		}
 
 		// schedule board setup phase after draws complete
@@ -56,10 +59,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 2
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
-			UpdateID:  match.NextUpdateID,
-			Timestamp: phaseChangeTimestamp,
-			Type:      logs.Phase,
-			Phase:     2,
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: phaseChangeTimestamp,
+			Type:          logs.Phase,
+			Phase:         2,
 		})
 		match.NextUpdateID += 1
 
@@ -81,10 +84,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 3
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
-			UpdateID:  match.NextUpdateID,
-			Timestamp: phaseChangeTimestamp,
-			Type:      logs.Phase,
-			Phase:     3,
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: phaseChangeTimestamp,
+			Type:          logs.Phase,
+			Phase:         3,
 		})
 		match.NextUpdateID += 1
 
@@ -134,15 +137,15 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 4
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
-			UpdateID:  match.NextUpdateID,
-			Timestamp: phaseChangeTimestamp,
-			Type:      logs.Phase,
-			Phase:     4,
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: phaseChangeTimestamp,
+			Type:          logs.Phase,
+			Phase:         4,
 		})
 		match.NextUpdateID += 1
 
 		// enter simulating state
-		match.TransitionPauseState(2, phaseChangeTimestamp)
+		match.TransitionPauseState(-1, phaseChangeTimestamp)
 
 		// update the published state and broadcast to clients
 		match.publish(phaseChangeTimestamp, oldLogsSize)

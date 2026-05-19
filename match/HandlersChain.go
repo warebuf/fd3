@@ -37,7 +37,7 @@ func (match *Match) handleChainResolution() {
 	// log chain item removal
 	match.EventLog = append(match.EventLog, logs.RemoveChainLog{
 		UpdateID:  match.NextUpdateID,
-		Timestamp: wallTime,
+		WallTimestamp: wallTime,
 		Type:      logs.RemoveChain,
 		CardID:    chainTop.CardID,
 	})

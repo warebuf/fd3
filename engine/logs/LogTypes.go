@@ -22,39 +22,39 @@ const (
 )
 
 type PhaseLog struct {
-	Timestamp int64
-	UpdateID  int
-	Type      LogType
-	Phase     int
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	Phase         int
 }
 
 type DrawLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 	NumCards  int
 }
 
 type DeclareCardLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 	CardIndex int
 }
 
 type SummonResolutionLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 	CardIndex int
 }
 
 type AddSimItemLog struct {
-	Timestamp   int64
-	UpdateID    int
+	WallTimestamp int64
+	UpdateID      int
 	Type        LogType
 	SeqID       int
 	StartTime   int64
@@ -64,22 +64,22 @@ type AddSimItemLog struct {
 }
 
 type RemoveSimItemLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	CardID    int
 }
 
 type RemoveChainLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	CardID    int
 }
 
 type AddChainLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	StartTime int64
 	OccurTime int64
@@ -87,7 +87,7 @@ type AddChainLog struct {
 }
 
 type DestroyCardLog struct {
-	Timestamp       int64
+	WallTimestamp   int64
 	UpdateID        int
 	Type            LogType
 	TeamIndex       int
@@ -98,23 +98,23 @@ type DestroyCardLog struct {
 }
 
 type GainManaLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 	Amount    int
 }
 
 type SpendManaLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 	Amount    int
 }
 
 type AttackLog struct {
-	Timestamp       int64
+	WallTimestamp   int64
 	UpdateID        int
 	Type            LogType
 	AttackerIndex   int
@@ -125,14 +125,14 @@ type AttackLog struct {
 }
 
 type ReadyLog struct {
-	Timestamp int64
-	UpdateID  int
+	WallTimestamp int64
+	UpdateID      int
 	Type      LogType
 	TeamIndex int
 }
 
 type AutoSummonLog struct {
-	Timestamp     int64
+	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
@@ -141,7 +141,7 @@ type AutoSummonLog struct {
 }
 
 type PauseLog struct {
-	Timestamp     int64
+	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
@@ -149,7 +149,7 @@ type PauseLog struct {
 }
 
 type UnpauseLog struct {
-	Timestamp     int64
+	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
