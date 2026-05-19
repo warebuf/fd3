@@ -45,6 +45,7 @@ func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
 func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *int) {
 
 	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
+	fmt.Println("handling eff", currSimItem)
 
 	// applying all effects
 	wallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
