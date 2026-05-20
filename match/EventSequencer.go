@@ -122,6 +122,7 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.BroadcastLogs(oldLogsSize)
 }
 
+// want to rename t to something more specific tbh, also im not sure if this function is correct
 func PushPhase(match *Match, t int64, phase int) {
 	newPhase := &eventpq.NewPhaseEvent{
 		WallTime: time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
