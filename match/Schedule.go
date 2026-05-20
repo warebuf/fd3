@@ -11,7 +11,7 @@ import (
 )
 
 // ScheduleDeclareCard returns true if a chain was started (caller should enter sim pause).
-func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
+func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false
@@ -40,27 +40,27 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	gs.Mana[teamIndex] -= cost
 	*logList = append(*logList, logs.SpendManaLog{
-		UpdateID:  *UpdateID,
+		UpdateID:      *UpdateID,
 		WallTimestamp: wallTimeAtPop + constants.LEAD,
-		Type:      logs.SpendMana,
-		TeamIndex: teamIndex,
-		Amount:    cost,
+		Type:          logs.SpendMana,
+		TeamIndex:     teamIndex,
+		Amount:        cost,
 	})
 	*UpdateID += 1
 
 	*logList = append(*logList, logs.DeclareCardLog{
-		UpdateID:  *UpdateID,
+		UpdateID:      *UpdateID,
 		WallTimestamp: wallTimeAtPop + constants.LEAD,
-		Type:      logs.DeclareCard,
-		TeamIndex: teamIndex,
-		CardIndex: cardIndex,
+		Type:          logs.DeclareCard,
+		TeamIndex:     teamIndex,
+		CardIndex:     cardIndex,
 	})
 	*UpdateID += 1
 
 	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 		gs.Cards[cardIndex].Zone = state.ZoneField
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-		scheduleSummon(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
+		scheduleSummon(gs, pq, abilityIDCounter, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 		gs.Cards[cardIndex].Zone = state.ZoneChain
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
@@ -71,37 +71,22 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	return false
 }
 
-func ScheduleDrawCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
-
-	// convert the 'execute at wall time' to sim time
+func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
 	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
 
 	item := &state.SimulationItem{
 		StartAtSimTime:   executeAtSimTime,
 		PopAtSimTime:     executeAtSimTime - constants.LEAD,
 		ExecuteAtSimTime: executeAtSimTime,
+		AbilityID:        -1,
 		CardID:           -1,
 		Type:             state.SimItemDraw,
 		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}
-	heap.Push(&gs.SimulationPQ, item)
-
-	*logList = append(*logList, logs.AddSimItemLog{
-		UpdateID:  *UpdateID,
-		WallTimestamp: executeAtWallTime,
-		Type:      logs.AddSimItem,
-
-		SeqID:       item.SeqID,
-		StartTime:   item.StartAtSimTime,
-		OccurTime:   item.ExecuteAtSimTime,
-		CardID:      item.CardID,
-		SimItemType: int(state.SimItemDraw),
-	})
-	*UpdateID += 1
+	heap.Push(pq, item)
 }
 
-func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
-
+func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
 	eff := state.Effect{
 		Type: state.SummonResolution,
 		A:    teamIndex,
@@ -110,29 +95,27 @@ func scheduleSummon(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 
 	simTime := wallTimeAtPop - gs.SimPauseOffset
 
+	abilityID := *abilityIDCounter
+	*abilityIDCounter++
+
 	simItem := &state.SimulationItem{
 		StartAtSimTime:   simTime + constants.LEAD,
 		PopAtSimTime:     simTime + constants.REACTION_WINDOW,
 		ExecuteAtSimTime: simTime + constants.LEAD + constants.REACTION_WINDOW,
 
-		CardID:  cardIndex,
-		Type:    state.SimItemSummonResolve,
-		Effects: []state.Effect{eff},
+		AbilityID: abilityID,
+		CardID:    cardIndex,
+		Type:      state.SimItemSummonResolve,
+		Effects:   []state.Effect{eff},
 	}
-	heap.Push(&gs.SimulationPQ, simItem)
+	heap.Push(pq, simItem)
 
-	*logList = append(*logList, logs.AddSimItemLog{
-		UpdateID:  *UpdateID,
-		WallTimestamp: wallTimeAtPop + constants.LEAD,
-		Type:      logs.AddSimItem,
-
-		SeqID:       simItem.SeqID,
-		StartTime:   simItem.StartAtSimTime,
-		OccurTime:   simItem.ExecuteAtSimTime,
-		CardID:      simItem.CardID,
-		SimItemType: int(state.SimItemSummonResolve),
+	gs.Cards[cardIndex].AbilityTimers = append(gs.Cards[cardIndex].AbilityTimers, state.AbilityTimer{
+		AbilityID:  abilityID,
+		AbilityIdx: -1,
+		StartTime:  simItem.StartAtSimTime,
+		OccurTime:  simItem.ExecuteAtSimTime,
 	})
-	*UpdateID += 1
 }
 
 func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
@@ -156,12 +139,12 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 		gs.Chain = append(gs.Chain, *chainItem)
 
 		*logList = append(*logList, logs.AddChainLog{
-			UpdateID:  *UpdateID,
+			UpdateID:      *UpdateID,
 			WallTimestamp: declarationTime,
-			Type:      logs.AddChain,
-			StartTime: chainItem.StartTime,
-			OccurTime: chainItem.OccurTime,
-			CardID:    chainItem.CardID,
+			Type:          logs.AddChain,
+			StartTime:     chainItem.StartTime,
+			OccurTime:     chainItem.OccurTime,
+			CardID:        chainItem.CardID,
 		})
 		*UpdateID += 1
 	}

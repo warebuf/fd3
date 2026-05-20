@@ -15,7 +15,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	chainStarted := ScheduleDeclareCard(match.GameState, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, wallTime)
+	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, wallTime)
 	if chainStarted {
 		scheduleChainResolution(match)
 	} else {

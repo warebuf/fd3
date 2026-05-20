@@ -88,7 +88,7 @@ func (match *Match) handleDuePQEvents() {
 func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 
 	oldLogsSize := len(match.EventLog)
-	sim.ManageSimulationPQ(match.GameState, &match.EventLog, &match.NextUpdateID)
+	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
 	scheduleEarliestSimItem(match)
 	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
 
@@ -170,7 +170,7 @@ func (match *Match) setPQTimer() {
 func scheduleEarliestSimItem(match *Match) {
 
 	// get the timestamp of earliest in the SimulationPQ
-	earliestSimItem := match.GameState.SimulationPQ.Peek()
+	earliestSimItem := match.SimulationPQ.Peek()
 
 	// if no earliest item, just clean everything
 	if earliestSimItem == nil {

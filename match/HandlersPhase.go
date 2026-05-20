@@ -38,10 +38,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		timeApart := int64(2500)
 		secondInit := (init * 2) + (timeApart * 5)
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+init+int64(i)*timeApart)
+			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+init+int64(i)*timeApart)
 		}
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+secondInit+int64(i)*timeApart)
+			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+secondInit+int64(i)*timeApart)
 		}
 
 		// schedule board setup phase after draws complete

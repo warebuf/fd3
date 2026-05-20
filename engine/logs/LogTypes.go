@@ -7,8 +7,6 @@ const (
 	Draw
 	DeclareCard
 	SummonResolution
-	AddSimItem
-	RemoveSimItem
 	AddChain
 	RemoveChain
 	DestroyCard
@@ -50,24 +48,6 @@ type SummonResolutionLog struct {
 	Type      LogType
 	TeamIndex int
 	CardIndex int
-}
-
-type AddSimItemLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type        LogType
-	SeqID       int
-	StartTime   int64
-	OccurTime   int64
-	CardID      int
-	SimItemType int
-}
-
-type RemoveSimItemLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type      LogType
-	CardID    int
 }
 
 type RemoveChainLog struct {

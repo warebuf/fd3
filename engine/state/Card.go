@@ -15,6 +15,13 @@ const (
 	ZoneChain
 )
 
+type AbilityTimer struct {
+	AbilityID  int
+	AbilityIdx int   // index into card def's ability list; -1 for summon window
+	StartTime  int64 // sim time
+	OccurTime  int64 // sim time
+}
+
 type Card struct {
 	// descriptive info
 	DefNo       int // the card's serial number
@@ -24,9 +31,10 @@ type Card struct {
 	Cost        int
 
 	// state info
-	Team       int
-	Type       int // structure, unit, trap, spell
-	Zone       int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain
-	Armed      bool
-	AutoSummon int // 0: not staged; 1+: order in which to autosummon during reveal phase
+	Team          int
+	Type          int // structure, unit, trap, spell
+	Zone          int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain
+	Armed         bool
+	AutoSummon    int // 0: not staged; 1+: order in which to autosummon during reveal phase
+	AbilityTimers []AbilityTimer
 }

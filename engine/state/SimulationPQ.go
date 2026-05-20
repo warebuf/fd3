@@ -4,34 +4,28 @@ import (
 	"container/heap"
 )
 
-func (pq *SimulationPQ) RemoveSimItemsByCardIDs(cardIDs map[int]bool) []int {
+func (pq *SimulationPQ) RemoveSimItemsByCardIDs(cardIDs map[int]bool) {
 	var toRemove []*SimulationItem
 	for _, item := range pq.Items {
 		if cardIDs[item.CardID] {
 			toRemove = append(toRemove, item)
 		}
 	}
-	var removedSeqIDs []int
 	for _, item := range toRemove {
-		removedSeqIDs = append(removedSeqIDs, item.SeqID)
 		heap.Remove(pq, item.index)
 	}
-	return removedSeqIDs
 }
 
-func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) []int {
+func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) {
 	var toRemove []*SimulationItem
 	for _, item := range pq.Items {
 		if item.CardID == cardID {
 			toRemove = append(toRemove, item)
 		}
 	}
-	var removedSeqIDs []int
 	for _, item := range toRemove {
-		removedSeqIDs = append(removedSeqIDs, item.SeqID)
 		heap.Remove(pq, item.index)
 	}
-	return removedSeqIDs
 }
 
 type SimItemType int
@@ -43,8 +37,9 @@ const (
 )
 
 type SimulationItem struct {
-	SeqID int // the latest effect gets the biggest index (internal)
-	index int // heap position (internal)
+	SeqID     int // PQ tiebreaker (internal)
+	AbilityID int // references the AbilityTimer on the card; -1 for non-ability items
+	index     int // heap position (internal)
 
 	StartAtSimTime   int64 // when the countdown starts for this item (denominated in SimTime ms)
 	PopAtSimTime     int64 // the time we can apply to the game state (denominated in SimTime ms)

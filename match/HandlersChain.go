@@ -24,7 +24,7 @@ func (match *Match) handleChainResolution() {
 
 	// apply effects
 	for _, eff := range chainTop.Effects {
-		sim.ApplyEffect(gs, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardID, wallTime)
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardID, wallTime)
 	}
 
 	// move spell to graveyard

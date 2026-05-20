@@ -13,97 +13,80 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// returns the number of new logs created
-func ManageSimulationPQ(gs *state.GameState, logList *[]any, UpdateID *int) {
-
+func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
 	for {
-		// get the earliest simulation item
-		earliestSimItem := gs.SimulationPQ.Peek()
+		earliestSimItem := pq.Peek()
 		if earliestSimItem == nil {
 			return
 		}
-
-		// if we are not in simulating pause, we cannot pop a sim item
 		if gs.PausePhase != 2 {
 			return
 		}
-
-		// calculate sim time
 		currentSimTime := time.Now().UnixMilli() - gs.SimPauseOffset
-
-		// check if earliest item is due
 		if earliestSimItem.PopAtSimTime > currentSimTime {
 			return
 		}
-
-		// handle the earliest sim item
-		handleLatestSimulationItem(gs, logList, UpdateID)
+		handleLatestSimulationItem(gs, pq, abilityIDCounter, logList, UpdateID)
 	}
-
 }
 
-func handleLatestSimulationItem(gs *state.GameState, logList *[]any, UpdateID *int) {
-
-	currSimItem := gs.SimulationPQ.Pop().(*state.SimulationItem)
+func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
+	currSimItem := pq.Pop().(*state.SimulationItem)
 	fmt.Println("handling eff", currSimItem)
 
-	// applying all effects
 	wallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
-		ApplyEffect(gs, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, wallTime)
+		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, wallTime)
 	}
 
-	// finishing the handling of the SimItem
 	if currSimItem.CardID >= 0 {
 		if currSimItem.Type == state.SimItemSummonResolve {
-
-			// putting the card on the field
 			teamIndex := gs.Cards[currSimItem.CardID].Team
-			gs.Cards[currSimItem.CardID].Zone = state.ZoneField                   // complete the summon
-			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID) // add card to the field
+			gs.Cards[currSimItem.CardID].Zone = state.ZoneField
+			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID)
 
-			// adding summon log
 			*logList = append(*logList, logs.SummonResolutionLog{
-				UpdateID:  *UpdateID,
+				UpdateID:      *UpdateID,
 				WallTimestamp: wallTime,
-				Type:      logs.SummonResolution,
-				TeamIndex: teamIndex,
-				CardIndex: currSimItem.CardID,
+				Type:          logs.SummonResolution,
+				TeamIndex:     teamIndex,
+				CardIndex:     currSimItem.CardID,
 			})
 			*UpdateID += 1
 
-			ScheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+			ScheduleRecurringAbilities(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 
 		} else if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				ScheduleRecurringAbilities(gs, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+				ScheduleRecurringAbilities(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
 			}
 		}
+
+		clearAbilityTimer(gs.Cards, currSimItem.CardID, currSimItem.AbilityID)
 	}
-
-	// add a log
-	*logList = append(*logList, logs.RemoveSimItemLog{
-		UpdateID:  *UpdateID,
-		WallTimestamp: currSimItem.PopAtSimTime + constants.LEAD,
-		Type:      logs.RemoveSimItem,
-		CardID:    currSimItem.CardID,
-	})
-	*UpdateID += 1
-
 }
 
-// sourceCardID is the card that triggered the effect (used for attack targeting).
-func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, wallTime int64) {
+func clearAbilityTimer(cards []state.Card, cardID int, abilityID int) {
+	timers := cards[cardID].AbilityTimers
+	for i, t := range timers {
+		if t.AbilityID == abilityID {
+			cards[cardID].AbilityTimers = append(timers[:i], timers[i+1:]...)
+			return
+		}
+	}
+}
+
+func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, wallTime int64) {
 	switch eff.Type {
 
 	case state.EffectDraw:
 		effects.ApplyEffectDraw(gs, eff)
 		*logList = append(*logList, logs.DrawLog{
-			UpdateID:  *UpdateID,
+			UpdateID:      *UpdateID,
 			WallTimestamp: wallTime,
-			Type:      logs.Draw,
-			TeamIndex: eff.A,
-			NumCards:  1,
+			Type:          logs.Draw,
+			TeamIndex:     eff.A,
+			NumCards:      1,
 		})
 		*UpdateID += 1
 
@@ -118,19 +101,13 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 			}
 			gs.Field[a] = []int{}
 		}
-		removedCardIDs := gs.SimulationPQ.RemoveSimItemsByCardIDs(destroyedIDs)
-		for _, cardID := range removedCardIDs {
-			*logList = append(*logList, logs.RemoveSimItemLog{
-				UpdateID:  *UpdateID,
-				WallTimestamp: wallTime,
-				Type:      logs.RemoveSimItem,
-				CardID:    cardID,
-			})
-			*UpdateID += 1
+		pq.RemoveSimItemsByCardIDs(destroyedIDs)
+		for cardID := range destroyedIDs {
+			gs.Cards[cardID].AbilityTimers = nil
 		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
-			WallTimestamp: wallTime,
+			WallTimestamp:   wallTime,
 			Type:            logs.DestroyCard,
 			TeamIndex:       gs.Cards[eff.C].Team,
 			CardIndex:       eff.C,
@@ -143,11 +120,11 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 	case state.EffectMana:
 		gs.Mana[eff.A] += eff.B
 		*logList = append(*logList, logs.GainManaLog{
-			UpdateID:  *UpdateID,
+			UpdateID:      *UpdateID,
 			WallTimestamp: wallTime,
-			Type:      logs.GainMana,
-			TeamIndex: eff.A,
-			Amount:    eff.B,
+			Type:          logs.GainMana,
+			TeamIndex:     eff.A,
+			Amount:        eff.B,
 		})
 		*UpdateID += 1
 
@@ -164,7 +141,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 				gs.Cards[targetIdx].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					WallTimestamp: wallTime,
+					WallTimestamp:   wallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    true,
@@ -184,19 +161,12 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 					gs.Cards[targetIdx].Zone = state.ZoneGraveyard
 					gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
 
-					removedCardIDs := gs.SimulationPQ.RemoveSimItemByCardID(targetIdx)
-					for _, cardID := range removedCardIDs {
-						*logList = append(*logList, logs.RemoveSimItemLog{
-							UpdateID:  *UpdateID,
-							WallTimestamp: wallTime,
-							Type:      logs.RemoveChain,
-							CardID:    cardID,
-						})
-						*UpdateID += 1
-					}
+					pq.RemoveSimItemByCardID(targetIdx)
+					gs.Cards[targetIdx].AbilityTimers = nil
+
 					*logList = append(*logList, logs.DestroyCardLog{
 						UpdateID:        *UpdateID,
-						WallTimestamp: wallTime,
+						WallTimestamp:   wallTime,
 						Type:            logs.DestroyCard,
 						TeamIndex:       teamIndex,
 						CardIndex:       targetIdx,
@@ -210,7 +180,7 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 				gs.Structures[enemyTeam].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					WallTimestamp: wallTime,
+					WallTimestamp:   wallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    false,
@@ -228,7 +198,6 @@ func ApplyEffect(gs *state.GameState, logList *[]any, UpdateID *int, eff state.E
 }
 
 func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
-
 	switch templ.Type {
 	case state.EffectDestroy:
 		templ.C = cardIndex
@@ -239,50 +208,44 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 	case state.EffectAttack:
 		return templ
 	}
-
 	return templ
 }
 
-func ScheduleRecurringAbilities(gs *state.GameState, logList *[]any, UpdateID *int, cardID int, startTime int64) {
+func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startTime int64) {
 	teamIndex := gs.Cards[cardID].Team
 	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
 
 	for a := 0; a < len(recurring); a++ {
 		entry := recurring[a]
 
-		// create effects for this entry
 		effs := []state.Effect{}
 		for b := 0; b < len(entry.Effects); b++ {
-			templ := entry.Effects[b]                                 // create the template effect
-			newEff := FulfillEffectTemplate(templ, teamIndex, cardID) // completing the template
+			templ := entry.Effects[b]
+			newEff := FulfillEffectTemplate(templ, teamIndex, cardID)
 			effs = append(effs, newEff)
 		}
 
-		// create the SimulationItem and add it to the SimulationPQ
+		abilityID := *abilityIDCounter
+		*abilityIDCounter++
+
 		scheduledTime := startTime + entry.Milliseconds - constants.LEAD
 		item := &state.SimulationItem{
 			StartAtSimTime:   startTime,
 			PopAtSimTime:     scheduledTime,
 			ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
-			CardID:  cardID,
-			Type:    state.SimItemRecurring,
-			Effects: effs,
+			AbilityID: abilityID,
+			CardID:    cardID,
+			Type:      state.SimItemRecurring,
+			Effects:   effs,
 		}
-		heap.Push(&gs.SimulationPQ, item)
+		heap.Push(pq, item)
 
-		// broadcast the new step to all clients
-		*logList = append(*logList, logs.AddSimItemLog{
-			UpdateID:  *UpdateID,
-			WallTimestamp: startTime,
-			Type:      logs.AddSimItem,
-
-			SeqID:       item.SeqID,
-			StartTime:   item.StartAtSimTime,
-			OccurTime:   item.ExecuteAtSimTime,
-			CardID:      item.CardID,
-			SimItemType: int(state.SimItemRecurring),
+		gs.Cards[cardID].AbilityTimers = append(gs.Cards[cardID].AbilityTimers, state.AbilityTimer{
+			AbilityID:  abilityID,
+			AbilityIdx: a,
+			StartTime:  item.StartAtSimTime,
+			OccurTime:  item.ExecuteAtSimTime,
 		})
-		*UpdateID += 1
 	}
 }

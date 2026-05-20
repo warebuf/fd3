@@ -21,8 +21,7 @@ type GameState struct {
 	Field [][]int
 	Grave [][]int
 
-	Chain        []ChainItem  // interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
-	SimulationPQ SimulationPQ // passive effects: summon windows, draws, recurring abilities; sim time PopTimes
+	Chain []ChainItem // interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
 
 	// other states
 	Mana       []int       // per team
@@ -44,7 +43,13 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 
 	// Cards
 	newState.Cards = make([]Card, len(prevState.Cards))
-	copy(newState.Cards, prevState.Cards)
+	for i, card := range prevState.Cards {
+		newState.Cards[i] = card
+		if len(card.AbilityTimers) > 0 {
+			newState.Cards[i].AbilityTimers = make([]AbilityTimer, len(card.AbilityTimers))
+			copy(newState.Cards[i].AbilityTimers, card.AbilityTimers)
+		}
+	}
 
 	// Deck
 	newState.Deck = make([][]int, len(prevState.Deck))
@@ -104,29 +109,6 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		copy(newItem.Effects, item.Effects)
 		newState.Chain[i] = newItem
 	}
-
-	// SimulationPQ (passive effects)
-	newPQ := SimulationPQ{
-		total: prevState.SimulationPQ.total,
-		Items: make([]*SimulationItem, len(prevState.SimulationPQ.Items)),
-	}
-	for i, item := range prevState.SimulationPQ.Items {
-		newItem := &SimulationItem{
-			SeqID: item.SeqID,
-			index: item.index,
-
-			StartAtSimTime:   item.StartAtSimTime,
-			PopAtSimTime:     item.PopAtSimTime,
-			ExecuteAtSimTime: item.ExecuteAtSimTime,
-
-			CardID:  item.CardID,
-			Type:    item.Type,
-			Effects: make([]Effect, len(item.Effects)),
-		}
-		copy(newItem.Effects, item.Effects)
-		newPQ.Items[i] = newItem
-	}
-	newState.SimulationPQ = newPQ
 
 	return newState
 }
