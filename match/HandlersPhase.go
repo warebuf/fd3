@@ -23,11 +23,11 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		oldLogsSize := len(match.EventLog)
 
 		// change the phase
-		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 1
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
-			WallTimestamp: phaseChangeTimestamp,
+			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
 			Phase:         1,
 		})
@@ -38,16 +38,16 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		timeApart := int64(2500)
 		secondInit := (init * 2) + (timeApart * 5)
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeTimestamp+init+int64(i)*timeApart)
+			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeWallTime+init+int64(i)*timeApart)
 		}
 		for i := 0; i < 5; i++ {
-			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeTimestamp+secondInit+int64(i)*timeApart)
+			ScheduleDrawCard(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeWallTime+secondInit+int64(i)*timeApart)
 		}
 
 		// schedule board setup phase after draws complete
-		PushPhase(match, phaseChangeTimestamp+3500, 2)
+		PushPhase(match, phaseChangeWallTime+(init*2)+(timeApart*15), 2)
 
-		match.publish(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeWallTime, oldLogsSize)
 
 		// schedule draw cards
 		scheduleEarliestSimItem(match)
