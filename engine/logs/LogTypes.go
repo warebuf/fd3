@@ -17,6 +17,8 @@ const (
 	AutoSummonIndex
 	Pause
 	Unpause
+	AddAbilityTimer
+	ClearAbilityTimer
 )
 
 type PhaseLog struct {
@@ -118,6 +120,26 @@ type AutoSummonLog struct {
 	TeamIndex     int
 	CardIndex     int
 	AutoSummonIdx int // 0 when cleared, assigned order when set
+}
+
+type ClearAbilityTimerLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	CardIndex     int
+	AbilityID     int
+}
+
+type AddAbilityTimerLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	CardIndex     int
+	AbilityID     int
+	AbilityIdx    int
+	TimerType     int
+	StartTime     int64
+	OccurTime     int64
 }
 
 type PauseLog struct {

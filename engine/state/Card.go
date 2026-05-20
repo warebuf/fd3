@@ -15,11 +15,17 @@ const (
 	ZoneChain
 )
 
+const (
+	AbilityTimerNormal = iota
+	AbilityTimerSummon
+)
+
 type AbilityTimer struct {
 	AbilityID  int
 	AbilityIdx int   // index into card def's ability list; -1 for summon window
-	StartTime  int64 // sim time
-	OccurTime  int64 // sim time
+	Type       int   // AbilityTimerNormal, AbilityTimerSummon
+	StartAtSimTime   int64
+	ExecuteAtSimTime int64
 }
 
 type Card struct {

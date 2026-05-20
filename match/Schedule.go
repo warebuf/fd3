@@ -111,11 +111,24 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 	heap.Push(pq, simItem)
 
 	gs.Cards[cardIndex].AbilityTimers = append(gs.Cards[cardIndex].AbilityTimers, state.AbilityTimer{
-		AbilityID:  abilityID,
-		AbilityIdx: -1,
-		StartTime:  simItem.StartAtSimTime,
-		OccurTime:  simItem.ExecuteAtSimTime,
+		AbilityID:        abilityID,
+		AbilityIdx:       -1,
+		Type:             state.AbilityTimerSummon,
+		StartAtSimTime:   simItem.StartAtSimTime,
+		ExecuteAtSimTime: simItem.ExecuteAtSimTime,
 	})
+	*logList = append(*logList, logs.AddAbilityTimerLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
+		Type:          logs.AddAbilityTimer,
+		CardIndex:     cardIndex,
+		AbilityID:     abilityID,
+		AbilityIdx:    -1,
+		TimerType:     state.AbilityTimerSummon,
+		StartTime:     simItem.StartAtSimTime,
+		OccurTime:     simItem.ExecuteAtSimTime,
+	})
+	*UpdateID++
 }
 
 func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {

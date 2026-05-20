@@ -62,15 +62,23 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 			}
 		}
 
-		clearAbilityTimer(gs.Cards, currSimItem.CardID, currSimItem.AbilityID)
+		clearAbilityTimer(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, wallTime)
 	}
 }
 
-func clearAbilityTimer(cards []state.Card, cardID int, abilityID int) {
+func clearAbilityTimer(cards []state.Card, logList *[]any, UpdateID *int, cardID int, abilityID int, wallTime int64) {
 	timers := cards[cardID].AbilityTimers
 	for i, t := range timers {
 		if t.AbilityID == abilityID {
 			cards[cardID].AbilityTimers = append(timers[:i], timers[i+1:]...)
+			*logList = append(*logList, logs.ClearAbilityTimerLog{
+				UpdateID:      *UpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.ClearAbilityTimer,
+				CardIndex:     cardID,
+				AbilityID:     abilityID,
+			})
+			*UpdateID++
 			return
 		}
 	}
@@ -242,10 +250,23 @@ func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abi
 		heap.Push(pq, item)
 
 		gs.Cards[cardID].AbilityTimers = append(gs.Cards[cardID].AbilityTimers, state.AbilityTimer{
-			AbilityID:  abilityID,
-			AbilityIdx: a,
-			StartTime:  item.StartAtSimTime,
-			OccurTime:  item.ExecuteAtSimTime,
+			AbilityID:        abilityID,
+			AbilityIdx:       a,
+			Type:             state.AbilityTimerNormal,
+			StartAtSimTime:   item.StartAtSimTime,
+			ExecuteAtSimTime: item.ExecuteAtSimTime,
 		})
+		*logList = append(*logList, logs.AddAbilityTimerLog{
+			UpdateID:      *UpdateID,
+			WallTimestamp: startTime + gs.SimPauseOffset,
+			Type:          logs.AddAbilityTimer,
+			CardIndex:     cardID,
+			AbilityID:     abilityID,
+			AbilityIdx:    a,
+			TimerType:     state.AbilityTimerNormal,
+			StartTime:     item.StartAtSimTime,
+			OccurTime:     item.ExecuteAtSimTime,
+		})
+		*UpdateID++
 	}
 }
