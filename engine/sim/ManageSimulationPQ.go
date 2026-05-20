@@ -58,7 +58,12 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 		} else if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				ScheduleRecurringAbilities(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
+				for _, t := range gs.Cards[currSimItem.CardID].AbilityTimers {
+					if t.AbilityID == currSimItem.AbilityID {
+						scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD)
+						break
+					}
+				}
 			}
 		}
 
@@ -220,53 +225,54 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 }
 
 func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startTime int64) {
-	teamIndex := gs.Cards[cardID].Team
 	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
-
 	for a := 0; a < len(recurring); a++ {
-		entry := recurring[a]
-
-		effs := []state.Effect{}
-		for b := 0; b < len(entry.Effects); b++ {
-			templ := entry.Effects[b]
-			newEff := FulfillEffectTemplate(templ, teamIndex, cardID)
-			effs = append(effs, newEff)
-		}
-
-		abilityID := *abilityIDCounter
-		*abilityIDCounter++
-
-		scheduledTime := startTime + entry.Milliseconds - constants.LEAD
-		item := &state.SimulationItem{
-			StartAtSimTime:   startTime,
-			PopAtSimTime:     scheduledTime,
-			ExecuteAtSimTime: scheduledTime + constants.LEAD,
-
-			AbilityID: abilityID,
-			CardID:    cardID,
-			Type:      state.SimItemRecurring,
-			Effects:   effs,
-		}
-		heap.Push(pq, item)
-
-		gs.Cards[cardID].AbilityTimers = append(gs.Cards[cardID].AbilityTimers, state.AbilityTimer{
-			AbilityID:        abilityID,
-			AbilityIdx:       a,
-			Type:             state.AbilityTimerNormal,
-			StartAtSimTime:   item.StartAtSimTime,
-			ExecuteAtSimTime: item.ExecuteAtSimTime,
-		})
-		*logList = append(*logList, logs.AddAbilityTimerLog{
-			UpdateID:      *UpdateID,
-			WallTimestamp: startTime + gs.SimPauseOffset,
-			Type:          logs.AddAbilityTimer,
-			CardIndex:     cardID,
-			AbilityID:     abilityID,
-			AbilityIdx:    a,
-			TimerType:     state.AbilityTimerNormal,
-			StartTime:     item.StartAtSimTime,
-			OccurTime:     item.ExecuteAtSimTime,
-		})
-		*UpdateID++
+		scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startTime)
 	}
+}
+
+func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startTime int64) {
+	teamIndex := gs.Cards[cardID].Team
+	entry := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring[abilityIdx]
+
+	effs := make([]state.Effect, len(entry.Effects))
+	for b := 0; b < len(entry.Effects); b++ {
+		effs[b] = FulfillEffectTemplate(entry.Effects[b], teamIndex, cardID)
+	}
+
+	abilityID := *abilityIDCounter
+	*abilityIDCounter++
+
+	scheduledTime := startTime + entry.Milliseconds - constants.LEAD
+	item := &state.SimulationItem{
+		StartAtSimTime:   startTime,
+		PopAtSimTime:     scheduledTime,
+		ExecuteAtSimTime: scheduledTime + constants.LEAD,
+
+		AbilityID: abilityID,
+		CardID:    cardID,
+		Type:      state.SimItemRecurring,
+		Effects:   effs,
+	}
+	heap.Push(pq, item)
+
+	gs.Cards[cardID].AbilityTimers = append(gs.Cards[cardID].AbilityTimers, state.AbilityTimer{
+		AbilityID:        abilityID,
+		AbilityIdx:       abilityIdx,
+		Type:             state.AbilityTimerNormal,
+		StartAtSimTime:   item.StartAtSimTime,
+		ExecuteAtSimTime: item.ExecuteAtSimTime,
+	})
+	*logList = append(*logList, logs.AddAbilityTimerLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: startTime + gs.SimPauseOffset,
+		Type:          logs.AddAbilityTimer,
+		CardIndex:     cardID,
+		AbilityID:     abilityID,
+		AbilityIdx:    abilityIdx,
+		TimerType:     state.AbilityTimerNormal,
+		StartTime:     item.StartAtSimTime,
+		OccurTime:     item.ExecuteAtSimTime,
+	})
+	*UpdateID++
 }
