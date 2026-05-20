@@ -214,7 +214,7 @@ func scheduleChainResolution(match *Match) {
 	latestChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
 
 	// pop time is denominated in chain time
-	earliest := time.UnixMilli(latestChainItem.PopTime + match.GameState.FullPauseOffset)
+	earliest := time.UnixMilli(latestChainItem.PopAtActiveTime + match.GameState.FullPauseOffset)
 
 	// if the chain item exists and is in the EventPQ, update and reheapify
 	if match.ChainItem != nil {

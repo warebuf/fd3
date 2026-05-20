@@ -19,7 +19,7 @@ func (match *Match) handleChainResolution() {
 	chainTop := gs.Chain[len(gs.Chain)-1]
 	gs.Chain = gs.Chain[:len(gs.Chain)-1]
 
-	wallTime := chainTop.OccurTime + gs.FullPauseOffset
+	wallTime := chainTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
 
 	// apply effects

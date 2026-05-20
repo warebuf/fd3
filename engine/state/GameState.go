@@ -101,9 +101,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		newItem := ChainItem{
 			Type:      item.Type,
 			CardID:    item.CardID,
-			StartTime: item.StartTime,
-			PopTime:   item.PopTime,
-			OccurTime: item.OccurTime,
+			StartAtActiveTime: item.StartAtActiveTime,
+			PopAtActiveTime:   item.PopAtActiveTime,
+			ExecuteAtActiveTime: item.ExecuteAtActiveTime,
 			Effects:   make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)

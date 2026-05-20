@@ -118,13 +118,13 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 		ExecuteAtSimTime: simItem.ExecuteAtSimTime,
 	})
 	*logList = append(*logList, logs.AddAbilityTimerLog{
-		UpdateID:      *UpdateID,
-		WallTimestamp: wallTimeAtPop + constants.LEAD,
-		Type:          logs.AddAbilityTimer,
-		CardIndex:     cardIndex,
-		AbilityID:     abilityID,
-		AbilityIdx:    -1,
-		TimerType:     state.AbilityTimerSummon,
+		UpdateID:         *UpdateID,
+		WallTimestamp:    wallTimeAtPop + constants.LEAD,
+		Type:             logs.AddAbilityTimer,
+		CardIndex:        cardIndex,
+		AbilityID:        abilityID,
+		AbilityIdx:       -1,
+		TimerType:        state.AbilityTimerSummon,
 		StartAtSimTime:   simItem.StartAtSimTime,
 		ExecuteAtSimTime: simItem.ExecuteAtSimTime,
 	})
@@ -138,12 +138,12 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 	for i := 0; i < len(abilities); i++ {
 
 		newEff := sim.FulfillEffectTemplate(abilities[i], teamIndex, cardIndex)
-		chainTime := declarationTime - gs.FullPauseOffset
+		startAtActiveTime := declarationTime - gs.FullPauseOffset
 
 		chainItem := &state.ChainItem{
-			StartTime: chainTime,
-			PopTime:   chainTime + constants.REACTION_WINDOW - constants.LEAD,
-			OccurTime: chainTime + constants.REACTION_WINDOW,
+			StartAtActiveTime: startAtActiveTime,
+			PopAtActiveTime:   startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+			ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 
 			CardID:  cardIndex,
 			Type:    state.ChainItemSpell,
@@ -155,8 +155,8 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 			UpdateID:      *UpdateID,
 			WallTimestamp: declarationTime,
 			Type:          logs.AddChain,
-			StartTime:     chainItem.StartTime,
-			OccurTime:     chainItem.OccurTime,
+			StartAtActiveTime: chainItem.StartAtActiveTime,
+			ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
 			CardID:        chainItem.CardID,
 		})
 		*UpdateID += 1

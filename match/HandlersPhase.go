@@ -56,26 +56,26 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.T.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 2
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
-			WallTimestamp: phaseChangeTimestamp,
+			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
 			Phase:         2,
 		})
 		match.NextUpdateID += 1
 
-		match.TransitionPauseState(1, phaseChangeTimestamp)
+		match.TransitionPauseState(1, phaseChangeWallTime)
 
 		// initialize ready flags
 		numTeams := len(match.GameState.Hand)
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushPhase(match, phaseChangeTimestamp+90000, 3)
+		PushPhase(match, phaseChangeWallTime+90000, 3)
 
-		match.publish(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeWallTime, oldLogsSize)
 
 	case 3: // entering reveal, remain pause phase 1
 

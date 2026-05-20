@@ -63,8 +63,8 @@ type AddChainLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type      LogType
-	StartTime int64
-	OccurTime int64
+	StartAtActiveTime int64
+	ExecuteAtActiveTime int64
 	CardID    int
 }
 
