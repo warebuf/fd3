@@ -6,48 +6,48 @@ import (
 )
 
 type Event interface {
-	Timestamp() time.Time
+	GetWallTime() time.Time
 }
 
 type InputEvent struct {
-	T         time.Time
+	WallTime  time.Time
 	Type      string
 	TeamIdx   int
 	CardIndex int
 }
 
-func (e *InputEvent) Timestamp() time.Time { return e.T }
+func (e *InputEvent) GetWallTime() time.Time { return e.WallTime }
 
 type NewPhaseEvent struct {
-	T     time.Time
-	Phase int
+	WallTime time.Time
+	Phase    int
 }
 
-func (e *NewPhaseEvent) Timestamp() time.Time { return e.T }
+func (e *NewPhaseEvent) GetWallTime() time.Time { return e.WallTime }
 
 type EffectEvent struct {
-	T time.Time
+	WallTime time.Time
 }
 
-func (e *EffectEvent) Timestamp() time.Time { return e.T }
+func (e *EffectEvent) GetWallTime() time.Time { return e.WallTime }
 
 type ChainResolutionEvent struct {
-	T time.Time
+	WallTime time.Time
 }
 
-func (e *ChainResolutionEvent) Timestamp() time.Time { return e.T }
+func (e *ChainResolutionEvent) GetWallTime() time.Time { return e.WallTime }
 
 type PauseEndEvent struct {
-	T time.Time
+	WallTime time.Time
 }
 
-func (e *PauseEndEvent) Timestamp() time.Time { return e.T }
+func (e *PauseEndEvent) GetWallTime() time.Time { return e.WallTime }
 
 type RevealEvent struct {
-	T time.Time
+	WallTime time.Time
 }
 
-func (e *RevealEvent) Timestamp() time.Time { return e.T }
+func (e *RevealEvent) GetWallTime() time.Time { return e.WallTime }
 
 type EventItem struct {
 	Event Event
@@ -64,8 +64,8 @@ type EventPQ struct {
 func (pq EventPQ) Len() int { return len(pq.Items) }
 
 func (pq EventPQ) Less(i, j int) bool {
-	ti := pq.Items[i].Event.Timestamp()
-	tj := pq.Items[j].Event.Timestamp()
+	ti := pq.Items[i].Event.GetWallTime()
+	tj := pq.Items[j].Event.GetWallTime()
 	if ti.Equal(tj) {
 		return pq.Items[i].Seq < pq.Items[j].Seq
 	}

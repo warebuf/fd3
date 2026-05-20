@@ -23,7 +23,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		oldLogsSize := len(match.EventLog)
 
 		// change the phase
-		phaseChangeWallTime := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 1
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
@@ -56,7 +56,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeWallTime := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 2
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
@@ -81,7 +81,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 3
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
@@ -134,7 +134,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeTimestamp := newPhase.T.UnixMilli() + constants.LEAD
+		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 4
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,

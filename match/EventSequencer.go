@@ -47,7 +47,7 @@ func (match *Match) handleDuePQEvents() {
 		next := match.EventPQueue.Peek()
 
 		// no more due events
-		if time.Now().Before(next.Event.Timestamp()) {
+		if time.Now().Before(next.Event.GetWallTime()) {
 			break
 		}
 
@@ -90,12 +90,12 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	oldLogsSize := len(match.EventLog)
 	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
 	scheduleEarliestSimItem(match)
-	match.publish(effEvent.T.UnixMilli()+constants.LEAD, oldLogsSize)
+	match.publish(effEvent.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 
 }
 
 func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
-	wallTime := pauseEndEvent.T.UnixMilli()
+	wallTime := pauseEndEvent.WallTime.UnixMilli()
 	if match.GameState.PausePhase == 0 {
 		teamIdx := match.GameState.TeamPaused
 		match.GameState.TimeBank[teamIdx] = 0
@@ -124,8 +124,8 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 
 func PushPhase(match *Match, t int64, phase int) {
 	newPhase := &eventpq.NewPhaseEvent{
-		T:     time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
-		Phase: phase,
+		WallTime: time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
+		Phase:    phase,
 	}
 	match.PendingPhase = phase
 	match.PendingPhaseTime = t
@@ -133,7 +133,7 @@ func PushPhase(match *Match, t int64, phase int) {
 }
 
 func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
-	ev.T = time.Now() // relabel the timestamp when putting it into PQ
+	ev.WallTime = time.Now() // relabel the timestamp when putting it into PQ
 	match.EventPQueue.CreateAndPushEventItem(ev, "Input")
 }
 
@@ -158,7 +158,7 @@ func (match *Match) setPQTimer() {
 
 	// set timer
 	now := time.Now()
-	fireTime := first.Event.Timestamp()
+	fireTime := first.Event.GetWallTime()
 	delay := fireTime.Sub(now)
 	if delay < 0 {
 		delay = 0
@@ -187,19 +187,19 @@ func scheduleEarliestSimItem(match *Match) {
 	// if the simItem exists and is in the EventPQ, update and reheapify
 	if match.EarliestSimItem != nil {
 		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
-		effEv.T = earliest
+		effEv.WallTime = earliest
 		match.EventPQueue.Fix(match.EarliestSimItem)
 		return
 	}
 
 	// otherwise schedule the simItem in the EventPQ
-	ev := &eventpq.EffectEvent{T: earliest}
+	ev := &eventpq.EffectEvent{WallTime: earliest}
 	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "Effect")
 
 }
 
 func scheduleReveal(match *Match, at int64) {
-	ev := &eventpq.RevealEvent{T: time.UnixMilli(at)}
+	ev := &eventpq.RevealEvent{WallTime: time.UnixMilli(at)}
 	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
 }
 
@@ -219,12 +219,12 @@ func scheduleChainResolution(match *Match) {
 	// if the chain item exists and is in the EventPQ, update and reheapify
 	if match.ChainItem != nil {
 		effEv, _ := match.ChainItem.Event.(*eventpq.ChainResolutionEvent)
-		effEv.T = earliest
+		effEv.WallTime = earliest
 		match.EventPQueue.Fix(match.ChainItem)
 		return
 	}
 
 	// otherwise add it to EventPQ
-	ev := &eventpq.ChainResolutionEvent{T: earliest}
+	ev := &eventpq.ChainResolutionEvent{WallTime: earliest}
 	match.ChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
 }

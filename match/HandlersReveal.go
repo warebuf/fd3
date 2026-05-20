@@ -4,7 +4,7 @@ import "github.com/warebuf/fd3/match/eventpq"
 
 func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
-	wallTime := ev.T.UnixMilli()
+	wallTime := ev.WallTime.UnixMilli()
 
 	if len(match.RevealQueue) == 0 {
 		PushPhase(match, wallTime+2000, 4)
