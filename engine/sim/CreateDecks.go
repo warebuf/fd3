@@ -56,10 +56,11 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Cost:        def.Cost,
 				HP:          def.BaseHP,
 
-				Team:  team,
-				Type:  def.Type,
-				Zone:  state.ZoneDeck,
-				Armed: false,
+				Team:          team,
+				Type:          def.Type,
+				Zone:          state.ZoneDeck,
+				Armed:         false,
+				AbilityTimers: []state.AbilityTimer{},
 			}
 
 			gs.Cards = append(gs.Cards, card)

@@ -116,7 +116,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 		pq.RemoveSimItemsByCardIDs(destroyedIDs)
 		for cardID := range destroyedIDs {
-			gs.Cards[cardID].AbilityTimers = nil
+			gs.Cards[cardID].AbilityTimers = []state.AbilityTimer{}
 		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
@@ -175,7 +175,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 					gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
 
 					pq.RemoveSimItemByCardID(targetIdx)
-					gs.Cards[targetIdx].AbilityTimers = nil
+					gs.Cards[targetIdx].AbilityTimers = []state.AbilityTimer{}
 
 					*logList = append(*logList, logs.DestroyCardLog{
 						UpdateID:        *UpdateID,
