@@ -31,7 +31,7 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCo
 }
 
 func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
-	currSimItem := pq.Pop().(*state.SimulationItem)
+	currSimItem := heap.Pop(pq).(*state.SimulationItem)
 	fmt.Println("handling eff", currSimItem)
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
