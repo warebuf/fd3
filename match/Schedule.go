@@ -125,8 +125,8 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 		AbilityID:     abilityID,
 		AbilityIdx:    -1,
 		TimerType:     state.AbilityTimerSummon,
-		StartTime:     simItem.StartAtSimTime,
-		OccurTime:     simItem.ExecuteAtSimTime,
+		StartAtSimTime:   simItem.StartAtSimTime,
+		ExecuteAtSimTime: simItem.ExecuteAtSimTime,
 	})
 	*UpdateID++
 }

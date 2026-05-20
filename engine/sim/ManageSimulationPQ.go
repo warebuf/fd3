@@ -34,9 +34,9 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	currSimItem := pq.Pop().(*state.SimulationItem)
 	fmt.Println("handling eff", currSimItem)
 
-	wallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
+	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
-		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, wallTime)
+		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, executeAtWallTime)
 	}
 
 	if currSimItem.CardID >= 0 {
@@ -47,7 +47,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:      *UpdateID,
-				WallTimestamp: wallTime,
+				WallTimestamp: executeAtWallTime,
 				Type:          logs.SummonResolution,
 				TeamIndex:     teamIndex,
 				CardIndex:     currSimItem.CardID,
@@ -67,7 +67,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 			}
 		}
 
-		clearAbilityTimer(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, wallTime)
+		clearAbilityTimer(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, executeAtWallTime)
 	}
 }
 
@@ -89,14 +89,14 @@ func clearAbilityTimer(cards []state.Card, logList *[]any, UpdateID *int, cardID
 	}
 }
 
-func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, wallTime int64) {
+func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, executeAtWallTime int64) {
 	switch eff.Type {
 
 	case state.EffectDraw:
 		effects.ApplyEffectDraw(gs, eff)
 		*logList = append(*logList, logs.DrawLog{
 			UpdateID:      *UpdateID,
-			WallTimestamp: wallTime,
+			WallTimestamp: executeAtWallTime,
 			Type:          logs.Draw,
 			TeamIndex:     eff.A,
 			NumCards:      1,
@@ -120,7 +120,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
-			WallTimestamp:   wallTime,
+			WallTimestamp:   executeAtWallTime,
 			Type:            logs.DestroyCard,
 			TeamIndex:       gs.Cards[eff.C].Team,
 			CardIndex:       eff.C,
@@ -134,7 +134,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		gs.Mana[eff.A] += eff.B
 		*logList = append(*logList, logs.GainManaLog{
 			UpdateID:      *UpdateID,
-			WallTimestamp: wallTime,
+			WallTimestamp: executeAtWallTime,
 			Type:          logs.GainMana,
 			TeamIndex:     eff.A,
 			Amount:        eff.B,
@@ -154,7 +154,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 				gs.Cards[targetIdx].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					WallTimestamp:   wallTime,
+					WallTimestamp:   executeAtWallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    true,
@@ -179,7 +179,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 					*logList = append(*logList, logs.DestroyCardLog{
 						UpdateID:        *UpdateID,
-						WallTimestamp:   wallTime,
+						WallTimestamp:   executeAtWallTime,
 						Type:            logs.DestroyCard,
 						TeamIndex:       teamIndex,
 						CardIndex:       targetIdx,
@@ -193,7 +193,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 				gs.Structures[enemyTeam].HP -= damage
 				*logList = append(*logList, logs.AttackLog{
 					UpdateID:        *UpdateID,
-					WallTimestamp:   wallTime,
+					WallTimestamp:   executeAtWallTime,
 					Type:            logs.Attack,
 					AttackerIndex:   unitIndex,
 					TargetIsUnit:    false,
@@ -231,7 +231,7 @@ func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abi
 	}
 }
 
-func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startTime int64) {
+func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64) {
 	teamIndex := gs.Cards[cardID].Team
 	entry := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring[abilityIdx]
 
@@ -243,9 +243,9 @@ func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 	abilityID := *abilityIDCounter
 	*abilityIDCounter++
 
-	scheduledTime := startTime + entry.Milliseconds - constants.LEAD
+	scheduledTime := startAtSimTime + entry.Milliseconds - constants.LEAD
 	item := &state.SimulationItem{
-		StartAtSimTime:   startTime,
+		StartAtSimTime:   startAtSimTime,
 		PopAtSimTime:     scheduledTime,
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
@@ -265,14 +265,14 @@ func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 	})
 	*logList = append(*logList, logs.AddAbilityTimerLog{
 		UpdateID:      *UpdateID,
-		WallTimestamp: startTime + gs.SimPauseOffset,
+		WallTimestamp: startAtSimTime + gs.SimPauseOffset,
 		Type:          logs.AddAbilityTimer,
 		CardIndex:     cardID,
 		AbilityID:     abilityID,
 		AbilityIdx:    abilityIdx,
 		TimerType:     state.AbilityTimerNormal,
-		StartTime:     item.StartAtSimTime,
-		OccurTime:     item.ExecuteAtSimTime,
+		StartAtSimTime:   item.StartAtSimTime,
+		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})
 	*UpdateID++
 }

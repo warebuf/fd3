@@ -138,8 +138,8 @@ type AddAbilityTimerLog struct {
 	AbilityID     int
 	AbilityIdx    int
 	TimerType     int
-	StartTime     int64
-	OccurTime     int64
+	StartAtSimTime     int64
+	ExecuteAtSimTime   int64
 }
 
 type PauseLog struct {
