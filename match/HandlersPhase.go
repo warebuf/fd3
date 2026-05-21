@@ -81,7 +81,6 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhaseReveal
-		match.Phase3StartTime = phaseChangeWallTime
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,

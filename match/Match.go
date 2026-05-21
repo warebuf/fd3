@@ -17,7 +17,7 @@ type Match struct {
 	GameState      *state.GameState // what the game state should be 200 ms from now
 	PublishedState *state.GameState // a copy of GameState that the players can read
 
-	SimulationPQ    state.SimulationPQ
+	SimulationPQ     state.SimulationPQ
 	AbilityIDCounter int
 
 	EventLog     []any // a log of all events that have occurred
@@ -27,19 +27,17 @@ type Match struct {
 	InputEventChan chan *eventpq.InputEvent
 
 	// EventPQ related
-	EventPQueue      eventpq.EventPQ
-	EventPQTimer     *time.Timer
-	EarliestSimItem  *eventpq.EventItem
-	ChainItem        *eventpq.EventItem
-	PauseEndItem     *eventpq.EventItem
-	PhaseItem        *eventpq.EventItem
-	RevealItem       *eventpq.EventItem
+	EventPQueue       eventpq.EventPQ
+	EventPQTimer      *time.Timer
+	EarliestSimItem   *eventpq.EventItem
+	ChainItem         *eventpq.EventItem
+	PauseEndItem      *eventpq.EventItem
+	PhaseItem         *eventpq.EventItem
+	RevealItem        *eventpq.EventItem
 	PendingPhase      int   // if paused, this is the next phase scheduled. is 0 by default. if 0, no pending phases
 	PendingPhaseTime  int64 // active time of the pending phase
 	PendingRevealTime int64 // active time; 0 means no pending reveal
-
-	Phase3StartTime int64
-	RevealQueue     []RevealEntry
+	RevealQueue       []RevealEntry
 }
 
 type RevealEntry struct {

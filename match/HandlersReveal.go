@@ -20,7 +20,16 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, match.Phase3StartTime)
+	chainStarted := ScheduleDeclareCard(
+		match.GameState,
+		&match.SimulationPQ,
+		&match.AbilityIDCounter,
+		&match.EventLog,
+		&match.NextUpdateID,
+		next.TeamIdx,
+		next.CardIndex,
+		ev.WallTime.UnixMilli(),
+	)
 	if chainStarted {
 		// no need enter Simulation Pause (PausePhase 1) here, should already be in it
 		scheduleChainResolution(match)
