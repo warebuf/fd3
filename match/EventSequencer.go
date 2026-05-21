@@ -143,36 +143,6 @@ func pushRevealEvent(match *Match, activeTime int64) {
 	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
 }
 
-func (match *Match) setPQTimer() {
-
-	// clear timer
-	if match.EventPQTimer != nil {
-		if !match.EventPQTimer.Stop() {
-			select {
-			case <-match.EventPQTimer.C: // drain the channel
-			default:
-			}
-		}
-	}
-
-	// if no events, return
-	first := match.EventPQueue.Peek()
-	if first == nil {
-		match.EventPQTimer = nil
-		return
-	}
-
-	// set timer
-	now := time.Now()
-	fireTime := first.Event.GetWallTime()
-	delay := fireTime.Sub(now)
-	if delay < 0 {
-		delay = 0
-	}
-	match.EventPQTimer = time.NewTimer(delay)
-
-}
-
 func scheduleEarliestSimItem(match *Match) {
 
 	// get the timestamp of earliest in the SimulationPQ
@@ -228,4 +198,34 @@ func scheduleChainResolution(match *Match) {
 	// otherwise add it to EventPQ
 	ev := &eventpq.ChainResolutionEvent{WallTime: earliest}
 	match.ChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
+}
+
+func (match *Match) setPQTimer() {
+
+	// clear timer
+	if match.EventPQTimer != nil {
+		if !match.EventPQTimer.Stop() {
+			select {
+			case <-match.EventPQTimer.C: // drain the channel
+			default:
+			}
+		}
+	}
+
+	// if no events, return
+	first := match.EventPQueue.Peek()
+	if first == nil {
+		match.EventPQTimer = nil
+		return
+	}
+
+	// set timer
+	now := time.Now()
+	fireTime := first.Event.GetWallTime()
+	delay := fireTime.Sub(now)
+	if delay < 0 {
+		delay = 0
+	}
+	match.EventPQTimer = time.NewTimer(delay)
+
 }

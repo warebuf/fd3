@@ -11,7 +11,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
 	if len(match.RevealQueue) == 0 {
 		match.PendingRevealTime = 0
-		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset+2000+constants.REACTION_WINDOW, 4)
+		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset+5000, 4)
 		return
 	}
 
