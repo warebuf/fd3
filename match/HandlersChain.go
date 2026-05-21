@@ -43,7 +43,6 @@ func (match *Match) handleChainResolution() {
 	})
 	match.NextUpdateID++
 
-	// if chain is empty, exit sim pause (or advance reveal if in phase 3); otherwise reschedule for next item
 	if len(gs.Chain) == 0 {
 		if gs.Phase == 3 {
 			scheduleReveal(match, wallTime+800)

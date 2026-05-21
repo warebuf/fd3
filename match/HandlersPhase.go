@@ -74,12 +74,13 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
-	case 3: // entering reveal, remain pause phase 1
+	case 3: // entering reveal, remain in pause phase 1
 
 		oldLogsSize := len(match.EventLog)
 
 		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 3
+		match.Phase3StartTime = phaseChangeTimestamp
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeTimestamp,
@@ -102,7 +103,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 			})
 		}
 
-		// build reveal queue: alternating teams in AutoSummon order
+		// build reveal queue: interleaving teams in AutoSummon order
 		maxStaged := 0
 		for _, staged := range stagedByTeam {
 			if len(staged) > maxStaged {
@@ -122,7 +123,6 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
-		// schedule first reveal; phase 4 is pushed by handleRevealEvent when queue empties
 		scheduleReveal(match, phaseChangeTimestamp+500)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
@@ -141,10 +141,8 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		// enter simulating state
 		match.TransitionPauseState(-1, phaseChangeTimestamp)
 
-		// update the published state and broadcast to clients
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 	case 5: // entering game over

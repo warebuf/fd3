@@ -58,7 +58,6 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			match.EventPQueue.Remove(match.PhaseItem)
 			match.PhaseItem = nil
 		}
-		// do we have to remove any reveal items here?
 
 	case 1: // entering sim pause
 		gameState.PausePhase = 1
@@ -67,7 +66,6 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			match.EventPQueue.Remove(match.EarliestSimItem)
 			match.EarliestSimItem = nil
 		}
-		// do we have to remove any reveal items here?
 
 	case 2:
 		fmt.Println("please do not use the function this way. just unpause by passing -1 into newPauseState")

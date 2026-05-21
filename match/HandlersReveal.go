@@ -1,13 +1,16 @@
 package match
 
-import "github.com/warebuf/fd3/match/eventpq"
+import (
+	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/match/eventpq"
+)
 
 func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
 	wallTime := ev.WallTime.UnixMilli()
 
 	if len(match.RevealQueue) == 0 {
-		PushPhase(match, wallTime+2000, 4)
+		PushPhase(match, wallTime+2000+constants.REACTION_WINDOW, 4)
 		return
 	}
 
@@ -15,7 +18,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, wallTime)
+	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, match.Phase3StartTime)
 	if chainStarted {
 		scheduleChainResolution(match)
 	} else {
