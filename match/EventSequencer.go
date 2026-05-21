@@ -85,13 +85,41 @@ func (match *Match) handleDuePQEvents() {
 
 }
 
-func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
+func (match *Match) setPQTimer() {
 
+	// clear timer
+	if match.EventPQTimer != nil {
+		if !match.EventPQTimer.Stop() {
+			select {
+			case <-match.EventPQTimer.C: // drain the channel
+			default:
+			}
+		}
+	}
+
+	// if no events, return
+	first := match.EventPQueue.Peek()
+	if first == nil {
+		match.EventPQTimer = nil
+		return
+	}
+
+	// set timer
+	now := time.Now()
+	fireTime := first.Event.GetWallTime()
+	delay := fireTime.Sub(now)
+	if delay < 0 {
+		delay = 0
+	}
+	match.EventPQTimer = time.NewTimer(delay)
+
+}
+
+func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	oldLogsSize := len(match.EventLog)
 	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
 	scheduleEarliestSimItem(match)
 	match.publish(effEvent.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-
 }
 
 func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
@@ -198,34 +226,4 @@ func scheduleChainResolution(match *Match) {
 	// otherwise add it to EventPQ
 	ev := &eventpq.ChainResolutionEvent{WallTime: earliest}
 	match.ChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
-}
-
-func (match *Match) setPQTimer() {
-
-	// clear timer
-	if match.EventPQTimer != nil {
-		if !match.EventPQTimer.Stop() {
-			select {
-			case <-match.EventPQTimer.C: // drain the channel
-			default:
-			}
-		}
-	}
-
-	// if no events, return
-	first := match.EventPQueue.Peek()
-	if first == nil {
-		match.EventPQTimer = nil
-		return
-	}
-
-	// set timer
-	now := time.Now()
-	fireTime := first.Event.GetWallTime()
-	delay := fireTime.Sub(now)
-	if delay < 0 {
-		delay = 0
-	}
-	match.EventPQTimer = time.NewTimer(delay)
-
 }
