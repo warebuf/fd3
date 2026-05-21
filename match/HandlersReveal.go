@@ -2,6 +2,7 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
@@ -11,7 +12,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
 	if len(match.RevealQueue) == 0 {
 		match.PendingRevealTime = 0
-		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset+5000, 4)
+		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset+5000, state.PhasePlay)
 		return
 	}
 
@@ -21,6 +22,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	oldLogsSize := len(match.EventLog)
 	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, next.TeamIdx, next.CardIndex, match.Phase3StartTime)
 	if chainStarted {
+		// no need enter Simulation Pause (PausePhase 1) here, should already be in it
 		scheduleChainResolution(match)
 	} else {
 		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+800)

@@ -1,10 +1,25 @@
 package state
 
+const (
+	PhasePreMatch   = 0
+	PhaseDraw       = 1
+	PhaseBoardSetup = 2
+	PhaseReveal     = 3
+	PhasePlay       = 4
+	PhaseGameOver   = 5
+)
+
+const (
+	PausePhaseFullPause  = 0
+	PausePhaseSimPause   = 1
+	PausePhaseSimulating = 2
+)
+
 type GameState struct {
 	UpdateID      int
 	WallTimestamp int64 // wall clock time when this state was last updated
 
-	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game end
+	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
 
 	// pause related
 	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating

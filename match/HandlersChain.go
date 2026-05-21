@@ -44,7 +44,7 @@ func (match *Match) handleChainResolution() {
 	match.NextUpdateID++
 
 	if len(gs.Chain) == 0 {
-		if gs.Phase == 3 {
+		if gs.Phase == state.PhaseReveal {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
 			match.TransitionPauseState(-1, wallTime)

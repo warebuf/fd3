@@ -27,7 +27,7 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 
 	// do not accept if we are not in phase 2 (board set up) or 4 (play)
-	if match.GameState.Phase != 2 && match.GameState.Phase != 4 {
+	if match.GameState.Phase != state.PhaseBoardSetup && match.GameState.Phase != state.PhasePlay {
 		return
 	}
 
@@ -43,7 +43,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 	}
 
 	// if we are in phase 2 (board set up), stage the card
-	if match.GameState.Phase == 2 {
+	if match.GameState.Phase == state.PhaseBoardSetup {
 
 		if card.AutoSummon != 0 {
 			return
@@ -72,7 +72,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 	}
 
 	// if we are in phase 4 (play), declare the card
-	if match.GameState.Phase == 4 {
+	if match.GameState.Phase == state.PhasePlay {
 		oldLogsSize := len(match.EventLog)
 		chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.WallTime.UnixMilli())
 		if chainStarted {
@@ -89,7 +89,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 func (match *Match) handleInputUndoHand(ie *eventpq.InputEvent) {
 
 	// only accept if we are in phase 2 (board set up)
-	if match.GameState.Phase != 2 {
+	if match.GameState.Phase != state.PhaseBoardSetup {
 		return
 	}
 
@@ -134,7 +134,7 @@ func (match *Match) handleInputUndoHand(ie *eventpq.InputEvent) {
 func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 
 	// only accept if we are in stage 2 (board set up)
-	if match.GameState.Phase != 2 {
+	if match.GameState.Phase != state.PhaseBoardSetup {
 		return
 	}
 
@@ -172,7 +172,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		}
 	}
 	if allReady {
-		PushPhaseEvent(match, ie.WallTime.UnixMilli()-match.GameState.FullPauseOffset, 3)
+		PushPhaseEvent(match, ie.WallTime.UnixMilli()-match.GameState.FullPauseOffset, state.PhaseReveal)
 	}
 
 }
@@ -184,14 +184,14 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 	executeTime := ie.WallTime.UnixMilli() + constants.LEAD
 
-	if gs.Phase < 1 {
+	if gs.Phase < state.PhaseDraw {
 		return
 	}
 	if teamIdx < 0 || teamIdx >= len(gs.TimeBank) {
 		return
 	}
 
-	if gs.PausePhase == 2 {
+	if gs.PausePhase == state.PausePhaseSimulating {
 		// entering pause
 		if gs.TimeBank[teamIdx] <= 0 {
 			return
@@ -213,7 +213,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		match.NextUpdateID++
 		match.publish(executeTime, oldLogsSize)
 
-	} else if gs.PausePhase == 0 && gs.TeamPaused == teamIdx { // early unpause by the same team
+	} else if gs.PausePhase == state.PausePhaseFullPause && gs.TeamPaused == teamIdx { // early unpause by the same team
 
 		elapsed := executeTime - gs.PauseStack[0]
 		if elapsed < 0 {

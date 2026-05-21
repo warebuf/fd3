@@ -5,6 +5,7 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
@@ -19,17 +20,17 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 	match.PendingPhaseTime = 0
 
 	switch newPhase.Phase {
-	case 1: // entering draw phase, we are in pause phase 2 here since we want to draw cards
+	case state.PhaseDraw: // entering draw phase, we are in pause phase 2 here since we want to draw cards
 		oldLogsSize := len(match.EventLog)
 
 		// change the phase
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-		match.GameState.Phase = 1
+		match.GameState.Phase = state.PhaseDraw
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
-			Phase:         1,
+			Phase:         state.PhaseDraw,
 		})
 		match.NextUpdateID += 1
 
@@ -42,24 +43,24 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		// schedule board setup phase after draws complete
-		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, 2)
+		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, state.PhaseBoardSetup)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
 		// schedule draw cards
 		scheduleEarliestSimItem(match)
 
-	case 2: // entering board set up phase, enter pause phase 1
+	case state.PhaseBoardSetup: // entering board set up phase, enter pause phase 1
 
 		oldLogsSize := len(match.EventLog)
 
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-		match.GameState.Phase = 2
+		match.GameState.Phase = state.PhaseBoardSetup
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
-			Phase:         2,
+			Phase:         state.PhaseBoardSetup,
 		})
 		match.NextUpdateID += 1
 
@@ -70,22 +71,22 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, 3)
+		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, state.PhaseReveal)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
-	case 3: // entering reveal, remain in pause phase 1
+	case state.PhaseReveal: // entering reveal, remain in pause phase 1
 
 		oldLogsSize := len(match.EventLog)
 
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-		match.GameState.Phase = 3
+		match.GameState.Phase = state.PhaseReveal
 		match.Phase3StartTime = phaseChangeWallTime
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
-			Phase:         3,
+			Phase:         state.PhaseReveal,
 		})
 		match.NextUpdateID += 1
 
@@ -131,17 +132,17 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
-	case 4: // entering play
+	case state.PhasePlay: // entering play
 
 		oldLogsSize := len(match.EventLog)
 
 		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
-		match.GameState.Phase = 4
+		match.GameState.Phase = state.PhasePlay
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeTimestamp,
 			Type:          logs.Phase,
-			Phase:         4,
+			Phase:         state.PhasePlay,
 		})
 		match.NextUpdateID += 1
 
@@ -149,7 +150,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
-	case 5: // entering game over
+	case state.PhaseGameOver: // entering game over
 		// TODO: end game logic
 
 	}

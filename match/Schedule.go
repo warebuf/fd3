@@ -32,9 +32,9 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return false
 	}
 
-	if gs.PausePhase == 0 {
+	if gs.PausePhase == state.PausePhaseFullPause {
 		return false
-	} else if gs.PausePhase == 1 && gs.Phase != 3 { // sim pause — TODO: handle counter-spells
+	} else if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay { // cards cannot be declared in Sim Pause unless they are counters
 		return false
 	}
 
@@ -141,8 +141,8 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 		startAtActiveTime := declarationTime - gs.FullPauseOffset
 
 		chainItem := &state.ChainItem{
-			StartAtActiveTime: startAtActiveTime,
-			PopAtActiveTime:   startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+			StartAtActiveTime:   startAtActiveTime,
+			PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 			ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 
 			CardID:  cardIndex,
@@ -152,12 +152,12 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 		gs.Chain = append(gs.Chain, *chainItem)
 
 		*logList = append(*logList, logs.AddChainLog{
-			UpdateID:      *UpdateID,
-			WallTimestamp: declarationTime,
-			Type:          logs.AddChain,
-			StartAtActiveTime: chainItem.StartAtActiveTime,
+			UpdateID:            *UpdateID,
+			WallTimestamp:       declarationTime,
+			Type:                logs.AddChain,
+			StartAtActiveTime:   chainItem.StartAtActiveTime,
 			ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
-			CardID:        chainItem.CardID,
+			CardID:              chainItem.CardID,
 		})
 		*UpdateID += 1
 	}
