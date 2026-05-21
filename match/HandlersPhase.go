@@ -119,7 +119,6 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 					continue
 				}
 				cardIndex := stagedByTeam[teamIdx][i]
-				match.GameState.Cards[cardIndex].AutoSummon = 0
 				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIdx: teamIdx, CardIndex: cardIndex})
 			}
 		}
