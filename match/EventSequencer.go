@@ -122,7 +122,7 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.BroadcastLogs(oldLogsSize)
 }
 
-func PushPhase(match *Match, activeTime int64, phase int) {
+func PushPhaseEvent(match *Match, activeTime int64, phase int) {
 	newPhase := &eventpq.NewPhaseEvent{
 		WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD),
 		Phase:    phase,
@@ -142,6 +142,7 @@ func pushRevealEvent(match *Match, activeTime int64) {
 	ev := &eventpq.RevealEvent{WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD)}
 	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
 }
+
 func (match *Match) setPQTimer() {
 
 	// clear timer

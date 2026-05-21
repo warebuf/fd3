@@ -172,7 +172,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		}
 	}
 	if allReady {
-		PushPhase(match, ie.WallTime.UnixMilli()-match.GameState.FullPauseOffset, 3)
+		PushPhaseEvent(match, ie.WallTime.UnixMilli()-match.GameState.FullPauseOffset, 3)
 	}
 
 }

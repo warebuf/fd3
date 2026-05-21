@@ -24,7 +24,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				gameState.PauseStack[0] = 0
 				scheduleChainResolution(match)
 				if match.PendingPhase > 0 {
-					PushPhase(match, match.PendingPhaseTime, match.PendingPhase)
+					PushPhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 				}
 				if match.PendingRevealTime > 0 {
 					pushRevealEvent(match, match.PendingRevealTime)
@@ -38,7 +38,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			scheduleChainResolution(match)
 			scheduleEarliestSimItem(match)
 			if match.PendingPhase > 0 {
-				PushPhase(match, match.PendingPhaseTime, match.PendingPhase)
+				PushPhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 			}
 			if match.PendingRevealTime > 0 {
 				pushRevealEvent(match, match.PendingRevealTime)

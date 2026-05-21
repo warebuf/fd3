@@ -42,7 +42,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		// schedule board setup phase after draws complete
-		PushPhase(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, 2)
+		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, 2)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -70,7 +70,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushPhase(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, 3)
+		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, 3)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -89,34 +89,36 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		// collect staged cards per team, sorted by AutoSummon order
+		// collect staged cards into stagedByTeam
 		numTeams := len(match.GameState.Hand)
 		stagedByTeam := make([][]int, numTeams)
-		for i, c := range match.GameState.Cards {
-			if c.AutoSummon > 0 {
-				stagedByTeam[c.Team] = append(stagedByTeam[c.Team], i)
+		for i := 0; i < len(match.GameState.Cards); i++ {
+			if match.GameState.Cards[i].AutoSummon > 0 {
+				stagedByTeam[match.GameState.Cards[i].Team] = append(stagedByTeam[match.GameState.Cards[i].Team], i)
 			}
 		}
-		for teamIdx := range stagedByTeam {
-			sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool {
+		for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
+			sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool { // sort by ascending
 				return match.GameState.Cards[stagedByTeam[teamIdx][a]].AutoSummon < match.GameState.Cards[stagedByTeam[teamIdx][b]].AutoSummon
 			})
 		}
 
-		// build reveal queue: interleaving teams in AutoSummon order
+		// get the max size
 		maxStaged := 0
-		for _, staged := range stagedByTeam {
-			if len(staged) > maxStaged {
-				maxStaged = len(staged)
+		for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
+			if len(stagedByTeam[teamIdx]) > maxStaged {
+				maxStaged = len(stagedByTeam[teamIdx])
 			}
 		}
-		match.RevealQueue = match.RevealQueue[:0]
+
+		// interweave the reveals
+		match.RevealQueue = match.RevealQueue[:0] // set RevealQueue to empty
 		for i := 0; i < maxStaged; i++ {
-			for teamIdx, staged := range stagedByTeam {
-				if i >= len(staged) {
+			for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
+				if i >= len(stagedByTeam[teamIdx]) {
 					continue
 				}
-				cardIndex := staged[i]
+				cardIndex := stagedByTeam[teamIdx][i]
 				match.GameState.Cards[cardIndex].AutoSummon = 0
 				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIdx: teamIdx, CardIndex: cardIndex})
 			}
