@@ -122,14 +122,13 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.BroadcastLogs(oldLogsSize)
 }
 
-// want to rename t to something more specific tbh, also im not sure if this function is correct
-func PushPhase(match *Match, t int64, phase int) {
+func PushPhase(match *Match, activeTime int64, phase int) {
 	newPhase := &eventpq.NewPhaseEvent{
-		WallTime: time.UnixMilli(t + match.GameState.FullPauseOffset - constants.LEAD), // schedule 200 ms early
+		WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD),
 		Phase:    phase,
 	}
 	match.PendingPhase = phase
-	match.PendingPhaseTime = t
+	match.PendingPhaseTime = activeTime
 	match.PhaseItem = match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
 }
 
@@ -138,6 +137,11 @@ func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
 	match.EventPQueue.CreateAndPushEventItem(ev, "Input")
 }
 
+func pushRevealEvent(match *Match, activeTime int64) {
+	match.PendingRevealTime = activeTime
+	ev := &eventpq.RevealEvent{WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD)}
+	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
+}
 func (match *Match) setPQTimer() {
 
 	// clear timer
@@ -197,11 +201,6 @@ func scheduleEarliestSimItem(match *Match) {
 	ev := &eventpq.EffectEvent{WallTime: earliest}
 	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "Effect")
 
-}
-
-func scheduleReveal(match *Match, at int64) {
-	ev := &eventpq.RevealEvent{WallTime: time.UnixMilli(at)}
-	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
 }
 
 func scheduleChainResolution(match *Match) {

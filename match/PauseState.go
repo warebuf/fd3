@@ -26,6 +26,9 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				if match.PendingPhase > 0 {
 					PushPhase(match, match.PendingPhaseTime, match.PendingPhase)
 				}
+				if match.PendingRevealTime > 0 {
+					pushRevealEvent(match, match.PendingRevealTime)
+				}
 				return
 			}
 			gameState.PausePhase = 2
@@ -34,9 +37,11 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			gameState.PauseStack[0] = 0
 			scheduleChainResolution(match)
 			scheduleEarliestSimItem(match)
-			// do we have to reschedule any reveal items here ?
 			if match.PendingPhase > 0 {
 				PushPhase(match, match.PendingPhaseTime, match.PendingPhase)
+			}
+			if match.PendingRevealTime > 0 {
+				pushRevealEvent(match, match.PendingRevealTime)
 			}
 			return
 		}
@@ -57,6 +62,10 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 		if match.PhaseItem != nil {
 			match.EventPQueue.Remove(match.PhaseItem)
 			match.PhaseItem = nil
+		}
+		if match.RevealItem != nil {
+			match.EventPQueue.Remove(match.RevealItem)
+			match.RevealItem = nil
 		}
 
 	case 1: // entering sim pause

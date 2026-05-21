@@ -7,10 +7,11 @@ import (
 
 func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
-	wallTime := ev.WallTime.UnixMilli()
+	wallTime := ev.WallTime.UnixMilli() + constants.LEAD
 
 	if len(match.RevealQueue) == 0 {
-		PushPhase(match, wallTime+2000+constants.REACTION_WINDOW, 4)
+		match.PendingRevealTime = 0
+		PushPhase(match, wallTime-match.GameState.FullPauseOffset+2000+constants.REACTION_WINDOW, 4)
 		return
 	}
 
@@ -22,7 +23,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	if chainStarted {
 		scheduleChainResolution(match)
 	} else {
-		scheduleReveal(match, wallTime+800)
+		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+800)
 	}
 	match.publish(wallTime, oldLogsSize)
 

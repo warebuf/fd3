@@ -34,8 +34,9 @@ type Match struct {
 	PauseEndItem     *eventpq.EventItem
 	PhaseItem        *eventpq.EventItem
 	RevealItem       *eventpq.EventItem
-	PendingPhase     int   // if paused, this is the next phase scheduled. is 0 by default. if 0, no pending phases
-	PendingPhaseTime int64 // denominated in chain time
+	PendingPhase      int   // if paused, this is the next phase scheduled. is 0 by default. if 0, no pending phases
+	PendingPhaseTime  int64
+	PendingRevealTime int64 // active time; 0 means no pending reveal
 
 	Phase3StartTime int64
 	RevealQueue     []RevealEntry

@@ -42,7 +42,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		// schedule board setup phase after draws complete
-		PushPhase(match, phaseChangeWallTime+3500, 2)
+		PushPhase(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, 2)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -70,7 +70,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushPhase(match, phaseChangeWallTime+90000, 3)
+		PushPhase(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, 3)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -78,12 +78,12 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = 3
-		match.Phase3StartTime = phaseChangeTimestamp
+		match.Phase3StartTime = phaseChangeWallTime
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
-			WallTimestamp: phaseChangeTimestamp,
+			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
 			Phase:         3,
 		})
@@ -121,11 +121,13 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIdx: teamIdx, CardIndex: cardIndex})
 			}
 		}
+
+		// set up ready data structure
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
-		scheduleReveal(match, phaseChangeTimestamp+500)
+		pushRevealEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+500)
 
-		match.publish(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeWallTime, oldLogsSize)
 
 	case 4: // entering play
 
