@@ -32,7 +32,6 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCo
 
 func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
 	currSimItem := heap.Pop(pq).(*state.SimulationItem)
-	fmt.Println("handling eff", currSimItem)
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
@@ -264,13 +263,13 @@ func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})
 	*logList = append(*logList, logs.AddAbilityTimerLog{
-		UpdateID:      *UpdateID,
-		WallTimestamp: startAtSimTime + gs.SimPauseOffset,
-		Type:          logs.AddAbilityTimer,
-		CardIndex:     cardID,
-		AbilityID:     abilityID,
-		AbilityIdx:    abilityIdx,
-		TimerType:     state.AbilityTimerNormal,
+		UpdateID:         *UpdateID,
+		WallTimestamp:    startAtSimTime + gs.SimPauseOffset,
+		Type:             logs.AddAbilityTimer,
+		CardIndex:        cardID,
+		AbilityID:        abilityID,
+		AbilityIdx:       abilityIdx,
+		TimerType:        state.AbilityTimerNormal,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})

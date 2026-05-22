@@ -26,7 +26,7 @@ type GameState struct {
 	PauseStack      [2]int64 // the wall ms when each pause started
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
-	TeamPaused      int      // which team paused the game
+	TeamPaused      int      // which team paused the game; -1 means no team is paused
 	TimeBank        []int64  // remaining pause ms per team
 
 	// card states

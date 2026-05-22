@@ -22,6 +22,7 @@ type Match struct {
 
 	EventLog     []any // a log of all events that have occurred
 	NextUpdateID int
+	DebugTrace   []TraceEntry
 
 	// networking related
 	InputEventChan chan *eventpq.InputEvent

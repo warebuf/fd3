@@ -2,7 +2,6 @@ package match
 
 import (
 	"container/heap"
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -55,26 +54,20 @@ func (match *Match) handleDuePQEvents() {
 
 		switch next.Type {
 		case "Effect":
-			fmt.Println("popped Effect")
 			match.EarliestSimItem = nil
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
 		case "ChainResolution":
-			fmt.Println("popped ChainResolution")
 			match.ChainItem = nil
 			match.handleChainResolution()
 		case "Input":
-			fmt.Println("popped Input")
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
-			fmt.Println("popped NewPhase")
 			match.PhaseItem = nil
 			match.handleNewPhaseEvent(next.Event.(*eventpq.NewPhaseEvent))
 		case "PauseEndEvent":
-			fmt.Println("popped PauseEndEvent")
 			match.PauseEndItem = nil
 			match.handlePauseEndEvent(next.Event.(*eventpq.PauseEndEvent))
 		case "Reveal":
-			fmt.Println("popped Reveal")
 			match.RevealItem = nil
 			match.handleRevealEvent(next.Event.(*eventpq.RevealEvent))
 		}
@@ -147,6 +140,11 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.GameState.UpdateID = match.NextUpdateID
 	match.NextUpdateID += 1
 	match.PublishedState = state.DeepCopyGameState(match.GameState)
+	stateCopy := state.DeepCopyGameState(match.GameState)
+	for _, log := range match.EventLog[oldLogsSize:] {
+		match.DebugTrace = append(match.DebugTrace, TraceEntry{Log: log, State: stateCopy})
+	}
+	match.WriteTrace()
 	match.BroadcastLogs(oldLogsSize)
 }
 

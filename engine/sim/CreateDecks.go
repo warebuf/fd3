@@ -23,19 +23,25 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 	}
 
 	gs := &state.GameState{
-		UpdateID:   0,
-		Phase:      0,
-		PausePhase: 2, // start in simulating state
-
-		TimeBank: timeBank,
+		UpdateID:        0,
+		WallTimestamp:   0,
+		Phase:           0,
+		PausePhase:      2, // start in simulating state
+		PauseStack:      [2]int64{},
+		FullPauseOffset: 0,
+		SimPauseOffset:  0,
+		TeamPaused:      -1,
+		TimeBank:        timeBank,
 
 		Cards:      []state.Card{},
 		Deck:       make([][]int, numTeams),
 		Hand:       make([][]int, numTeams),
 		Field:      make([][]int, numTeams),
 		Grave:      make([][]int, numTeams),
+		Chain:      []state.ChainItem{},
 		Mana:       make([]int, numTeams),
 		Structures: structures,
+		Ready:      make([]bool, numTeams),
 	}
 	nextCardID := 0
 	for team := 0; team < len(deckDefs); team++ {

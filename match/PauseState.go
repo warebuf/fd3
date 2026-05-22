@@ -30,6 +30,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				gameState.PausePhase = state.PausePhaseSimPause
 				gameState.FullPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
 				gameState.PauseStack[0] = 0
+				gameState.TeamPaused = -1
 				scheduleChainResolution(match)
 				if match.PendingPhase > 0 {
 					PushPhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
@@ -43,6 +44,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			gameState.SimPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
 			gameState.FullPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
 			gameState.PauseStack[0] = 0
+			gameState.TeamPaused = -1
 			scheduleChainResolution(match)
 			scheduleEarliestSimItem(match)
 			if match.PendingPhase > 0 {
