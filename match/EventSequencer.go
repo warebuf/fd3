@@ -137,8 +137,7 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 // publishes the latest updates
 func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.GameState.WallTimestamp = wallTime
-	match.GameState.UpdateID = match.NextUpdateID
-	match.NextUpdateID += 1
+	match.GameState.UpdateID = match.NextUpdateID - 1
 	match.PublishedState = state.DeepCopyGameState(match.GameState)
 	stateCopy := state.DeepCopyGameState(match.GameState)
 	for _, log := range match.EventLog[oldLogsSize:] {
