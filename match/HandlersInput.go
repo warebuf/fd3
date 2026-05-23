@@ -197,20 +197,12 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 			return
 		}
 		gs.TeamPaused = teamIdx
+		oldLogsSize := len(match.EventLog)
 		match.TransitionPauseState(0, executeTime)
 
 		pauseEnd := &eventpq.PauseEndEvent{WallTime: time.UnixMilli(executeTime + gs.TimeBank[teamIdx] - constants.LEAD)}
 		match.PauseEndItem = match.EventPQueue.CreateAndPushEventItem(pauseEnd, "PauseEndEvent")
 
-		oldLogsSize := len(match.EventLog)
-		match.EventLog = append(match.EventLog, logs.PauseLog{
-			WallTimestamp: executeTime,
-			UpdateID:      match.NextUpdateID,
-			Type:          logs.Pause,
-			TeamIndex:     teamIdx,
-			TimeRemaining: gs.TimeBank[teamIdx],
-		})
-		match.NextUpdateID++
 		match.publish(executeTime, oldLogsSize)
 
 	} else if gs.PausePhase == state.PausePhaseFullPause && gs.TeamPaused == teamIdx { // early unpause by the same team
@@ -229,17 +221,8 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 			match.PauseEndItem = nil
 		}
 
-		match.TransitionPauseState(-1, executeTime)
-
 		oldLogsSize := len(match.EventLog)
-		match.EventLog = append(match.EventLog, logs.UnpauseLog{
-			WallTimestamp: executeTime,
-			UpdateID:      match.NextUpdateID,
-			Type:          logs.Unpause,
-			TeamIndex:     teamIdx,
-			TimeRemaining: gs.TimeBank[teamIdx],
-		})
-		match.NextUpdateID++
+		match.TransitionPauseState(-1, executeTime)
 		match.publish(executeTime, oldLogsSize)
 	}
 

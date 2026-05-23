@@ -146,14 +146,16 @@ type PauseLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
-	TeamIndex     int
-	TimeRemaining int64 // ms remaining in this team's time bank at pause start
+	PausePhase    int   // which pause level started: PausePhaseFullPause or PausePhaseSimPause
+	TeamIndex     int   // -1 for system-initiated pauses
+	TimeRemaining int64 // ms remaining in this team's time bank; 0 for system-initiated pauses
 }
 
 type UnpauseLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
-	TeamIndex     int
-	TimeRemaining int64 // ms remaining in this team's time bank after unpause
+	PausePhase    int   // which pause level ended: PausePhaseFullPause or PausePhaseSimPause
+	TeamIndex     int   // -1 for system-initiated pauses
+	TimeRemaining int64 // ms remaining in this team's time bank; 0 for system-initiated pauses
 }

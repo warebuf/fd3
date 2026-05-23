@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
@@ -121,14 +120,6 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 		teamIdx := match.GameState.TeamPaused
 		match.GameState.TimeBank[teamIdx] = 0
 		oldLogsSize := len(match.EventLog)
-		match.EventLog = append(match.EventLog, logs.UnpauseLog{
-			WallTimestamp: wallTime,
-			UpdateID:      match.NextUpdateID,
-			Type:          logs.Unpause,
-			TeamIndex:     teamIdx,
-			TimeRemaining: 0,
-		})
-		match.NextUpdateID++
 		match.TransitionPauseState(-1, wallTime)
 		match.publish(wallTime, oldLogsSize)
 	}
