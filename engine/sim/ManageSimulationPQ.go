@@ -41,7 +41,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	if currSimItem.CardID >= 0 {
 		if currSimItem.Type == state.SimItemSummonResolve {
 			teamIndex := gs.Cards[currSimItem.CardID].Team
-			gs.Cards[currSimItem.CardID].Status = state.CardStatusOnline
+			gs.Cards[currSimItem.CardID].Status = state.CardStatusUnitActive
 
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:      *UpdateID,

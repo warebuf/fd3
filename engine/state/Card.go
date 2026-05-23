@@ -25,9 +25,9 @@ type CardStatus int
 const (
 	CardStatusDefault   CardStatus = iota // spells, structures
 	CardStatusSummoning                   // unit: on field, summon window not yet resolved
-	CardStatusOnline                      // unit: fully resolved and active
+	CardStatusUnitActive                   // unit: fully resolved and active
 	CardStatusSet                         // trap: face-down on field
-	CardStatusActive                      // trap: triggered/active
+	CardStatusTrapActive                  // trap: triggered/active
 )
 
 type AbilityTimer struct {
