@@ -137,32 +137,31 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 	card := gs.Cards[cardIndex]
 
 	abilities := defs.CardDefs[card.DefNo].OnPlay
-	for i := 0; i < len(abilities); i++ {
-
-		newEff := sim.FulfillEffectTemplate(abilities[i], teamIndex, cardIndex)
-		startAtActiveTime := declarationTime - gs.FullPauseOffset
-
-		chainItem := &state.ChainItem{
-			StartAtActiveTime:   startAtActiveTime,
-			PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-			ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-
-			CardID:  cardIndex,
-			Type:    state.ChainItemSpell,
-			Effects: []state.Effect{newEff},
-		}
-		gs.Chain = append(gs.Chain, *chainItem)
-
-		*logList = append(*logList, logs.AddChainLog{
-			UpdateID:            *UpdateID,
-			WallTimestamp:       declarationTime,
-			Type:                logs.AddChain,
-			StartAtActiveTime:   chainItem.StartAtActiveTime,
-			PopAtActiveTime:     chainItem.PopAtActiveTime,
-			ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
-			CardID:              chainItem.CardID,
-			Effects:             chainItem.Effects,
-		})
-		*UpdateID += 1
+	effs := make([]state.Effect, len(abilities))
+	for i, ability := range abilities {
+		effs[i] = sim.FulfillEffectTemplate(ability, teamIndex, cardIndex)
 	}
+
+	startAtActiveTime := declarationTime - gs.FullPauseOffset
+	chainItem := &state.ChainItem{
+		StartAtActiveTime:   startAtActiveTime,
+		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		CardID:              cardIndex,
+		Type:                state.ChainItemSpell,
+		Effects:             effs,
+	}
+	gs.Chain = append(gs.Chain, *chainItem)
+
+	*logList = append(*logList, logs.AddChainLog{
+		UpdateID:            *UpdateID,
+		WallTimestamp:       declarationTime,
+		Type:                logs.AddChain,
+		StartAtActiveTime:   chainItem.StartAtActiveTime,
+		PopAtActiveTime:     chainItem.PopAtActiveTime,
+		ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
+		CardID:              chainItem.CardID,
+		Effects:             chainItem.Effects,
+	})
+	*UpdateID += 1
 }
