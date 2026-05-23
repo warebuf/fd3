@@ -64,7 +64,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		match.TransitionPauseState(1, phaseChangeWallTime)
+		match.TransitionPauseState(1, phaseChangeWallTime, -1)
 
 		// initialize ready flags
 		numTeams := len(match.GameState.Hand)
@@ -144,7 +144,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
-		match.TransitionPauseState(-1, phaseChangeTimestamp)
+		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 

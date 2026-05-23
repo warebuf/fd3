@@ -31,41 +31,41 @@ type PhaseLog struct {
 type DrawLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
-	NumCards  int
+	Type          LogType
+	TeamIndex     int
+	NumCards      int
 }
 
 type DeclareCardLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
-	CardIndex int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
 }
 
 type SummonResolutionLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
-	CardIndex int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
 }
 
 type RemoveChainLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	CardID    int
+	Type          LogType
+	CardID        int
 }
 
 type AddChainLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type      LogType
-	StartAtActiveTime int64
+	WallTimestamp       int64
+	UpdateID            int
+	Type                LogType
+	StartAtActiveTime   int64
 	ExecuteAtActiveTime int64
-	CardID    int
+	CardID              int
 }
 
 type DestroyCardLog struct {
@@ -82,17 +82,17 @@ type DestroyCardLog struct {
 type GainManaLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
-	Amount    int
+	Type          LogType
+	TeamIndex     int
+	Amount        int
 }
 
 type SpendManaLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
-	Amount    int
+	Type          LogType
+	TeamIndex     int
+	Amount        int
 }
 
 type AttackLog struct {
@@ -109,8 +109,8 @@ type AttackLog struct {
 type ReadyLog struct {
 	WallTimestamp int64
 	UpdateID      int
-	Type      LogType
-	TeamIndex int
+	Type          LogType
+	TeamIndex     int
 }
 
 type AutoSummonLog struct {
@@ -131,15 +131,15 @@ type ClearAbilityTimerLog struct {
 }
 
 type AddAbilityTimerLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	CardIndex     int
-	AbilityID     int
-	AbilityIdx    int
-	TimerType     int
-	StartAtSimTime     int64
-	ExecuteAtSimTime   int64
+	WallTimestamp    int64
+	UpdateID         int
+	Type             LogType
+	CardIndex        int
+	AbilityID        int
+	AbilityIdx       int
+	TimerType        int
+	StartAtSimTime   int64
+	ExecuteAtSimTime int64
 }
 
 type PauseLog struct {
@@ -148,6 +148,7 @@ type PauseLog struct {
 	Type          LogType
 	PausePhase    int   // which pause level started: PausePhaseFullPause or PausePhaseSimPause
 	TeamIndex     int   // -1 for system-initiated pauses
+	TimeStart     int64 // wallTime the pause started
 	TimeRemaining int64 // ms remaining in this team's time bank; 0 for system-initiated pauses
 }
 
@@ -155,7 +156,5 @@ type UnpauseLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
-	PausePhase    int   // which pause level ended: PausePhaseFullPause or PausePhaseSimPause
-	TeamIndex     int   // -1 for system-initiated pauses
 	TimeRemaining int64 // ms remaining in this team's time bank; 0 for system-initiated pauses
 }

@@ -36,10 +36,10 @@ func (match *Match) handleChainResolution() {
 
 	// log chain item removal
 	match.EventLog = append(match.EventLog, logs.RemoveChainLog{
-		UpdateID:  match.NextUpdateID,
+		UpdateID:      match.NextUpdateID,
 		WallTimestamp: wallTime,
-		Type:      logs.RemoveChain,
-		CardID:    chainTop.CardID,
+		Type:          logs.RemoveChain,
+		CardID:        chainTop.CardID,
 	})
 	match.NextUpdateID++
 
@@ -47,7 +47,7 @@ func (match *Match) handleChainResolution() {
 		if gs.Phase == state.PhaseReveal {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
-			match.TransitionPauseState(-1, wallTime)
+			match.TransitionPauseState(-1, wallTime, -1)
 		}
 	} else {
 		scheduleChainResolution(match)

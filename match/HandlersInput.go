@@ -76,7 +76,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		oldLogsSize := len(match.EventLog)
 		chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.WallTime.UnixMilli())
 		if chainStarted {
-			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD)
+			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 			scheduleChainResolution(match)
 		}
 		if len(match.EventLog) > oldLogsSize {
@@ -156,9 +156,9 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.ReadyLog{
 		WallTimestamp: ie.WallTime.UnixMilli(),
-		UpdateID:  match.NextUpdateID,
-		Type:      logs.Ready,
-		TeamIndex: teamIdx,
+		UpdateID:      match.NextUpdateID,
+		Type:          logs.Ready,
+		TeamIndex:     teamIdx,
 	})
 	match.NextUpdateID++
 	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
@@ -196,9 +196,8 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		if gs.TimeBank[teamIdx] <= 0 {
 			return
 		}
-		gs.TeamPaused = teamIdx
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(0, executeTime)
+		match.TransitionPauseState(0, executeTime, teamIdx)
 
 		pauseEnd := &eventpq.PauseEndEvent{WallTime: time.UnixMilli(executeTime + gs.TimeBank[teamIdx] - constants.LEAD)}
 		match.PauseEndItem = match.EventPQueue.CreateAndPushEventItem(pauseEnd, "PauseEndEvent")
@@ -207,22 +206,13 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 	} else if gs.PausePhase == state.PausePhaseFullPause && gs.TeamPaused == teamIdx { // early unpause by the same team
 
-		elapsed := executeTime - gs.PauseStack[0]
-		if elapsed < 0 {
-			elapsed = 0
-		}
-		gs.TimeBank[teamIdx] -= elapsed
-		if gs.TimeBank[teamIdx] < 0 {
-			gs.TimeBank[teamIdx] = 0
-		}
-
 		if match.PauseEndItem != nil {
 			match.EventPQueue.Remove(match.PauseEndItem)
 			match.PauseEndItem = nil
 		}
 
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(-1, executeTime)
+		match.TransitionPauseState(-1, executeTime, teamIdx)
 		match.publish(executeTime, oldLogsSize)
 	}
 
