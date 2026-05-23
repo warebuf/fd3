@@ -3,8 +3,7 @@ package state
 type EffectType int
 
 const (
-	SummonResolution EffectType = iota + 1
-	EffectAttack
+	EffectAttack EffectType = iota + 1
 	EffectHeal
 	EffectDraw
 	EffectMana // A: team, B: amount

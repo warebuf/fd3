@@ -90,12 +90,6 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 }
 
 func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
-	eff := state.Effect{
-		Type: state.SummonResolution,
-		A:    teamIndex,
-		B:    cardIndex,
-	}
-
 	simTime := wallTimeAtPop - gs.SimPauseOffset
 	if gs.PauseStack[1] > 0 {
 		simTime = gs.PauseStack[1] - gs.SimPauseOffset
@@ -112,7 +106,7 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 		AbilityID: abilityID,
 		CardID:    cardIndex,
 		Type:      state.SimItemSummonResolve,
-		Effects:   []state.Effect{eff},
+		Effects:   []state.Effect{},
 	}
 	heap.Push(pq, simItem)
 

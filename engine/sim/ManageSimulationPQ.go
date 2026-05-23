@@ -19,7 +19,7 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCo
 		if earliestSimItem == nil {
 			return
 		}
-		if gs.PausePhase != 2 {
+		if gs.PausePhase != state.PausePhaseSimulating {
 			return
 		}
 		currentSimTime := time.Now().UnixMilli() - gs.SimPauseOffset
