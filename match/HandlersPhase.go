@@ -123,7 +123,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 			}
 		}
 
-		// set up ready data structure
+		// set all ready flags back to false
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
 		pushRevealEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+500)
