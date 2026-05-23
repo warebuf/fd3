@@ -61,6 +61,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 
 	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 		gs.Cards[cardIndex].Zone = state.ZoneField
+		gs.Cards[cardIndex].Status = state.CardStatusSummoning
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 		scheduleSummon(gs, pq, abilityIDCounter, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)

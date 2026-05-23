@@ -41,6 +41,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	if currSimItem.CardID >= 0 {
 		if currSimItem.Type == state.SimItemSummonResolve {
 			teamIndex := gs.Cards[currSimItem.CardID].Team
+			gs.Cards[currSimItem.CardID].Status = state.CardStatusOnline
 
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:      *UpdateID,
@@ -114,6 +115,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		pq.RemoveSimItemsByCardIDs(destroyedIDs)
 		for cardID := range destroyedIDs {
 			gs.Cards[cardID].AbilityTimers = []state.AbilityTimer{}
+			gs.Cards[cardID].Status = state.CardStatusDefault
 		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
