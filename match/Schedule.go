@@ -97,6 +97,9 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 	}
 
 	simTime := wallTimeAtPop - gs.SimPauseOffset
+	if gs.PauseStack[1] > 0 {
+		simTime = gs.PauseStack[1] - gs.SimPauseOffset
+	}
 
 	abilityID := *abilityIDCounter
 	*abilityIDCounter++
