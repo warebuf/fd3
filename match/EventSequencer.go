@@ -115,10 +115,10 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 }
 
 func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
-	wallTime := pauseEndEvent.WallTime.UnixMilli()
+	wallTime := pauseEndEvent.WallTime.UnixMilli() + constants.LEAD
 	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(-1, wallTime+constants.LEAD, -1)
+		match.TransitionPauseState(-1, wallTime, -1)
 		match.publish(wallTime, oldLogsSize)
 	}
 }
