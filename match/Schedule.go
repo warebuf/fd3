@@ -161,6 +161,7 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 			PopAtActiveTime:     chainItem.PopAtActiveTime,
 			ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
 			CardID:              chainItem.CardID,
+			Effects:             chainItem.Effects,
 		})
 		*UpdateID += 1
 	}

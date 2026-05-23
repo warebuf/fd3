@@ -1,5 +1,7 @@
 package logs
 
+import "github.com/warebuf/fd3/engine/state"
+
 type LogType int
 
 const (
@@ -67,6 +69,7 @@ type AddChainLog struct {
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
 	CardID              int
+	Effects             []state.Effect
 }
 
 type DestroyCardLog struct {
