@@ -64,6 +64,7 @@ type AddChainLog struct {
 	UpdateID            int
 	Type                LogType
 	StartAtActiveTime   int64
+	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
 	CardID              int
 }
