@@ -158,6 +158,7 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 		UpdateID:            *UpdateID,
 		WallTimestamp:       declarationTime,
 		Type:                logs.AddChain,
+		ChainType:           chainItem.Type,
 		StartAtActiveTime:   chainItem.StartAtActiveTime,
 		PopAtActiveTime:     chainItem.PopAtActiveTime,
 		ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
