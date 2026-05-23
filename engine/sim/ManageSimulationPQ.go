@@ -41,8 +41,6 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	if currSimItem.CardID >= 0 {
 		if currSimItem.Type == state.SimItemSummonResolve {
 			teamIndex := gs.Cards[currSimItem.CardID].Team
-			gs.Cards[currSimItem.CardID].Zone = state.ZoneField
-			gs.Field[teamIndex] = append(gs.Field[teamIndex], currSimItem.CardID)
 
 			*logList = append(*logList, logs.SummonResolutionLog{
 				UpdateID:      *UpdateID,
