@@ -34,7 +34,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		// no need enter Simulation Pause (PausePhase 1) here, should already be in it
 		scheduleChainResolution(match)
 	} else {
-		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+800)
+		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+constants.REACTION_WINDOW) // make a reveal same amount of time as 1 chain
 	}
 	match.publish(wallTime, oldLogsSize)
 
