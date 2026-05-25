@@ -91,18 +91,30 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 }
 
 func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
-	simTime := wallTimeAtPop - gs.SimPauseOffset
-	if gs.PauseStack[1] > 0 {
-		simTime = gs.PauseStack[1] - gs.SimPauseOffset
+	simTimeAtPop := wallTimeAtPop - gs.SimPauseOffset
+	isReveal := gs.PauseStack[1] > 0
+	if isReveal {
+		simTimeAtPop = gs.PauseStack[1] - gs.SimPauseOffset
 	}
 
 	abilityID := *abilityIDCounter
 	*abilityIDCounter++
 
+	var startAtSimTime, popAtSimTime, executeAtSimTime int64
+	if isReveal { // game is paused, so we schedule in +0 sim time but it is still applied in +200 wall time
+		startAtSimTime = simTimeAtPop
+		popAtSimTime = simTimeAtPop + constants.REACTION_WINDOW - constants.LEAD
+		executeAtSimTime = simTimeAtPop + constants.REACTION_WINDOW
+	} else {
+		startAtSimTime = simTimeAtPop + constants.LEAD
+		popAtSimTime = simTimeAtPop + constants.REACTION_WINDOW
+		executeAtSimTime = simTimeAtPop + constants.LEAD + constants.REACTION_WINDOW
+	}
+
 	simItem := &state.SimulationItem{
-		StartAtSimTime:   simTime + constants.LEAD,
-		PopAtSimTime:     simTime + constants.REACTION_WINDOW,
-		ExecuteAtSimTime: simTime + constants.LEAD + constants.REACTION_WINDOW,
+		StartAtSimTime:   startAtSimTime,
+		PopAtSimTime:     popAtSimTime,
+		ExecuteAtSimTime: executeAtSimTime,
 
 		AbilityID: abilityID,
 		CardID:    cardIndex,
