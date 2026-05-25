@@ -56,7 +56,7 @@ var CardDefs = []CardDef{
 	},
 	3: {
 		Type:        state.CardTypeUnit,
-		Name:        "Matter of Time",
+		Name:        "Money Tree",
 		Description: "Gain 1 mana every 20 seconds",
 		BaseHP:      2,
 		Cost:        0,
