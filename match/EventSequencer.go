@@ -132,7 +132,7 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	for _, log := range match.EventLog[oldLogsSize:] {
 		match.DebugTrace = append(match.DebugTrace, TraceEntry{Log: log, State: stateCopy})
 	}
-	match.WriteTrace()
+	//match.WriteTrace()
 	match.BroadcastLogs(oldLogsSize)
 }
 
