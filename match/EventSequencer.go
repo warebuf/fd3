@@ -123,6 +123,9 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 }
 
 func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
+	if match.GameState.Phase == state.PhaseGameOver {
+		return
+	}
 	wallTime := pauseEndEvent.WallTime.UnixMilli() + constants.LEAD
 	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		oldLogsSize := len(match.EventLog)

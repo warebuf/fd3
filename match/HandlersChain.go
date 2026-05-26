@@ -9,6 +9,10 @@ import (
 // only handles chain size 1, down the line will change to handle multiple
 func (match *Match) handleChainResolution() {
 
+	if match.GameState.Phase == state.PhaseGameOver {
+		return
+	}
+
 	gs := match.GameState
 
 	if len(gs.Chain) == 0 {

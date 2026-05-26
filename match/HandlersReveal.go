@@ -8,6 +8,10 @@ import (
 
 func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 
+	if match.GameState.Phase == state.PhaseGameOver {
+		return
+	}
+
 	wallTime := ev.WallTime.UnixMilli() + constants.LEAD
 
 	if len(match.RevealQueue) == 0 {
