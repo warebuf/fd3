@@ -15,7 +15,7 @@ import (
 
 func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
 	for {
-		if gs.Winner >= 0 {
+		if gs.Winner >= 0 || gs.Winner == -2 {
 			return
 		}
 		earliestSimItem := pq.Peek()
@@ -206,7 +206,11 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 				*UpdateID += 1
 
 				if gs.Structures[enemyTeam].HP <= 0 {
-					gs.Winner = teamIndex
+					if gs.Structures[teamIndex].HP <= 0 {
+						gs.Winner = -2 // tie
+					} else {
+						gs.Winner = teamIndex
+					}
 				}
 			}
 		}

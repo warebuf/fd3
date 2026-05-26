@@ -169,5 +169,5 @@ type GameOverLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
-	Winner        int // winning team index
+	Winner        int // winning team index, -2 = tie
 }

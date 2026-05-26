@@ -153,6 +153,16 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhaseGameOver
 
+		deadCount := 0
+		for _, s := range match.GameState.Structures {
+			if s.HP <= 0 {
+				deadCount++
+			}
+		}
+		if deadCount >= 2 {
+			match.GameState.Winner = -2
+		}
+
 		match.EventLog = append(match.EventLog, logs.GameOverLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,

@@ -43,7 +43,7 @@ type GameState struct {
 	Structures []Structure // per team
 	Ready      []bool      // per team, whether the player has readied up
 
-	Winner int // -1: no winner yet, 0+: winning team index
+	Winner int // -1: no winner yet, 0+: winning team index, -2: tie
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {
