@@ -108,9 +108,17 @@ func (match *Match) setPQTimer() {
 }
 
 func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
+	if match.GameState.Phase == state.PhaseGameOver {
+		return
+	}
 	oldLogsSize := len(match.EventLog)
 	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
-	scheduleEarliestSimItem(match)
+	if match.GameState.Winner >= 0 && match.GameState.Phase != state.PhaseGameOver {
+		wallTime := effEvent.WallTime.UnixMilli() + constants.LEAD
+		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
+	} else {
+		scheduleEarliestSimItem(match)
+	}
 	match.publish(effEvent.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 }
 

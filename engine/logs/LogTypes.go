@@ -21,6 +21,7 @@ const (
 	Unpause
 	AddAbilityTimer
 	ClearAbilityTimer
+	GameOver
 )
 
 type PhaseLog struct {
@@ -162,4 +163,11 @@ type UnpauseLog struct {
 	UpdateID      int
 	Type          LogType
 	TimeRemaining int64 // ms remaining in this team's time bank; 0 for system-initiated pauses
+}
+
+type GameOverLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	Winner        int // winning team index
 }

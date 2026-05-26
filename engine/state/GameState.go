@@ -42,6 +42,8 @@ type GameState struct {
 	Mana       []int       // per team
 	Structures []Structure // per team
 	Ready      []bool      // per team, whether the player has readied up
+
+	Winner int // -1: no winner yet, 0+: winning team index
 }
 
 func DeepCopyGameState(prevState *GameState) *GameState {
@@ -54,6 +56,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		FullPauseOffset: prevState.FullPauseOffset,
 		SimPauseOffset:  prevState.SimPauseOffset,
 		TeamPaused:      prevState.TeamPaused,
+		Winner:          prevState.Winner,
 	}
 
 	// Cards

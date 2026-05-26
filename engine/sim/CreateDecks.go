@@ -31,6 +31,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		FullPauseOffset: 0,
 		SimPauseOffset:  0,
 		TeamPaused:      -1,
+		Winner:          -1,
 		TimeBank:        timeBank,
 
 		Cards:      []state.Card{},

@@ -149,7 +149,41 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 
 	case state.PhaseGameOver: // entering game over
-		// TODO: end game logic
+		oldLogsSize := len(match.EventLog)
+		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
+		match.GameState.Phase = state.PhaseGameOver
+
+		match.EventLog = append(match.EventLog, logs.GameOverLog{
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: phaseChangeWallTime,
+			Type:          logs.GameOver,
+			Winner:        match.GameState.Winner,
+		})
+		match.NextUpdateID += 1
+
+		// cancel all pending scheduled events
+		if match.EarliestSimItem != nil {
+			match.EventPQueue.Remove(match.EarliestSimItem)
+			match.EarliestSimItem = nil
+		}
+		if match.ChainItem != nil {
+			match.EventPQueue.Remove(match.ChainItem)
+			match.ChainItem = nil
+		}
+		if match.PhaseItem != nil {
+			match.EventPQueue.Remove(match.PhaseItem)
+			match.PhaseItem = nil
+		}
+		if match.RevealItem != nil {
+			match.EventPQueue.Remove(match.RevealItem)
+			match.RevealItem = nil
+		}
+		if match.PauseEndItem != nil {
+			match.EventPQueue.Remove(match.PauseEndItem)
+			match.PauseEndItem = nil
+		}
+
+		match.publish(phaseChangeWallTime, oldLogsSize)
 
 	}
 

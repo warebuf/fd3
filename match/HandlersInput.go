@@ -11,6 +11,10 @@ import (
 
 func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 
+	if match.GameState.Phase == state.PhaseGameOver {
+		return
+	}
+
 	switch ie.Type {
 	case "fullPause":
 		match.handleInputPause(ie)
