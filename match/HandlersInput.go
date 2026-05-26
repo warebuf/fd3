@@ -78,6 +78,8 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		if chainStarted {
 			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 			scheduleChainResolution(match)
+		} else {
+			scheduleEarliestSimItem(match)
 		}
 		if len(match.EventLog) > oldLogsSize {
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
