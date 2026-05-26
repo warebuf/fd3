@@ -11,6 +11,6 @@ var StructureDefs = []StructureDef{
 	1: {
 		Name:        "Land",
 		Description: "",
-		BaseHP:      32,
+		BaseHP:      8,
 	},
 }
