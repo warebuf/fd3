@@ -144,6 +144,11 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// do not accept while in full pause
+	if match.GameState.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
 	// do not accept if not acceptable team index
 	teamIdx := ie.TeamIdx
 	if teamIdx < 0 || teamIdx >= len(match.GameState.Ready) {
