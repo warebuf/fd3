@@ -193,11 +193,14 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 	if gs.Phase < state.PhaseDraw {
 		return
 	}
+	if gs.Phase == state.PhaseGameOver {
+		return
+	}
 	if teamIdx < 0 || teamIdx >= len(gs.TimeBank) {
 		return
 	}
 
-	if gs.PausePhase == state.PausePhaseSimulating {
+	if gs.PausePhase == state.PausePhaseSimulating || gs.PausePhase == state.PausePhaseSimPause {
 		// entering pause
 		if gs.TimeBank[teamIdx] <= 0 {
 			return
