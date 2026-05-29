@@ -35,6 +35,11 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// we are denying all inputs during a chain/reaction, but later on we should only accept chains
+	if match.GameState.PausePhase != state.PausePhaseSimulating {
+		return
+	}
+
 	cardIndex := ie.CardIndex
 	teamIdx := ie.TeamIdx
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
@@ -46,8 +51,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// if we are in phase 2 (board set up), stage the card
-	if match.GameState.Phase == state.PhaseBoardSetup {
+	if match.GameState.Phase == state.PhaseBoardSetup { // if we are in phase 2 (board set up), stage the card
 
 		if card.AutoSummon != 0 {
 			return
@@ -73,10 +77,9 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		})
 		match.NextUpdateID++
 		match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
-	}
 
-	// if we are in phase 4 (play), declare the card
-	if match.GameState.Phase == state.PhasePlay {
+	} else if match.GameState.Phase == state.PhasePlay { // if we are in phase 4 (play), declare the card
+
 		oldLogsSize := len(match.EventLog)
 		chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.WallTime.UnixMilli())
 		if chainStarted {
@@ -85,9 +88,8 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		} else {
 			scheduleEarliestSimItem(match)
 		}
-		if len(match.EventLog) > oldLogsSize {
-			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-		}
+		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+
 	}
 
 }
