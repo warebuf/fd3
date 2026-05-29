@@ -35,11 +35,6 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// we are denying all inputs during a chain/reaction, but later on we should only accept chains
-	if match.GameState.PausePhase != state.PausePhaseSimulating {
-		return
-	}
-
 	cardIndex := ie.CardIndex
 	teamIdx := ie.TeamIdx
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
@@ -48,6 +43,11 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 
 	card := match.GameState.Cards[cardIndex]
 	if card.Zone != state.ZoneHand || card.Team != teamIdx {
+		return
+	}
+
+	// we are denying all inputs during a chain/reaction, but later on we should only accept chains
+	if match.GameState.PausePhase != state.PausePhaseSimulating {
 		return
 	}
 
