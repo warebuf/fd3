@@ -35,8 +35,8 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		ev.WallTime.UnixMilli(),
 	)
 	if chainStarted {
-		// no need enter Simulation Pause (PausePhase 1) here, should already be in it
-		scheduleChainResolution(match)
+		match.PendingRevealTime = 0    // clear previous reveal
+		scheduleChainResolution(match) // no need to sim pause, already sim paused
 	} else {
 		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+constants.REACTION_WINDOW) // make a reveal same amount of time as 1 chain
 	}

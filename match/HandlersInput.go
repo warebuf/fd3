@@ -206,7 +206,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 			return
 		}
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(0, executeTime, teamIdx)
+		match.TransitionPauseState(state.PausePhaseFullPause, executeTime, teamIdx)
 
 		pauseEnd := &eventpq.PauseEndEvent{WallTime: time.UnixMilli(executeTime + gs.TimeBank[teamIdx] - constants.LEAD)}
 		match.PauseEndItem = match.EventPQueue.CreateAndPushEventItem(pauseEnd, "PauseEndEvent")
