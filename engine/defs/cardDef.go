@@ -57,12 +57,12 @@ var CardDefs = []CardDef{
 	3: {
 		Type:        state.CardTypeUnit,
 		Name:        "Money Tree",
-		Description: "Gain 1 mana every 20 seconds",
+		Description: "Gain 1 mana every 5 seconds",
 		BaseHP:      2,
 		Cost:        0,
 		Recurring: []Recurring{
 			{
-				Milliseconds: 20000,
+				Milliseconds: 5000,
 				Effects: []state.Effect{
 					{
 						Type: state.EffectMana, // fill A, which is team

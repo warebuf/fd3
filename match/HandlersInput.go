@@ -46,8 +46,12 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// if we are in phase 2 (board set up), stage the card
-	if match.GameState.Phase == state.PhaseBoardSetup {
+	// we are denying all inputs during a chain/reaction, but later on we should only accept chains
+	if match.GameState.PausePhase != state.PausePhaseSimulating {
+		return
+	}
+
+	if match.GameState.Phase == state.PhaseBoardSetup { // if we are in phase 2 (board set up), stage the card
 
 		if card.AutoSummon != 0 {
 			return
@@ -73,10 +77,9 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		})
 		match.NextUpdateID++
 		match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
-	}
 
-	// if we are in phase 4 (play), declare the card
-	if match.GameState.Phase == state.PhasePlay {
+	} else if match.GameState.Phase == state.PhasePlay { // if we are in phase 4 (play), declare the card
+
 		oldLogsSize := len(match.EventLog)
 		chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, ie.TeamIdx, ie.CardIndex, ie.WallTime.UnixMilli())
 		if chainStarted {
@@ -85,9 +88,8 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 		} else {
 			scheduleEarliestSimItem(match)
 		}
-		if len(match.EventLog) > oldLogsSize {
-			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-		}
+		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+
 	}
 
 }
@@ -141,6 +143,11 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 
 	// only accept if we are in stage 2 (board set up)
 	if match.GameState.Phase != state.PhaseBoardSetup {
+		return
+	}
+
+	// do not accept while in full pause
+	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		return
 	}
 
