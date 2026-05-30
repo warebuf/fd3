@@ -14,6 +14,8 @@ type CardDef struct {
 	Name        string
 	Description string
 
+	Archetype int
+
 	OnPlay    []state.Effect
 	Recurring []Recurring
 
@@ -55,8 +57,9 @@ var CardDefs = []CardDef{
 		},
 	},
 	3: {
-		Type:        state.CardTypeUnit,
-		Name:        "Money Tree",
+		Type:      state.CardTypeUnit,
+		Archetype: state.ArchetypeTree,
+		Name:      "Money Tree",
 		Description: "Gain 1 mana every 5 seconds",
 		BaseHP:      2,
 		Cost:        500,

@@ -8,6 +8,11 @@ const (
 )
 
 const (
+	ArchetypeNone = iota
+	ArchetypeTree
+)
+
+const (
 	ZoneDeck = iota
 	ZoneHand
 	ZoneField
@@ -45,6 +50,7 @@ type Card struct {
 	Description string
 	HP          int
 	Cost        int
+	Archetype   int
 
 	// state info
 	Team          int

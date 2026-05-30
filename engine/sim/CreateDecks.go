@@ -62,6 +62,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Description: def.Description,
 				Cost:        def.Cost,
 				HP:          def.BaseHP,
+				Archetype:   def.Archetype,
 
 				Team:          team,
 				Type:          def.Type,
