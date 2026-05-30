@@ -57,9 +57,9 @@ var CardDefs = []CardDef{
 		},
 	},
 	3: {
-		Type:      state.CardTypeUnit,
-		Archetype: state.ArchetypeTree,
-		Name:      "Money Tree",
+		Type:        state.CardTypeUnit,
+		Archetype:   state.ArchetypeTree,
+		Name:        "Money Tree",
 		Description: "Gain 1 mana every 5 seconds",
 		BaseHP:      2,
 		Cost:        500,
@@ -84,14 +84,14 @@ var CardDefs = []CardDef{
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectMana,
-				B:    50, // amount
+				B:    500, // amount
 			},
 		},
 	},
 	5: {
 		Type:        state.CardTypeUnit,
 		Name:        "Barkbreaker",
-		Description: "Prioritizes and double-damages 'Tree' archetype. Otherwise, deals 1 damage to a random enemy every 20 seconds",
+		Description: "Prioritizes and double-damages 'Tree' archetype. deal 1 damage to a random enemy every 20 seconds",
 		BaseHP:      2,
 		Cost:        100,
 		Recurring: []Recurring{
@@ -100,8 +100,9 @@ var CardDefs = []CardDef{
 				Effects: []state.Effect{
 					{
 						Type: state.EffectAttack,
-						A:    0, // targetType, 0: random, 1: user-targetted
-						B:    1, // amount
+						A:    2,                   // targetType, 0: random, 1: user-targetted, 2: prioritize archetype
+						B:    1,                   // base damage
+						C:    state.ArchetypeTree, // priority archetype
 					},
 				},
 			},
