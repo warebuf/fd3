@@ -48,7 +48,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
-		Cost:        5000,
+		Cost:        1500,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
@@ -60,16 +60,16 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Archetype:   state.ArchetypeTree,
 		Name:        "Money Tree",
-		Description: "Gain 1 mana every 5 seconds",
-		BaseHP:      2,
-		Cost:        500,
+		Description: "Gain 10 mana every 5 seconds",
+		BaseHP:      3,
+		Cost:        300,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 5000,
 				Effects: []state.Effect{
 					{
 						Type: state.EffectMana, // fill A, which is team
-						B:    1,                // amount
+						B:    10,               // amount
 					},
 				},
 			},
@@ -78,22 +78,22 @@ var CardDefs = []CardDef{
 	4: {
 		Type:        state.CardTypeSpell,
 		Name:        "Downforce",
-		Description: "Gain 500 mana",
+		Description: "Gain 300 mana",
 		BaseHP:      0,
 		Cost:        0,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectMana,
-				B:    500, // amount
+				B:    300, // amount
 			},
 		},
 	},
 	5: {
 		Type:        state.CardTypeUnit,
 		Name:        "Barkbreaker",
-		Description: "Prioritizes and double-damages 'Tree' archetype. deal 1 damage to a random enemy every 20 seconds",
+		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage to a random enemy every 20 seconds",
 		BaseHP:      2,
-		Cost:        100,
+		Cost:        150,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 20000,
