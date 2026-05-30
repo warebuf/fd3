@@ -28,7 +28,7 @@ var CardDefs = []CardDef{
 		Name:        "Fallen Soldier",
 		Description: "Deal 1 random damage every 20 seconds",
 		BaseHP:      2,
-		Cost:        2,
+		Cost:        100,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 20000,
@@ -46,7 +46,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
-		Cost:        5,
+		Cost:        5000,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
@@ -75,13 +75,32 @@ var CardDefs = []CardDef{
 	4: {
 		Type:        state.CardTypeSpell,
 		Name:        "Downforce",
-		Description: "Gain 1 mana",
+		Description: "Gain 50 mana",
 		BaseHP:      0,
 		Cost:        0,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectMana,
-				B:    1, // amount
+				B:    50, // amount
+			},
+		},
+	},
+	5: {
+		Type:        state.CardTypeUnit,
+		Name:        "Barkbreaker",
+		Description: "Prioritizes and double-damages 'Tree' archetype. Otherwise, deals 1 damage to a random enemy every 20 seconds",
+		BaseHP:      2,
+		Cost:        100,
+		Recurring: []Recurring{
+			{
+				Milliseconds: 20000,
+				Effects: []state.Effect{
+					{
+						Type: state.EffectAttack,
+						A:    0, // targetType, 0: random, 1: user-targetted
+						B:    1, // amount
+					},
+				},
 			},
 		},
 	},
