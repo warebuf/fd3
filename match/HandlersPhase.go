@@ -144,6 +144,10 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		})
 		match.NextUpdateID += 1
 
+		for i := range match.GameState.Cards {
+			match.GameState.Cards[i].AutoSummon = 0
+		}
+
 		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)

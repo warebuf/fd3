@@ -47,7 +47,7 @@ func (match *Match) handleInputHand(ie *eventpq.InputEvent) {
 	}
 
 	// we are denying all inputs during a chain/reaction, but later on we should only accept chains
-	if match.GameState.PausePhase != state.PausePhaseSimulating {
+	if match.GameState.Phase == state.PhasePlay && match.GameState.PausePhase != state.PausePhaseSimulating {
 		return
 	}
 
