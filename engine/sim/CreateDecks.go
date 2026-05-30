@@ -88,7 +88,7 @@ func ShuffleDeck(gs *state.GameState, team int) {
 	})
 }
 
-func IsValidDeck(deck []int, structNo int) bool {
+func IsValidSubmission(deck []int, startingHand []int, structNo int) bool {
 
 	if len(deck) > 30 {
 		return false
@@ -114,6 +114,21 @@ func IsValidDeck(deck []int, structNo int) bool {
 		}
 	}
 
+	// validate starting hand: 0-5 cards, each DefNo must exist in the deck (consuming duplicates)
+	if len(startingHand) > 5 {
+		return false
+	}
+	handCounts := make([]int, cardDefsLength)
+	for _, defNo := range startingHand {
+		if defNo <= 0 || defNo >= cardDefsLength {
+			return false
+		}
+		handCounts[defNo]++
+		if handCounts[defNo] > counts[defNo] {
+			return false
+		}
+	}
+
 	// make sure structNo is available
 	structDefsLength := len(defs.StructureDefs)
 	if structNo <= 0 || structNo >= structDefsLength {
@@ -121,4 +136,30 @@ func IsValidDeck(deck []int, structNo int) bool {
 	}
 
 	return true
+}
+
+func ArrangeStartingHand(gs *state.GameState, teamIndex int, startingHand []int) {
+	if len(startingHand) == 0 {
+		return
+	}
+
+	deck := make([]int, len(gs.Deck[teamIndex]))
+	copy(deck, gs.Deck[teamIndex])
+
+	chosen := []int{}
+	for _, defNo := range startingHand {
+		for i, cardID := range deck {
+			if gs.Cards[cardID].DefNo == defNo {
+				chosen = append(chosen, cardID)
+				deck = append(deck[:i], deck[i+1:]...)
+				break
+			}
+		}
+	}
+
+	rand.Shuffle(len(deck), func(i, j int) {
+		deck[i], deck[j] = deck[j], deck[i]
+	})
+
+	gs.Deck[teamIndex] = append(chosen, deck...)
 }

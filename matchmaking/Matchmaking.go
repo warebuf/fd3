@@ -18,6 +18,7 @@ import (
 type Ticket struct {
 	TicketID         string
 	Deck             []int
+	StartingHand     []int
 	StructureDefNo   int
 	ClosedConnection <-chan struct{}
 	Found            chan string   // receives matchID
@@ -148,9 +149,10 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 	}
 	gs := sim.CreateDecks(deckDefs, structureDefNos)
 
-	// shuffle the decks
+	// shuffle the decks, then arrange starting hands on top
 	for i := 0; i < len(gs.Deck); i++ {
 		sim.ShuffleDeck(gs, i)
+		sim.ArrangeStartingHand(gs, i, tickets[i].StartingHand)
 	}
 
 	// create match object

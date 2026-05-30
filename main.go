@@ -35,8 +35,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type getGuestIDBody struct {
-	Deck     []int `json:"deck"`
-	StructNo int   `json:"structNo"`
+	Deck         []int `json:"deck"`
+	StartingHand []int `json:"startingHand"`
+	StructNo     int   `json:"structNo"`
 }
 
 // maybe over the long-term, when I add users, it should be a ticketID, not a guestID
@@ -55,7 +56,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !sim.IsValidDeck(reqBody.Deck, reqBody.StructNo) {
+	if !sim.IsValidSubmission(reqBody.Deck, reqBody.StartingHand, reqBody.StructNo) {
 		http.Error(w, "invalid deck", http.StatusBadRequest)
 		return
 	}
@@ -63,7 +64,7 @@ func getGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 	id := uuid.NewString()
 	expiry := time.Now().Add(2 * time.Hour)
 
-	guestMap.Add(id, expiry, reqBody.Deck, reqBody.StructNo)
+	guestMap.Add(id, expiry, reqBody.Deck, reqBody.StartingHand, reqBody.StructNo)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "guestID",
@@ -120,6 +121,7 @@ func matchmakingSSE(w http.ResponseWriter, r *http.Request) {
 	matchmaker.Join <- &matchmaking.Ticket{
 		TicketID:         guestID,
 		Deck:             guest.Deck,
+		StartingHand:     guest.StartingHand,
 		StructureDefNo:   guest.StructNo,
 		ClosedConnection: ctx.Done(),
 		Found:            matchID,
