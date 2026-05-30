@@ -59,7 +59,7 @@ var CardDefs = []CardDef{
 		Name:        "Money Tree",
 		Description: "Gain 1 mana every 5 seconds",
 		BaseHP:      2,
-		Cost:        0,
+		Cost:        500,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 5000,
@@ -75,7 +75,7 @@ var CardDefs = []CardDef{
 	4: {
 		Type:        state.CardTypeSpell,
 		Name:        "Downforce",
-		Description: "Gain 50 mana",
+		Description: "Gain 500 mana",
 		BaseHP:      0,
 		Cost:        0,
 		OnPlay: []state.Effect{
