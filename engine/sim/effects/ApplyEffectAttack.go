@@ -17,9 +17,20 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 	targetIdx := -1
 	if len(enemyField) > 0 {
+		pool := enemyField
+		var tauntTargets []int
+		for _, ci := range enemyField {
+			if gs.Cards[ci].Taunt {
+				tauntTargets = append(tauntTargets, ci)
+			}
+		}
+		if len(tauntTargets) > 0 {
+			pool = tauntTargets
+		}
+
 		if eff.A == 2 {
 			var priorityTargets []int
-			for _, ci := range enemyField {
+			for _, ci := range pool {
 				if gs.Cards[ci].Archetype == eff.C {
 					priorityTargets = append(priorityTargets, ci)
 				}
@@ -30,7 +41,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			}
 		}
 		if targetIdx == -1 {
-			targetIdx = enemyField[rand.Intn(len(enemyField))]
+			targetIdx = pool[rand.Intn(len(pool))]
 		}
 	}
 

@@ -51,6 +51,7 @@ type Card struct {
 	HP          int
 	Cost        int
 	Archetype   int
+	Taunt       bool
 
 	// state info
 	Team          int

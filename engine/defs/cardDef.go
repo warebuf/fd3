@@ -15,6 +15,7 @@ type CardDef struct {
 	Description string
 
 	Archetype int
+	Taunt     bool
 
 	OnPlay    []state.Effect
 	Recurring []Recurring
@@ -107,5 +108,13 @@ var CardDefs = []CardDef{
 				},
 			},
 		},
+	},
+	6: {
+		Type:        state.CardTypeUnit,
+		Name:        "Metal Heart",
+		Description: "Taunt",
+		BaseHP:      2,
+		Cost:        150,
+		Taunt:       true,
 	},
 }
