@@ -40,7 +40,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Field:      make([][]int, numTeams),
 		Grave:      make([][]int, numTeams),
 		Chain:      []state.ChainItem{},
-		Mana:       make([]int, numTeams),
+		Mana:       func() []int { m := make([]int, numTeams); for i := range m { m[i] = constants.START_MANA }; return m }(),
 		Structures: structures,
 		Ready:      make([]bool, numTeams),
 	}
