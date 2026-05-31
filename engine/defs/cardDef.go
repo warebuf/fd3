@@ -31,7 +31,7 @@ var CardDefs = []CardDef{
 		Name:        "Fallen Soldier",
 		Description: "Deal 1 random damage every 20 seconds",
 		BaseHP:      2,
-		Cost:        100,
+		Cost:        60,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 20000,
@@ -49,7 +49,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
 		Description: "Destroy all summoned units on the field",
-		Cost:        1500,
+		Cost:        500,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectDestroy,
@@ -61,12 +61,12 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Archetype:   state.ArchetypeTree,
 		Name:        "Money Tree",
-		Description: "Gain 10 mana every 5 seconds",
-		BaseHP:      3,
-		Cost:        300,
+		Description: "Gain 10 mana every 10 seconds",
+		BaseHP:      2,
+		Cost:        60,
 		Recurring: []Recurring{
 			{
-				Milliseconds: 5000,
+				Milliseconds: 10000,
 				Effects: []state.Effect{
 					{
 						Type: state.EffectMana, // fill A, which is team
@@ -79,13 +79,13 @@ var CardDefs = []CardDef{
 	4: {
 		Type:        state.CardTypeSpell,
 		Name:        "Downforce",
-		Description: "Gain 300 mana",
+		Description: "Gain 30 mana",
 		BaseHP:      0,
 		Cost:        0,
 		OnPlay: []state.Effect{
 			{
 				Type: state.EffectMana,
-				B:    300, // amount
+				B:    30, // amount
 			},
 		},
 	},
@@ -94,7 +94,7 @@ var CardDefs = []CardDef{
 		Name:        "Barkbreaker",
 		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage to a random enemy every 20 seconds",
 		BaseHP:      2,
-		Cost:        150,
+		Cost:        100,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 20000,
@@ -113,8 +113,8 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Name:        "Metal Heart",
 		Description: "Taunt",
-		BaseHP:      2,
-		Cost:        150,
+		BaseHP:      6,
+		Cost:        80,
 		Taunt:       true,
 	},
 }
