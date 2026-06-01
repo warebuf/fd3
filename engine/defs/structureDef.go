@@ -1,11 +1,11 @@
 package defs
 
 type StructureDef struct {
-	Name                string
-	Description         string
-	BaseHP              int
-	ManaRegen           int
-	ManaRegenInterval   int64 // milliseconds
+	Name              string
+	Description       string
+	BaseHP            int
+	ManaRegen         int
+	ManaRegenInterval int64 // milliseconds
 }
 
 var StructureDefs = []StructureDef{
@@ -13,7 +13,7 @@ var StructureDefs = []StructureDef{
 	1: {
 		Name:              "Land",
 		Description:       "",
-		BaseHP:            20,
+		BaseHP:            8,
 		ManaRegen:         1,
 		ManaRegenInterval: 1000,
 	},

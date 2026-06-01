@@ -151,10 +151,12 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)
 
+		// begin mana regen for structures
 		startSimTime := phaseChangeTimestamp - match.GameState.SimPauseOffset
 		for i := range match.GameState.Structures {
 			sim.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, i, startSimTime)
 		}
+		scheduleEarliestSimItem(match)
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 

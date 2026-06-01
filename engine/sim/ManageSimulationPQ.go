@@ -33,6 +33,7 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCo
 }
 
 func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
+
 	currSimItem := heap.Pop(pq).(*state.SimulationItem)
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
@@ -68,7 +69,9 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 		}
 
 		clearAbilityTimer(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, executeAtWallTime)
-	} else if currSimItem.Type == state.SimItemStructureRegen {
+	}
+
+	if currSimItem.Type == state.SimItemStructureRegen {
 		teamIndex := currSimItem.Effects[0].A
 		ScheduleStructureManaRegen(gs, pq, logList, UpdateID, teamIndex, currSimItem.PopAtSimTime+constants.LEAD)
 	}
@@ -160,6 +163,7 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 }
 
 func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, startAtSimTime int64) {
+
 	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
 	if structDef.ManaRegen == 0 || structDef.ManaRegenInterval == 0 {
 		return
