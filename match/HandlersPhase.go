@@ -5,6 +5,7 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -149,6 +150,11 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)
+
+		startSimTime := phaseChangeTimestamp - match.GameState.SimPauseOffset
+		for i := range match.GameState.Structures {
+			sim.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, i, startSimTime)
+		}
 
 		match.publish(phaseChangeTimestamp, oldLogsSize)
 

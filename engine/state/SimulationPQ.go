@@ -34,6 +34,7 @@ const (
 	SimItemSummonResolve SimItemType = iota
 	SimItemRecurring
 	SimItemDraw
+	SimItemStructureRegen
 )
 
 type SimulationItem struct {

@@ -31,8 +31,8 @@ type GameState struct {
 
 	// card states
 	Cards []Card
-	Deck  [][]int
-	Hand  [][]int // front of arr is the top
+	Deck  [][]int // front of arr is the top
+	Hand  [][]int
 	Field [][]int
 	Grave [][]int
 
@@ -117,12 +117,12 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Chain = make([]ChainItem, len(prevState.Chain))
 	for i, item := range prevState.Chain {
 		newItem := ChainItem{
-			Type:      item.Type,
-			CardID:    item.CardID,
-			StartAtActiveTime: item.StartAtActiveTime,
-			PopAtActiveTime:   item.PopAtActiveTime,
+			Type:                item.Type,
+			CardID:              item.CardID,
+			StartAtActiveTime:   item.StartAtActiveTime,
+			PopAtActiveTime:     item.PopAtActiveTime,
 			ExecuteAtActiveTime: item.ExecuteAtActiveTime,
-			Effects:   make([]Effect, len(item.Effects)),
+			Effects:             make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)
 		newState.Chain[i] = newItem
