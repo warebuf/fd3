@@ -94,13 +94,13 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		numTeams := len(match.GameState.Hand)
 		stagedByTeam := make([][]int, numTeams)
 		for i := 0; i < len(match.GameState.Cards); i++ {
-			if match.GameState.Cards[i].AutoSummon > 0 {
+			if match.GameState.Cards[i].StageOrder > 0 {
 				stagedByTeam[match.GameState.Cards[i].Team] = append(stagedByTeam[match.GameState.Cards[i].Team], i)
 			}
 		}
 		for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
 			sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool { // sort by ascending
-				return match.GameState.Cards[stagedByTeam[teamIdx][a]].AutoSummon < match.GameState.Cards[stagedByTeam[teamIdx][b]].AutoSummon
+				return match.GameState.Cards[stagedByTeam[teamIdx][a]].StageOrder < match.GameState.Cards[stagedByTeam[teamIdx][b]].StageOrder
 			})
 		}
 
@@ -146,7 +146,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.NextUpdateID += 1
 
 		for i := range match.GameState.Cards {
-			match.GameState.Cards[i].AutoSummon = 0
+			match.GameState.Cards[i].StageOrder = 0
 		}
 
 		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)

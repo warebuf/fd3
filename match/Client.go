@@ -111,19 +111,33 @@ func (c *Client) Read() {
 			default:
 			}
 
-		case "hand":
+		case "stage":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "hand", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "stage", c.ID, msg.CardIndex)
 
-		case "clearAutoSummon":
+		case "unstage":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "clearAutoSummon", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unstage", c.ID, msg.CardIndex)
+
+		case "autosummon":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex)
+
+		case "unautosummon":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex)
 
 		case "ready":
 			var msg readyMessage
@@ -131,6 +145,9 @@ func (c *Client) Read() {
 				continue
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, 0)
+
+		case "unready":
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, 0)
 
 		case "fullPause":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0)

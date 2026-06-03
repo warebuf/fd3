@@ -57,7 +57,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 	})
 	*UpdateID += 1
 
-	gs.Cards[cardIndex].AutoSummon = 0
+	gs.Cards[cardIndex].StageOrder = 0
 
 	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
 		gs.Cards[cardIndex].Zone = state.ZoneField

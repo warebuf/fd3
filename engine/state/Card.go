@@ -58,6 +58,7 @@ type Card struct {
 	Type          int        // structure, unit, trap, spell
 	Zone          int        // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain
 	Status        CardStatus
-	AutoSummon    int // 0: not staged; 1+: order in which to autosummon during reveal phase
+	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
+	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
 	AbilityTimers []AbilityTimer
 }

@@ -17,6 +17,8 @@ const (
 	Attack
 	Heal
 	Ready
+	Unready
+	StageIndex
 	AutoSummonIndex
 	Pause
 	Unpause
@@ -129,13 +131,29 @@ type ReadyLog struct {
 	TeamIndex     int
 }
 
+type UnreadyLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+}
+
+type StageLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
+	StageOrder    int // 0 when cleared, assigned order when set
+}
+
 type AutoSummonLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
-	AutoSummonIdx int // 0 when cleared, assigned order when set
+	AutoSummonIdx int // 0 when cleared, assigned priority when set
 }
 
 type ClearAbilityTimerLog struct {
