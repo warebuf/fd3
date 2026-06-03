@@ -19,13 +19,13 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 	case "fullPause":
 		match.handleInputPause(ie)
 	case "stage":
-		match.handleInputStage(ie)
+		match.handleStage(ie)
 	case "unstage":
-		match.handleInputUnstage(ie)
+		match.handleUnstage(ie)
 	case "autosummon":
-		match.handleInputAutoSummon(ie)
+		match.handleAutoSummon(ie)
 	case "unautosummon":
-		match.handleInputUnAutoSummon(ie)
+		match.handleUnAutoSummon(ie)
 	case "ready":
 		match.handleInputReady(ie)
 	case "unready":
@@ -34,20 +34,24 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) handleInputStage(ie *eventpq.InputEvent) {
+func (match *Match) handleStage(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhaseBoardSetup {
 		return
 	}
 
 	cardIndex := ie.CardIndex
-	teamIdx := ie.TeamIdx
+	teamIndex := ie.TeamIndex
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
 		return
 	}
 
+	if teamIndex >= 0 && teamIndex < len(match.GameState.Ready) && match.GameState.Ready[teamIndex] {
+		return
+	}
+
 	card := match.GameState.Cards[cardIndex]
-	if card.Zone != state.ZoneHand || card.Team != teamIdx {
+	if card.Zone != state.ZoneHand || card.Team != teamIndex {
 		return
 	}
 	if card.StageOrder != 0 {
@@ -56,7 +60,7 @@ func (match *Match) handleInputStage(ie *eventpq.InputEvent) {
 
 	nextStageOrder := 1
 	for _, c := range match.GameState.Cards {
-		if c.Team == teamIdx && c.StageOrder >= nextStageOrder {
+		if c.Team == teamIndex && c.StageOrder >= nextStageOrder {
 			nextStageOrder = c.StageOrder + 1
 		}
 	}
@@ -67,7 +71,7 @@ func (match *Match) handleInputStage(ie *eventpq.InputEvent) {
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.StageIndex,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 		CardIndex:     cardIndex,
 		StageOrder:    nextStageOrder,
 	})
@@ -76,20 +80,24 @@ func (match *Match) handleInputStage(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) handleInputUnstage(ie *eventpq.InputEvent) {
+func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhaseBoardSetup {
 		return
 	}
 
 	cardIndex := ie.CardIndex
-	teamIdx := ie.TeamIdx
+	teamIndex := ie.TeamIndex
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
 		return
 	}
 
+	if teamIndex >= 0 && teamIndex < len(match.GameState.Ready) && match.GameState.Ready[teamIndex] {
+		return
+	}
+
 	card := match.GameState.Cards[cardIndex]
-	if card.Zone != state.ZoneHand || card.Team != teamIdx {
+	if card.Zone != state.ZoneHand || card.Team != teamIndex {
 		return
 	}
 	if card.StageOrder == 0 {
@@ -99,7 +107,7 @@ func (match *Match) handleInputUnstage(ie *eventpq.InputEvent) {
 	cleared := match.GameState.Cards[cardIndex].StageOrder
 	match.GameState.Cards[cardIndex].StageOrder = 0
 	for i := range match.GameState.Cards {
-		if match.GameState.Cards[i].Team == teamIdx && match.GameState.Cards[i].StageOrder > cleared {
+		if match.GameState.Cards[i].Team == teamIndex && match.GameState.Cards[i].StageOrder > cleared {
 			match.GameState.Cards[i].StageOrder--
 		}
 	}
@@ -109,7 +117,7 @@ func (match *Match) handleInputUnstage(ie *eventpq.InputEvent) {
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.StageIndex,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 		CardIndex:     cardIndex,
 		StageOrder:    0,
 	})
@@ -118,20 +126,20 @@ func (match *Match) handleInputUnstage(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) handleInputAutoSummon(ie *eventpq.InputEvent) {
+func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhasePlay {
 		return
 	}
 
 	cardIndex := ie.CardIndex
-	teamIdx := ie.TeamIdx
+	teamIndex := ie.TeamIndex
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
 		return
 	}
 
 	card := match.GameState.Cards[cardIndex]
-	if card.Zone != state.ZoneHand || card.Team != teamIdx {
+	if card.Zone != state.ZoneHand || card.Team != teamIndex {
 		return
 	}
 	if card.AutoSummon != 0 {
@@ -140,7 +148,7 @@ func (match *Match) handleInputAutoSummon(ie *eventpq.InputEvent) {
 
 	// try to play immediately
 	oldLogsSize := len(match.EventLog)
-	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIdx, cardIndex, ie.WallTime.UnixMilli())
+	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 	if len(match.EventLog) > oldLogsSize {
 		if chainStarted {
 			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
@@ -155,7 +163,7 @@ func (match *Match) handleInputAutoSummon(ie *eventpq.InputEvent) {
 	// conditions not met — enqueue
 	nextAutoSummon := 1
 	for _, c := range match.GameState.Cards {
-		if c.Team == teamIdx && c.AutoSummon >= nextAutoSummon {
+		if c.Team == teamIndex && c.AutoSummon >= nextAutoSummon {
 			nextAutoSummon = c.AutoSummon + 1
 		}
 	}
@@ -165,7 +173,7 @@ func (match *Match) handleInputAutoSummon(ie *eventpq.InputEvent) {
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.AutoSummonIndex,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 		CardIndex:     cardIndex,
 		AutoSummonIdx: nextAutoSummon,
 	})
@@ -174,20 +182,20 @@ func (match *Match) handleInputAutoSummon(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) handleInputUnAutoSummon(ie *eventpq.InputEvent) {
+func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhasePlay {
 		return
 	}
 
 	cardIndex := ie.CardIndex
-	teamIdx := ie.TeamIdx
+	teamIndex := ie.TeamIndex
 	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
 		return
 	}
 
 	card := match.GameState.Cards[cardIndex]
-	if card.Zone != state.ZoneHand || card.Team != teamIdx {
+	if card.Zone != state.ZoneHand || card.Team != teamIndex {
 		return
 	}
 	if card.AutoSummon == 0 {
@@ -197,7 +205,7 @@ func (match *Match) handleInputUnAutoSummon(ie *eventpq.InputEvent) {
 	cleared := match.GameState.Cards[cardIndex].AutoSummon
 	match.GameState.Cards[cardIndex].AutoSummon = 0
 	for i := range match.GameState.Cards {
-		if match.GameState.Cards[i].Team == teamIdx && match.GameState.Cards[i].AutoSummon > cleared {
+		if match.GameState.Cards[i].Team == teamIndex && match.GameState.Cards[i].AutoSummon > cleared {
 			match.GameState.Cards[i].AutoSummon--
 		}
 	}
@@ -207,7 +215,7 @@ func (match *Match) handleInputUnAutoSummon(ie *eventpq.InputEvent) {
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.AutoSummonIndex,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 		CardIndex:     cardIndex,
 		AutoSummonIdx: 0,
 	})
@@ -226,23 +234,23 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		return
 	}
 
-	teamIdx := ie.TeamIdx
-	if teamIdx < 0 || teamIdx >= len(match.GameState.Ready) {
+	teamIndex := ie.TeamIndex
+	if teamIndex < 0 || teamIndex >= len(match.GameState.Ready) {
 		return
 	}
 
-	if match.GameState.Ready[teamIdx] {
+	if match.GameState.Ready[teamIndex] {
 		return
 	}
 
-	match.GameState.Ready[teamIdx] = true
+	match.GameState.Ready[teamIndex] = true
 
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.ReadyLog{
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.Ready,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
 	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
@@ -270,23 +278,23 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 		return
 	}
 
-	teamIdx := ie.TeamIdx
-	if teamIdx < 0 || teamIdx >= len(match.GameState.Ready) {
+	teamIndex := ie.TeamIndex
+	if teamIndex < 0 || teamIndex >= len(match.GameState.Ready) {
 		return
 	}
 
-	if !match.GameState.Ready[teamIdx] {
+	if !match.GameState.Ready[teamIndex] {
 		return
 	}
 
-	match.GameState.Ready[teamIdx] = false
+	match.GameState.Ready[teamIndex] = false
 
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.UnreadyLog{
 		WallTimestamp: ie.WallTime.UnixMilli(),
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.Unready,
-		TeamIndex:     teamIdx,
+		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
 	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
@@ -296,7 +304,7 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 	gs := match.GameState
-	teamIdx := ie.TeamIdx
+	teamIndex := ie.TeamIndex
 
 	executeTime := ie.WallTime.UnixMilli() + constants.LEAD
 
@@ -306,23 +314,23 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 	if gs.Phase == state.PhaseGameOver {
 		return
 	}
-	if teamIdx < 0 || teamIdx >= len(gs.TimeBank) {
+	if teamIndex < 0 || teamIndex >= len(gs.TimeBank) {
 		return
 	}
 
 	if gs.PausePhase == state.PausePhaseSimulating || gs.PausePhase == state.PausePhaseSimPause {
-		if gs.TimeBank[teamIdx] <= 0 {
+		if gs.TimeBank[teamIndex] <= 0 {
 			return
 		}
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(state.PausePhaseFullPause, executeTime, teamIdx)
+		match.TransitionPauseState(state.PausePhaseFullPause, executeTime, teamIndex)
 
-		pauseEnd := &eventpq.PauseEndEvent{WallTime: time.UnixMilli(executeTime + gs.TimeBank[teamIdx] - constants.LEAD)}
+		pauseEnd := &eventpq.PauseEndEvent{WallTime: time.UnixMilli(executeTime + gs.TimeBank[teamIndex] - constants.LEAD)}
 		match.PauseEndItem = match.EventPQueue.CreateAndPushEventItem(pauseEnd, "PauseEndEvent")
 
 		match.publish(executeTime, oldLogsSize)
 
-	} else if gs.PausePhase == state.PausePhaseFullPause && gs.TeamPaused == teamIdx {
+	} else if gs.PausePhase == state.PausePhaseFullPause && gs.TeamPaused == teamIndex {
 
 		if match.PauseEndItem != nil {
 			match.EventPQueue.Remove(match.PauseEndItem)
@@ -330,7 +338,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		}
 
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(-1, executeTime, teamIdx)
+		match.TransitionPauseState(-1, executeTime, teamIndex)
 		match.publish(executeTime, oldLogsSize)
 	}
 

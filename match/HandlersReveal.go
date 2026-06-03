@@ -30,7 +30,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		&match.AbilityIDCounter,
 		&match.EventLog,
 		&match.NextUpdateID,
-		next.TeamIdx,
+		next.TeamIndex,
 		next.CardIndex,
 		ev.WallTime.UnixMilli(),
 	)

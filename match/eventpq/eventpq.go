@@ -12,7 +12,7 @@ type Event interface {
 type InputEvent struct {
 	WallTime  time.Time
 	Type      string
-	TeamIdx   int
+	TeamIndex   int
 	CardIndex int
 }
 

@@ -38,7 +38,7 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 	ie := &eventpq.InputEvent{
 		WallTime:  timestamp,
 		Type:      eventType,
-		TeamIdx:   int(clientIdx),
+		TeamIndex:   int(clientIdx),
 		CardIndex: cardIndex,
 	}
 

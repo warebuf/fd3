@@ -42,7 +42,7 @@ type Match struct {
 }
 
 type RevealEntry struct {
-	TeamIdx   int
+	TeamIndex   int
 	CardIndex int
 }
 

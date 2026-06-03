@@ -98,29 +98,29 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 				stagedByTeam[match.GameState.Cards[i].Team] = append(stagedByTeam[match.GameState.Cards[i].Team], i)
 			}
 		}
-		for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
-			sort.Slice(stagedByTeam[teamIdx], func(a, b int) bool { // sort by ascending
-				return match.GameState.Cards[stagedByTeam[teamIdx][a]].StageOrder < match.GameState.Cards[stagedByTeam[teamIdx][b]].StageOrder
+		for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
+			sort.Slice(stagedByTeam[teamIndex], func(a, b int) bool { // sort by ascending
+				return match.GameState.Cards[stagedByTeam[teamIndex][a]].StageOrder < match.GameState.Cards[stagedByTeam[teamIndex][b]].StageOrder
 			})
 		}
 
 		// get the max size
 		maxStaged := 0
-		for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
-			if len(stagedByTeam[teamIdx]) > maxStaged {
-				maxStaged = len(stagedByTeam[teamIdx])
+		for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
+			if len(stagedByTeam[teamIndex]) > maxStaged {
+				maxStaged = len(stagedByTeam[teamIndex])
 			}
 		}
 
 		// interweave the reveals
 		match.RevealQueue = match.RevealQueue[:0] // set RevealQueue to empty
 		for i := 0; i < maxStaged; i++ {
-			for teamIdx := 0; teamIdx < len(stagedByTeam); teamIdx++ {
-				if i >= len(stagedByTeam[teamIdx]) {
+			for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
+				if i >= len(stagedByTeam[teamIndex]) {
 					continue
 				}
-				cardIndex := stagedByTeam[teamIdx][i]
-				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIdx: teamIdx, CardIndex: cardIndex})
+				cardIndex := stagedByTeam[teamIndex][i]
+				match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIndex: teamIndex, CardIndex: cardIndex})
 			}
 		}
 

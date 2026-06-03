@@ -183,7 +183,7 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Match ID does not exist", http.StatusUnauthorized)
 		return
 	}
-	teamIdx, exists := match.Whitelist[guestID]
+	teamIndex, exists := match.Whitelist[guestID]
 	if !exists {
 		http.Error(w, "guestID not whitelisted", http.StatusUnauthorized)
 		return
@@ -191,9 +191,9 @@ func wsPreflight(w http.ResponseWriter, r *http.Request) {
 
 	// write the response
 	resp := struct {
-		TeamIdx uint `json:"teamIdx"`
+		TeamIndex uint `json:"teamIndex"`
 	}{
-		TeamIdx: teamIdx,
+		TeamIndex: teamIndex,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
