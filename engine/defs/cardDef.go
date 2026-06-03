@@ -117,4 +117,22 @@ var CardDefs = []CardDef{
 		Cost:        80,
 		Taunt:       true,
 	},
+	7: {
+		Type:        state.CardTypeUnit,
+		Name:        "Tomoe",
+		Description: "Heal 1 HP to a random friendly unit every 15 seconds",
+		BaseHP:      2,
+		Cost:        80,
+		Recurring: []Recurring{
+			{
+				Milliseconds: 15000,
+				Effects: []state.Effect{
+					{
+						Type: state.EffectHeal,
+						B:    1, // amount
+					},
+				},
+			},
+		},
+	},
 }

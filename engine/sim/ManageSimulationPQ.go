@@ -143,6 +143,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectAttack:
 		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
 
+	case state.EffectHeal:
+		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}
@@ -157,6 +160,8 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 		templ.A = teamIndex
 		return templ
 	case state.EffectAttack:
+		return templ
+	case state.EffectHeal:
 		return templ
 	}
 	return templ

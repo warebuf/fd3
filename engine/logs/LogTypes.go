@@ -15,6 +15,7 @@ const (
 	GainMana
 	SpendMana
 	Attack
+	Heal
 	Ready
 	AutoSummonIndex
 	Pause
@@ -110,6 +111,15 @@ type AttackLog struct {
 	TargetTeamIndex int
 	TargetCardIndex int // -1 if targeting a structure
 	Damage          int
+}
+
+type HealLog struct {
+	WallTimestamp   int64
+	UpdateID        int
+	Type            LogType
+	HealerIndex     int
+	TargetCardIndex int
+	Amount          int
 }
 
 type ReadyLog struct {
