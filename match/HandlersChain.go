@@ -1,12 +1,14 @@
 package match
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// only handles chain size 1, down the line will change to handle multiple
 func (match *Match) handleChainResolution() {
 
 	if match.GameState.Phase == state.PhaseGameOver {
@@ -22,6 +24,11 @@ func (match *Match) handleChainResolution() {
 	// pop the top of the chain
 	chainTop := gs.Chain[len(gs.Chain)-1]
 	gs.Chain = gs.Chain[:len(gs.Chain)-1]
+
+	now := time.Now()
+	activeTime := now.UnixMilli() - gs.FullPauseOffset
+	fmt.Printf("[chain pop] %s cardID=%d name=%q type=%d effects=%d executeAt=%d activeTime=%d\n",
+		now.Format("15:04:05.000"), chainTop.CardID, gs.Cards[chainTop.CardID].Name, chainTop.Type, len(chainTop.Effects), chainTop.ExecuteAtActiveTime, activeTime)
 
 	wallTime := chainTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
