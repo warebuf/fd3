@@ -17,6 +17,8 @@ type CardDef struct {
 	Archetype int
 	Taunt     bool
 
+	RequiresChainTarget bool
+
 	OnPlay    []state.Effect
 	Recurring []Recurring
 
@@ -136,10 +138,11 @@ var CardDefs = []CardDef{
 		},
 	},
 	8: {
-		Type:        state.CardTypeSpell,
-		Name:        "Counterspell",
-		Description: "Counters a spell",
-		Cost:        100,
+		Type:                state.CardTypeSpell,
+		Name:                "Counterspell",
+		Description:         "Counters a spell",
+		Cost:                100,
+		RequiresChainTarget: true,
 		OnPlay: []state.Effect{
 			{Type: state.EffectCounter},
 		},

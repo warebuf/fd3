@@ -38,6 +38,10 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return false
 	}
 
+	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
+		return false
+	}
+
 	gs.Mana[teamIndex] -= cost
 	*logList = append(*logList, logs.SpendManaLog{
 		UpdateID:      *UpdateID,
