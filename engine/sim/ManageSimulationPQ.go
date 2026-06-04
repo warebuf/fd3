@@ -146,6 +146,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectHeal:
 		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
 
+	case state.EffectCounter:
+		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

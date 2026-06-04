@@ -25,6 +25,7 @@ const (
 	AddAbilityTimer
 	ClearAbilityTimer
 	GameOver
+	CounterChain
 )
 
 type PhaseLog struct {
@@ -198,4 +199,12 @@ type GameOverLog struct {
 	UpdateID      int
 	Type          LogType
 	Winner        int // winning team index, -2 = tie
+}
+
+type CounterChainLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	SourceCardID  int // the counterspell card
+	TargetCardID  int // the spell being countered
 }

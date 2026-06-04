@@ -135,4 +135,13 @@ var CardDefs = []CardDef{
 			},
 		},
 	},
+	8: {
+		Type:        state.CardTypeSpell,
+		Name:        "Counterspell",
+		Description: "Counters a spell",
+		Cost:        100,
+		OnPlay: []state.Effect{
+			{Type: state.EffectCounter},
+		},
+	},
 }
