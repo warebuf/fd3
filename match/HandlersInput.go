@@ -148,7 +148,11 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	// try to play immediately
 	oldLogsSize := len(match.EventLog)
-	chainStarted := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+	chainStarted, err := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+	if err {
+		return
+	}
+
 	if len(match.EventLog) > oldLogsSize {
 		if chainStarted {
 			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)

@@ -10,11 +10,11 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// ScheduleDeclareCard returns true if a chain was started (caller should enter sim pause).
-func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
+// first bool returns true if a chain was started (caller should enter sim pause), second bool returns true if there are errors
+func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) (bool, bool) {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
-		return false
+		return false, true
 	}
 
 	handIndex := -1
@@ -24,22 +24,25 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		}
 	}
 	if handIndex < 0 {
-		return false
+		return false, true
 	}
 
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
-		return false
+		return false, true
 	}
 
 	if gs.PausePhase == state.PausePhaseFullPause {
-		return false
-	} else if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay { // cards cannot be declared in Sim Pause unless they are counters
-		return false
+		return false, true
+	}
+
+	// cards cannot be declared in Sim Pause unless they are counters
+	if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
+		return false, true
 	}
 
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
-		return false
+		return false, true
 	}
 
 	gs.Mana[teamIndex] -= cost
@@ -73,10 +76,11 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		gs.Cards[cardIndex].Zone = state.ZoneChain
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 		scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
-		return true
+		return true, false
 	}
 
-	return false
+	return false, false
+
 }
 
 func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
