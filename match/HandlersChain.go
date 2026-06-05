@@ -25,13 +25,13 @@ func (match *Match) handleChainResolution() {
 	chainTop := gs.Chain[len(gs.Chain)-1]
 	gs.Chain = gs.Chain[:len(gs.Chain)-1]
 
-	now := time.Now()
-	activeTime := now.UnixMilli() - gs.FullPauseOffset
-	fmt.Printf("[chain pop] %s cardID=%d name=%q type=%d effects=%d executeAt=%d activeTime=%d\n",
-		now.Format("15:04:05.000"), chainTop.CardID, gs.Cards[chainTop.CardID].Name, chainTop.Type, len(chainTop.Effects), chainTop.ExecuteAtActiveTime, activeTime)
-
 	wallTime := chainTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
+
+	now := time.Now()
+	fmt.Printf(
+		"[chain pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n",
+		now.Format("15:04:05.000"), chainTop.CardID, gs.Cards[chainTop.CardID].Name, chainTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
 
 	// apply effects
 	for _, eff := range chainTop.Effects {
@@ -46,6 +46,7 @@ func (match *Match) handleChainResolution() {
 	}
 
 	// log chain item removal
+	fmt.Println("removeChainLog", match.NextUpdateID, wallTime, chainTop.CardID)
 	match.EventLog = append(match.EventLog, logs.RemoveChainLog{
 		UpdateID:      match.NextUpdateID,
 		WallTimestamp: wallTime,
