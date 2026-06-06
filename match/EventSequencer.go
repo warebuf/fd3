@@ -55,9 +55,9 @@ func (match *Match) handleDuePQEvents() {
 		case "Effect":
 			match.EarliestSimItem = nil
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
-		case "ChainResolution":
-			match.ChainItem = nil
-			match.handleChainResolution()
+		case "StackResolution":
+			match.StackItem = nil
+			match.handleStackResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
@@ -202,28 +202,28 @@ func scheduleEarliestSimItem(match *Match) {
 
 }
 
-func scheduleChainResolution(match *Match) {
+func scheduleStackResolution(match *Match) {
 
-	// if no chain items, clean the pointer
-	if len(match.GameState.Chain) == 0 {
+	// if no stack items, clean the pointer
+	if len(match.GameState.Stack) == 0 {
 		return
 	}
 
-	// get last chain item
-	latestChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
+	// get the top stack item
+	topStackItem := match.GameState.Stack[len(match.GameState.Stack)-1]
 
-	// pop time is denominated in chain time
-	earliest := time.UnixMilli(latestChainItem.PopAtActiveTime + match.GameState.FullPauseOffset)
+	// pop time is denominated in active time
+	earliest := time.UnixMilli(topStackItem.PopAtActiveTime + match.GameState.FullPauseOffset)
 
-	// if the chain item exists and is in the EventPQ, update and reheapify
-	if match.ChainItem != nil {
-		effEv, _ := match.ChainItem.Event.(*eventpq.ChainResolutionEvent)
+	// if the stack item exists and is in the EventPQ, update and reheapify
+	if match.StackItem != nil {
+		effEv, _ := match.StackItem.Event.(*eventpq.StackResolutionEvent)
 		effEv.WallTime = earliest
-		match.EventPQueue.Fix(match.ChainItem)
+		match.EventPQueue.Fix(match.StackItem)
 		return
 	}
 
 	// otherwise add it to EventPQ
-	ev := &eventpq.ChainResolutionEvent{WallTime: earliest}
-	match.ChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
+	ev := &eventpq.StackResolutionEvent{WallTime: earliest}
+	match.StackItem = match.EventPQueue.CreateAndPushEventItem(ev, "StackResolution")
 }

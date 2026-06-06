@@ -31,11 +31,11 @@ type EffectEvent struct {
 
 func (e *EffectEvent) GetWallTime() time.Time { return e.WallTime }
 
-type ChainResolutionEvent struct {
+type StackResolutionEvent struct {
 	WallTime time.Time
 }
 
-func (e *ChainResolutionEvent) GetWallTime() time.Time { return e.WallTime }
+func (e *StackResolutionEvent) GetWallTime() time.Time { return e.WallTime }
 
 type PauseEndEvent struct {
 	WallTime time.Time

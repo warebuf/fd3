@@ -36,7 +36,7 @@ type GameState struct {
 	Field [][]int
 	Grave [][]int
 
-	Chain []ChainItem // interactive chain: spells/traps/abilities, LIFO stack, sim paused while non-empty
+	Stack []StackItem // interactive stack: spells/traps/abilities, LIFO, sim paused while non-empty
 
 	// other states
 	Mana       []int       // per team
@@ -113,10 +113,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
 
-	// Chain (interactive stack)
-	newState.Chain = make([]ChainItem, len(prevState.Chain))
-	for i, item := range prevState.Chain {
-		newItem := ChainItem{
+	// Stack
+	newState.Stack = make([]StackItem, len(prevState.Stack))
+	for i, item := range prevState.Stack {
+		newItem := StackItem{
 			Type:                item.Type,
 			CardID:              item.CardID,
 			StartAtActiveTime:   item.StartAtActiveTime,
@@ -125,7 +125,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			Effects:             make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)
-		newState.Chain[i] = newItem
+		newState.Stack[i] = newItem
 	}
 
 	return newState

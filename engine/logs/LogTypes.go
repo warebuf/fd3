@@ -9,8 +9,8 @@ const (
 	Draw
 	DeclareCard
 	SummonResolution
-	AddChain
-	RemoveChain
+	AddStack
+	RemoveStack
 	DestroyCard
 	GainMana
 	SpendMana
@@ -25,7 +25,8 @@ const (
 	AddAbilityTimer
 	ClearAbilityTimer
 	GameOver
-	CounterChain
+	CounterStack
+	RefreshStack
 )
 
 type PhaseLog struct {
@@ -59,23 +60,33 @@ type SummonResolutionLog struct {
 	CardIndex     int
 }
 
-type RemoveChainLog struct {
+type RemoveStackLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
 	CardID        int
 }
 
-type AddChainLog struct {
+type AddStackLog struct {
 	WallTimestamp       int64
 	UpdateID            int
 	Type                LogType
-	ChainType           int
+	StackType           int
 	StartAtActiveTime   int64
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
 	CardID              int
 	Effects             []state.Effect
+}
+
+type RefreshStackLog struct {
+	WallTimestamp       int64
+	UpdateID            int
+	Type                LogType
+	CardID              int
+	StartAtActiveTime   int64
+	PopAtActiveTime     int64
+	ExecuteAtActiveTime int64
 }
 
 type DestroyCardLog struct {
@@ -201,7 +212,7 @@ type GameOverLog struct {
 	Winner        int // winning team index, -2 = tie
 }
 
-type CounterChainLog struct {
+type CounterStackLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType

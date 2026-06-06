@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func (match *Match) handleChainResolution() {
+func (match *Match) handleStackResolution() {
 
 	if match.GameState.Phase == state.PhaseGameOver {
 		return
@@ -17,52 +18,68 @@ func (match *Match) handleChainResolution() {
 
 	gs := match.GameState
 
-	if len(gs.Chain) == 0 {
+	if len(gs.Stack) == 0 {
 		return
 	}
 
-	// pop the top of the chain
-	chainTop := gs.Chain[len(gs.Chain)-1]
-	gs.Chain = gs.Chain[:len(gs.Chain)-1]
+	// pop the top of the stack
+	stackTop := gs.Stack[len(gs.Stack)-1]
+	gs.Stack = gs.Stack[:len(gs.Stack)-1]
 
-	wallTime := chainTop.ExecuteAtActiveTime + gs.FullPauseOffset
+	wallTime := stackTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
 
 	now := time.Now()
 	fmt.Printf(
-		"[chain pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n",
-		now.Format("15:04:05.000"), chainTop.CardID, gs.Cards[chainTop.CardID].Name, chainTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
+		"[stack pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n",
+		now.Format("15:04:05.000"), stackTop.CardID, gs.Cards[stackTop.CardID].Name, stackTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
 
 	// apply effects
-	for _, eff := range chainTop.Effects {
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardID, wallTime)
+	for _, eff := range stackTop.Effects {
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardID, wallTime)
 	}
 
 	// move spell to graveyard
-	card := &gs.Cards[chainTop.CardID]
-	if card.Zone == state.ZoneChain {
+	card := &gs.Cards[stackTop.CardID]
+	if card.Zone == state.ZoneStack {
 		card.Zone = state.ZoneGraveyard
-		gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardID)
+		gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
 	}
 
-	// log chain item removal
-	fmt.Println("removeChainLog", match.NextUpdateID, wallTime, chainTop.CardID)
-	match.EventLog = append(match.EventLog, logs.RemoveChainLog{
+	match.EventLog = append(match.EventLog, logs.RemoveStackLog{
 		UpdateID:      match.NextUpdateID,
 		WallTimestamp: wallTime,
-		Type:          logs.RemoveChain,
-		CardID:        chainTop.CardID,
+		Type:          logs.RemoveStack,
+		CardID:        stackTop.CardID,
 	})
 	match.NextUpdateID++
 
-	if len(gs.Chain) == 0 {
+	if len(gs.Stack) == 0 {
 		if gs.Phase == state.PhaseReveal {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
 			match.TransitionPauseState(-1, wallTime, -1)
 		}
 	} else {
-		scheduleChainResolution(match)
+		// MTG priority: after each resolution, the new top gets a fresh reaction window.
+		newTopIdx := len(gs.Stack) - 1
+		freshStart := wallTime - gs.FullPauseOffset
+		gs.Stack[newTopIdx].StartAtActiveTime = freshStart
+		gs.Stack[newTopIdx].PopAtActiveTime = freshStart + constants.REACTION_WINDOW - constants.LEAD
+		gs.Stack[newTopIdx].ExecuteAtActiveTime = freshStart + constants.REACTION_WINDOW
+
+		match.EventLog = append(match.EventLog, logs.RefreshStackLog{
+			UpdateID:            match.NextUpdateID,
+			WallTimestamp:       wallTime,
+			Type:                logs.RefreshStack,
+			CardID:              gs.Stack[newTopIdx].CardID,
+			StartAtActiveTime:   gs.Stack[newTopIdx].StartAtActiveTime,
+			PopAtActiveTime:     gs.Stack[newTopIdx].PopAtActiveTime,
+			ExecuteAtActiveTime: gs.Stack[newTopIdx].ExecuteAtActiveTime,
+		})
+		match.NextUpdateID++
+
+		scheduleStackResolution(match)
 	}
 
 	match.publish(wallTime, oldLogsSize)

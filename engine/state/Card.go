@@ -17,7 +17,7 @@ const (
 	ZoneHand
 	ZoneField
 	ZoneGraveyard
-	ZoneChain
+	ZoneStack
 )
 
 const (
@@ -56,7 +56,7 @@ type Card struct {
 	// state info
 	Team          int
 	Type          int        // structure, unit, trap, spell
-	Zone          int        // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain
+	Zone          int        // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack
 	Status        CardStatus
 	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
 	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue

@@ -156,7 +156,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	if len(match.EventLog) > oldLogsSize {
 		if chainStarted {
 			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
-			scheduleChainResolution(match)
+			scheduleStackResolution(match)
 		} else {
 			scheduleEarliestSimItem(match)
 		}

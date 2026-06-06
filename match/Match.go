@@ -31,7 +31,7 @@ type Match struct {
 	EventPQueue       eventpq.EventPQ
 	EventPQTimer      *time.Timer
 	EarliestSimItem   *eventpq.EventItem
-	ChainItem         *eventpq.EventItem
+	StackItem         *eventpq.EventItem
 	PauseEndItem      *eventpq.EventItem
 	PhaseItem         *eventpq.EventItem
 	RevealItem        *eventpq.EventItem

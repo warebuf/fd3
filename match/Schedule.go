@@ -10,7 +10,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// first bool returns true if a chain was started (caller should enter sim pause), second bool returns true if there are errors
+// first bool returns true if a stack item was added (caller should enter sim pause), second bool returns true if there are errors
 func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) (bool, bool) {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
@@ -41,7 +41,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return false, true
 	}
 
-	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
+	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
 		return false, true
 	}
 
@@ -73,9 +73,9 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 		scheduleSummon(gs, pq, abilityIDCounter, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
-		gs.Cards[cardIndex].Zone = state.ZoneChain
+		gs.Cards[cardIndex].Zone = state.ZoneStack
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-		scheduleChain(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
+		scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 		return true, false
 	}
 
@@ -152,7 +152,7 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 	*UpdateID++
 }
 
-func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
+func scheduleStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
 
 	abilities := defs.CardDefs[card.DefNo].OnPlay
@@ -162,26 +162,26 @@ func scheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 	}
 
 	startAtActiveTime := declarationTime - gs.FullPauseOffset
-	chainItem := &state.ChainItem{
+	stackItem := &state.StackItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardID:              cardIndex,
-		Type:                state.ChainItemSpell,
+		Type:                state.StackItemSpell,
 		Effects:             effs,
 	}
-	gs.Chain = append(gs.Chain, *chainItem)
+	gs.Stack = append(gs.Stack, *stackItem)
 
-	*logList = append(*logList, logs.AddChainLog{
+	*logList = append(*logList, logs.AddStackLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       declarationTime,
-		Type:                logs.AddChain,
-		ChainType:           chainItem.Type,
-		StartAtActiveTime:   chainItem.StartAtActiveTime,
-		PopAtActiveTime:     chainItem.PopAtActiveTime,
-		ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
-		CardID:              chainItem.CardID,
-		Effects:             chainItem.Effects,
+		Type:                logs.AddStack,
+		StackType:           stackItem.Type,
+		StartAtActiveTime:   stackItem.StartAtActiveTime,
+		PopAtActiveTime:     stackItem.PopAtActiveTime,
+		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
+		CardID:              stackItem.CardID,
+		Effects:             stackItem.Effects,
 	})
 	*UpdateID += 1
 }
