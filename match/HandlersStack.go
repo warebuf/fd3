@@ -29,10 +29,7 @@ func (match *Match) handleStackResolution() {
 	wallTime := stackTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
 
-	now := time.Now()
-	fmt.Printf(
-		"[stack pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n",
-		now.Format("15:04:05.000"), stackTop.CardID, gs.Cards[stackTop.CardID].Name, stackTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
+	fmt.Printf("[stack pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n", time.Now().Format("15:04:05.000"), stackTop.CardID, gs.Cards[stackTop.CardID].Name, stackTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
 
 	// apply effects
 	for _, eff := range stackTop.Effects {
