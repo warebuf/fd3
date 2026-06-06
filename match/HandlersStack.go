@@ -1,9 +1,6 @@
 package match
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
@@ -28,8 +25,6 @@ func (match *Match) handleStackResolution() {
 
 	wallTime := stackTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
-
-	fmt.Printf("[stack pop] %s cardID=%d name=%q executeAt=%d wallTime=%d\n", time.Now().Format("15:04:05.000"), stackTop.CardID, gs.Cards[stackTop.CardID].Name, stackTop.ExecuteAtActiveTime%1000000, wallTime%1000000)
 
 	// apply effects
 	for _, eff := range stackTop.Effects {
