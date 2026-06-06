@@ -51,7 +51,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// schedule draw cards
 		scheduleEarliestSimItem(match)
 
-	case state.PhaseBoardSetup: // entering board set up phase, enter pause phase 1
+	case state.PhaseBoardSetup: // entering board set up phase, enter pause phase 1 (sim pause)
 
 		oldLogsSize := len(match.EventLog)
 
@@ -76,7 +76,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
-	case state.PhaseReveal: // entering reveal, remain in pause phase 1
+	case state.PhaseReveal: // entering reveal, remain in pause phase 1 (sim pause)
 
 		oldLogsSize := len(match.EventLog)
 

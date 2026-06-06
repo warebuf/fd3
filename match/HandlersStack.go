@@ -57,8 +57,7 @@ func (match *Match) handleStackResolution() {
 		} else {
 			match.TransitionPauseState(-1, wallTime, -1)
 		}
-	} else {
-		// MTG priority: after each resolution, the new top gets a fresh reaction window.
+	} else { // the new top gets a refreshed reaction window
 		newTopIdx := len(gs.Stack) - 1
 		freshStart := wallTime - gs.FullPauseOffset
 		gs.Stack[newTopIdx].StartAtActiveTime = freshStart

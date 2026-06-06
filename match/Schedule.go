@@ -10,8 +10,9 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// first bool returns true if a stack item was added (caller should enter sim pause), second bool returns true if there are errors
-func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) (bool, bool) {
+// first bool returns true if a stack item was added (if so, caller should enter sim pause, otherwise we schedule the card for autosummon),
+// second bool returns true if there are errors
+func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64, chainOnly bool) (bool, bool) {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false, true
@@ -42,6 +43,10 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 	}
 
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+		return false, true
+	}
+
+	if chainOnly && gs.Cards[cardIndex].Type != state.CardTypeSpell {
 		return false, true
 	}
 

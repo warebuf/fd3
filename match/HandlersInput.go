@@ -128,17 +128,19 @@ func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 
 func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
-	if match.GameState.Phase != state.PhasePlay {
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay && gs.Phase != state.PhaseReveal {
 		return
 	}
 
 	cardIndex := ie.CardIndex
 	teamIndex := ie.TeamIndex
-	if cardIndex < 0 || cardIndex >= len(match.GameState.Cards) {
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
 		return
 	}
 
-	card := match.GameState.Cards[cardIndex]
+	card := gs.Cards[cardIndex]
 	if card.Zone != state.ZoneHand || card.Team != teamIndex {
 		return
 	}
@@ -146,9 +148,28 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if gs.Phase == state.PhaseReveal {
+		oldStackSize := len(gs.Stack)
+		oldLogsSize := len(match.EventLog)
+		_, err := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), true)
+		if err {
+			return
+		}
+		if oldStackSize == 0 {
+			if match.RevealItem != nil {
+				match.EventPQueue.Remove(match.RevealItem)
+				match.RevealItem = nil
+			}
+			match.PendingRevealTime = 0
+		}
+		scheduleStackResolution(match)
+		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+		return
+	}
+
 	// try to play immediately
 	oldLogsSize := len(match.EventLog)
-	chainStarted, err := ScheduleDeclareCard(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+	chainStarted, err := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), false)
 	if err {
 		return
 	}
@@ -166,12 +187,12 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	// conditions not met — enqueue
 	nextAutoSummon := 1
-	for _, c := range match.GameState.Cards {
+	for _, c := range gs.Cards {
 		if c.Team == teamIndex && c.AutoSummon >= nextAutoSummon {
 			nextAutoSummon = c.AutoSummon + 1
 		}
 	}
-	match.GameState.Cards[cardIndex].AutoSummon = nextAutoSummon
+	gs.Cards[cardIndex].AutoSummon = nextAutoSummon
 
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 		WallTimestamp: ie.WallTime.UnixMilli(),
