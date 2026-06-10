@@ -169,7 +169,17 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	// try to play immediately
 	oldLogsSize := len(match.EventLog)
-	chainStarted, err := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), false)
+	chainStarted, err := ScheduleDeclareCard(
+		gs,
+		&match.SimulationPQ,
+		&match.AbilityIDCounter,
+		&match.EventLog,
+		&match.NextUpdateID,
+		teamIndex,
+		cardIndex,
+		ie.WallTime.UnixMilli(),
+		gs.PausePhase == state.PausePhaseSimPause,
+	)
 	if err {
 		return
 	}

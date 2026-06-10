@@ -49,9 +49,6 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return false, true
 	}
 
-	// TODO: should not be able to play a unit during a chain
-	//
-
 	//
 	if chainOnly && (gs.Cards[cardIndex].Type != state.CardTypeSpell || len(gs.Stack) == 0) {
 		return false, true

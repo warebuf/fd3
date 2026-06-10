@@ -24,7 +24,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	chainStarted, err := ScheduleDeclareCard(
+	chainStarted, _ := ScheduleDeclareCard(
 		match.GameState,
 		&match.SimulationPQ,
 		&match.AbilityIDCounter,
@@ -35,9 +35,6 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		ev.WallTime.UnixMilli(),
 		false,
 	)
-	if err {
-		return
-	}
 
 	if chainStarted {
 		match.PendingRevealTime = 0    // clear previous reveal
