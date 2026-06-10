@@ -217,6 +217,82 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 }
 
+func (match *Match) processAutoSummonQueue(wallTime int64) {
+
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay {
+		return
+	}
+
+	for teamIndex := 0; teamIndex < len(gs.Hand); teamIndex++ {
+		for {
+			if gs.PausePhase != state.PausePhaseSimulating {
+				return
+			}
+
+			// find the highest priority (lowest AutoSummon value) queued card in hand for this team
+			bestCard := -1
+			bestPriority := 0
+			for i, card := range gs.Cards {
+				if card.Team == teamIndex && card.Zone == state.ZoneHand && card.AutoSummon > 0 {
+					if bestCard == -1 || card.AutoSummon < bestPriority {
+						bestCard = i
+						bestPriority = card.AutoSummon
+					}
+				}
+			}
+			if bestCard == -1 {
+				break
+			}
+
+			result := ScheduleDeclareCard(
+				gs,
+				&match.SimulationPQ,
+				&match.AbilityIDCounter,
+				&match.EventLog,
+				&match.NextUpdateID,
+				teamIndex,
+				bestCard,
+				wallTime-constants.LEAD,
+				false,
+			)
+
+			if result == DeclareConditionsNotMet {
+				break
+			}
+
+			// clear from autosummon queue (played successfully or stale bad-input entry)
+			cleared := gs.Cards[bestCard].AutoSummon
+			gs.Cards[bestCard].AutoSummon = 0
+			for i := range gs.Cards {
+				if gs.Cards[i].Team == teamIndex && gs.Cards[i].AutoSummon > cleared {
+					gs.Cards[i].AutoSummon--
+				}
+			}
+			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+				WallTimestamp: wallTime,
+				UpdateID:      match.NextUpdateID,
+				Type:          logs.AutoSummonIndex,
+				TeamIndex:     teamIndex,
+				CardIndex:     bestCard,
+				AutoSummonIdx: 0,
+			})
+			match.NextUpdateID++
+
+			if result == DeclareChainStarted {
+				match.TransitionPauseState(1, wallTime, -1)
+				scheduleStackResolution(match)
+				return
+			}
+			// DeclareSuccess or DeclareErrBadInput: continue to next card in queue
+		}
+	}
+
+	scheduleEarliestSimItem(match)
+
+}
+
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhasePlay {
@@ -374,6 +450,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 		oldLogsSize := len(match.EventLog)
 		match.TransitionPauseState(-1, executeTime, teamIndex)
+		match.processAutoSummonQueue(executeTime)
 		match.publish(executeTime, oldLogsSize)
 	}
 

@@ -112,14 +112,15 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 		return
 	}
 	oldLogsSize := len(match.EventLog)
+	wallTime := effEvent.WallTime.UnixMilli() + constants.LEAD
 	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
-		wallTime := effEvent.WallTime.UnixMilli() + constants.LEAD
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
+		match.processAutoSummonQueue(wallTime)
 		scheduleEarliestSimItem(match)
 	}
-	match.publish(effEvent.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+	match.publish(wallTime, oldLogsSize)
 }
 
 func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
@@ -130,6 +131,7 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		oldLogsSize := len(match.EventLog)
 		match.TransitionPauseState(-1, wallTime, -1)
+		match.processAutoSummonQueue(wallTime)
 		match.publish(wallTime, oldLogsSize)
 	}
 }
