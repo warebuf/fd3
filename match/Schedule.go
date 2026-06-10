@@ -14,10 +14,10 @@ import (
 // second bool returns true if there are errors
 func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64, chainOnly bool) (bool, bool) {
 
+	// make sure card is in hand
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false, true
 	}
-
 	handIndex := -1
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
 		if cardIndex == gs.Hand[teamIndex][i] {
@@ -28,28 +28,31 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return false, true
 	}
 
+	// make sure caster has mana
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
 		return false, true
 	}
 
+	// not cards playable during full pause
 	if gs.PausePhase == state.PausePhaseFullPause {
 		return false, true
 	}
 
+	// can only declare a card during a reveal or play phase, not stage phase
 	if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
 		return false, true
 	}
 
+	// deny cards that require a stack target
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
 		return false, true
 	}
 
-	// cards cannot be declared in sim pause unless they are counters
-	if gs.PausePhase == state.PausePhaseSimPause && gs.Cards[cardIndex].Type == state.CardTypeUnit {
-		return false, true
-	}
+	// TODO: should not be able to play a unit during a chain
+	//
 
+	//
 	if chainOnly && (gs.Cards[cardIndex].Type != state.CardTypeSpell || len(gs.Stack) == 0) {
 		return false, true
 	}
