@@ -10,13 +10,18 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// first bool returns true if a stack item was added (if so, caller should enter sim pause, otherwise we schedule the card for autosummon),
-// second bool returns true if there are errors
-func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64, chainOnly bool) (bool, bool) {
+const (
+	DeclareErrBadInput      = 0
+	DeclareSuccess          = 1
+	DeclareChainStarted     = 2
+	DeclareConditionsNotMet = 3
+)
+
+func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64, chainOnly bool) int {
 
 	// make sure card is in hand
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
-		return false, true
+		return DeclareErrBadInput
 	}
 	handIndex := -1
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
@@ -25,33 +30,33 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		}
 	}
 	if handIndex < 0 {
-		return false, true
+		return DeclareErrBadInput
 	}
 
 	// make sure caster has mana
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
-		return false, true
+		return DeclareConditionsNotMet
 	}
 
 	// not cards playable during full pause
 	if gs.PausePhase == state.PausePhaseFullPause {
-		return false, true
+		return DeclareErrBadInput
 	}
 
 	// can only declare a card during a reveal or play phase, not stage phase
 	if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
-		return false, true
+		return DeclareErrBadInput
 	}
 
 	// deny cards that require a stack target
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
-		return false, true
+		return DeclareErrBadInput
 	}
 
-	//
+	// if we are in a chain, deny cards that aren't chain eligible
 	if chainOnly && (gs.Cards[cardIndex].Type != state.CardTypeSpell || len(gs.Stack) == 0) {
-		return false, true
+		return DeclareErrBadInput
 	}
 
 	gs.Mana[teamIndex] -= cost
@@ -81,14 +86,15 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 		scheduleSummon(gs, pq, abilityIDCounter, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
+		return DeclareSuccess
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
 		gs.Cards[cardIndex].Zone = state.ZoneStack
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 		scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
-		return true, false
+		return DeclareChainStarted
 	}
 
-	return false, false
+	return DeclareSuccess
 
 }
 

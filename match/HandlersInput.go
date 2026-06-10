@@ -151,8 +151,8 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	if gs.Phase == state.PhaseReveal {
 		oldStackSize := len(gs.Stack)
 		oldLogsSize := len(match.EventLog)
-		_, err := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), true)
-		if err {
+		result := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), true)
+		if result != DeclareChainStarted {
 			return
 		}
 		if oldStackSize == 0 {
@@ -169,7 +169,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	// try to play immediately
 	oldLogsSize := len(match.EventLog)
-	chainStarted, err := ScheduleDeclareCard(
+	result := ScheduleDeclareCard(
 		gs,
 		&match.SimulationPQ,
 		&match.AbilityIDCounter,
@@ -180,40 +180,40 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		ie.WallTime.UnixMilli(),
 		gs.PausePhase == state.PausePhaseSimPause,
 	)
-	if err {
-		return
-	}
 
-	if len(match.EventLog) > oldLogsSize {
-		if chainStarted {
-			match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
-			scheduleStackResolution(match)
-		} else {
-			scheduleEarliestSimItem(match)
-		}
+	switch result {
+	case DeclareErrBadInput:
+		return
+	case DeclareSuccess:
+		scheduleEarliestSimItem(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		return
-	}
-
-	// conditions not met — enqueue
-	nextAutoSummon := 1
-	for _, c := range gs.Cards {
-		if c.Team == teamIndex && c.AutoSummon >= nextAutoSummon {
-			nextAutoSummon = c.AutoSummon + 1
+	case DeclareChainStarted:
+		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
+		scheduleStackResolution(match)
+		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+		return
+	case DeclareConditionsNotMet:
+		nextAutoSummon := 1
+		for _, c := range gs.Cards {
+			if c.Team == teamIndex && c.AutoSummon >= nextAutoSummon {
+				nextAutoSummon = c.AutoSummon + 1
+			}
 		}
-	}
-	gs.Cards[cardIndex].AutoSummon = nextAutoSummon
+		gs.Cards[cardIndex].AutoSummon = nextAutoSummon
 
-	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
-		UpdateID:      match.NextUpdateID,
-		Type:          logs.AutoSummonIndex,
-		TeamIndex:     teamIndex,
-		CardIndex:     cardIndex,
-		AutoSummonIdx: nextAutoSummon,
-	})
-	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+		match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+			WallTimestamp: ie.WallTime.UnixMilli(),
+			UpdateID:      match.NextUpdateID,
+			Type:          logs.AutoSummonIndex,
+			TeamIndex:     teamIndex,
+			CardIndex:     cardIndex,
+			AutoSummonIdx: nextAutoSummon,
+		})
+		match.NextUpdateID++
+		match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+		return
+	}
 
 }
 

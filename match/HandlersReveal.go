@@ -24,7 +24,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	chainStarted, _ := ScheduleDeclareCard(
+	result := ScheduleDeclareCard(
 		match.GameState,
 		&match.SimulationPQ,
 		&match.AbilityIDCounter,
@@ -36,7 +36,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		false,
 	)
 
-	if chainStarted {
+	if result == DeclareChainStarted {
 		match.PendingRevealTime = 0    // clear previous reveal
 		scheduleStackResolution(match) // no need to sim pause, already sim paused
 	} else {
