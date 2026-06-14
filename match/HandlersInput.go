@@ -225,11 +225,12 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 		return
 	}
 
+	if gs.PausePhase != state.PausePhaseSimulating {
+		return
+	}
+
 	for teamIndex := 0; teamIndex < len(gs.Hand); teamIndex++ {
 		for {
-			if gs.PausePhase != state.PausePhaseSimulating {
-				return
-			}
 
 			// find the highest priority (lowest AutoSummon value) queued card in hand for this team
 			bestCard := -1
@@ -258,7 +259,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 				false,
 			)
 
-			if result == DeclareConditionsNotMet {
+			if result == DeclareConditionsNotMet || result == DeclareErrBadInput {
 				break
 			}
 
@@ -285,7 +286,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 				scheduleStackResolution(match)
 				return
 			}
-			// DeclareSuccess or DeclareErrBadInput: continue to next card in queue
+
 		}
 	}
 
