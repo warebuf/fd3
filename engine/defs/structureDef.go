@@ -14,7 +14,7 @@ var StructureDefs = []StructureDef{
 		Name:              "Land",
 		Description:       "",
 		BaseHP:            8,
-		ManaRegen:         5,
-		ManaRegenInterval: 5000,
+		ManaRegen:         1,
+		ManaRegenInterval: 1000,
 	},
 }
