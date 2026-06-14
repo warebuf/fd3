@@ -27,6 +27,9 @@ const (
 	GameOver
 	CounterStack
 	RefreshStack
+	PlayContinuous
+	RemoveContinuous
+	RemoveCharge
 )
 
 type PhaseLog struct {
@@ -219,4 +222,30 @@ type CounterStackLog struct {
 	Type          LogType
 	SourceCardID  int // the counterspell card
 	TargetCardID  int // the spell being countered
+}
+
+type PlayContinuousLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardID        int
+	Charges       int
+}
+
+type RemoveContinuousLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardID        int
+}
+
+type RemoveChargeLog struct {
+	WallTimestamp    int64
+	UpdateID         int
+	Type             LogType
+	TeamIndex        int
+	CardID           int
+	ChargesRemaining int
 }

@@ -2,6 +2,7 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
@@ -31,11 +32,56 @@ func (match *Match) handleStackResolution() {
 		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardID, wallTime)
 	}
 
-	// move spell to graveyard
 	card := &gs.Cards[stackTop.CardID]
 	if card.Zone == state.ZoneStack {
-		card.Zone = state.ZoneGraveyard
-		gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
+		if card.Type == state.CardTypeContinuous {
+			card.Zone = state.ZoneContinuous
+			card.Status = state.CardStatusContinuousActive
+			card.Charges = defs.CardDefs[card.DefNo].Charges
+			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], stackTop.CardID)
+			match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.PlayContinuous,
+				TeamIndex:     card.Team,
+				CardID:        stackTop.CardID,
+				Charges:       card.Charges,
+			})
+			match.NextUpdateID++
+		} else {
+			card.Zone = state.ZoneGraveyard
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
+		}
+	} else if stackTop.Type == state.StackItemContinuousActivation {
+		card.Charges--
+		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
+			UpdateID:         match.NextUpdateID,
+			WallTimestamp:    wallTime,
+			Type:             logs.RemoveCharge,
+			TeamIndex:        card.Team,
+			CardID:           stackTop.CardID,
+			ChargesRemaining: card.Charges,
+		})
+		match.NextUpdateID++
+		if card.Charges <= 0 {
+			for i, id := range gs.Continuous[card.Team] {
+				if id == stackTop.CardID {
+					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
+					break
+				}
+			}
+			card.Zone = state.ZoneGraveyard
+			card.Status = state.CardStatusDefault
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
+			match.EventLog = append(match.EventLog, logs.RemoveContinuousLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.RemoveContinuous,
+				TeamIndex:     card.Team,
+				CardID:        stackTop.CardID,
+			})
+			match.NextUpdateID++
+		}
 	}
 
 	match.EventLog = append(match.EventLog, logs.RemoveStackLog{

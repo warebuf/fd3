@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -30,6 +32,8 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleInputReady(ie)
 	case "unready":
 		match.handleInputUnready(ie)
+	case "usecontinuous":
+		match.handleUseContinuous(ie)
 	}
 
 }
@@ -410,6 +414,79 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+
+}
+
+func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
+
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay {
+		return
+	}
+	if gs.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
+	cardIndex := ie.CardIndex
+	teamIndex := ie.TeamIndex
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return
+	}
+
+	card := gs.Cards[cardIndex]
+	if card.Zone != state.ZoneContinuous || card.Team != teamIndex {
+		return
+	}
+
+	def := defs.CardDefs[card.DefNo]
+	if gs.Mana[teamIndex] < def.UseCost {
+		return
+	}
+
+	wallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	gs.Mana[teamIndex] -= def.UseCost
+	match.EventLog = append(match.EventLog, logs.SpendManaLog{
+		UpdateID:      match.NextUpdateID,
+		WallTimestamp: wallTime,
+		Type:          logs.SpendMana,
+		TeamIndex:     teamIndex,
+		Amount:        def.UseCost,
+	})
+	match.NextUpdateID++
+
+	effs := make([]state.Effect, len(def.UseEffects))
+	for i, eff := range def.UseEffects {
+		effs[i] = sim.FulfillEffectTemplate(eff, teamIndex, cardIndex)
+	}
+	startAtActiveTime := wallTime - gs.FullPauseOffset
+	stackItem := state.StackItem{
+		StartAtActiveTime:   startAtActiveTime,
+		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		CardID:              cardIndex,
+		Type:                state.StackItemContinuousActivation,
+		Effects:             effs,
+	}
+	gs.Stack = append(gs.Stack, stackItem)
+	match.EventLog = append(match.EventLog, logs.AddStackLog{
+		UpdateID:            match.NextUpdateID,
+		WallTimestamp:       wallTime,
+		Type:                logs.AddStack,
+		StackType:           stackItem.Type,
+		StartAtActiveTime:   stackItem.StartAtActiveTime,
+		PopAtActiveTime:     stackItem.PopAtActiveTime,
+		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
+		CardID:              stackItem.CardID,
+		Effects:             stackItem.Effects,
+	})
+	match.NextUpdateID++
+
+	match.TransitionPauseState(1, wallTime, -1)
+	scheduleStackResolution(match)
+	match.publish(wallTime, oldLogsSize)
 
 }
 

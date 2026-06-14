@@ -1,9 +1,10 @@
 package state
 
 const (
-	StackItemCard    = 0
-	StackItemAbility = 1
-	StackItemSpell   = 2
+	StackItemCard                = 0
+	StackItemAbility             = 1
+	StackItemSpell               = 2
+	StackItemContinuousActivation = 3
 )
 
 type StackItem struct {

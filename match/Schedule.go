@@ -55,7 +55,8 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 	}
 
 	// if we are in a chain, deny cards that aren't chain eligible
-	if chainOnly && (gs.Cards[cardIndex].Type != state.CardTypeSpell || len(gs.Stack) == 0) {
+	cardType := gs.Cards[cardIndex].Type
+	if chainOnly && ((cardType != state.CardTypeSpell && cardType != state.CardTypeContinuous) || len(gs.Stack) == 0) {
 		return DeclareErrBadInput
 	}
 
@@ -87,7 +88,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		gs.Field[teamIndex] = append(gs.Field[teamIndex], cardIndex)
 		scheduleSummon(gs, pq, abilityIDCounter, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop)
 		return DeclareSuccess
-	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell {
+	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell || gs.Cards[cardIndex].Type == state.CardTypeContinuous {
 		gs.Cards[cardIndex].Zone = state.ZoneStack
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 		scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)

@@ -9,6 +9,12 @@ type Recurring struct {
 	Effects      []state.Effect
 }
 
+type AuraEffect struct {
+	TargetType int
+	Stat       int
+	Amount     int
+}
+
 type CardDef struct {
 	Type        int
 	Name        string
@@ -21,6 +27,11 @@ type CardDef struct {
 
 	OnPlay    []state.Effect
 	Recurring []Recurring
+	Aura      []AuraEffect
+
+	UseEffects []state.Effect
+	UseCost    int
+	Charges    int
 
 	BaseHP int
 	Cost   int
@@ -146,5 +157,14 @@ var CardDefs = []CardDef{
 		OnPlay: []state.Effect{
 			{Type: state.EffectCounter},
 		},
+	},
+	9: {
+		Type:        state.CardTypeContinuous,
+		Name:        "Rolling in the Deep",
+		Description: "Use (50): Draw a card. 3 uses.",
+		Cost:        80,
+		Charges:     3,
+		UseCost:     50,
+		UseEffects:  []state.Effect{{Type: state.EffectDraw, B: 1}},
 	},
 }

@@ -31,11 +31,12 @@ type GameState struct {
 	TimeBank        []int64  // remaining pause ms per team
 
 	// card states
-	Cards []Card
-	Deck  [][]int // front of arr is the top
-	Hand  [][]int
-	Field [][]int
-	Grave [][]int
+	Cards      []Card
+	Deck       [][]int // front of arr is the top
+	Hand       [][]int
+	Field      [][]int
+	Grave      [][]int
+	Continuous [][]int // per team
 
 	Stack []StackItem // interactive stack: spells/traps/abilities, LIFO, sim paused while non-empty
 
@@ -97,6 +98,13 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	for i := range prevState.Grave {
 		newState.Grave[i] = make([]int, len(prevState.Grave[i]))
 		copy(newState.Grave[i], prevState.Grave[i])
+	}
+
+	// Continuous
+	newState.Continuous = make([][]int, len(prevState.Continuous))
+	for i := range prevState.Continuous {
+		newState.Continuous[i] = make([]int, len(prevState.Continuous[i]))
+		copy(newState.Continuous[i], prevState.Continuous[i])
 	}
 
 	// Mana

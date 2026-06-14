@@ -39,6 +39,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Hand:       make([][]int, numTeams),
 		Field:      make([][]int, numTeams),
 		Grave:      make([][]int, numTeams),
+		Continuous: make([][]int, numTeams),
 		Stack:      []state.StackItem{},
 		Mana:       func() []int { m := make([]int, numTeams); for i := range m { m[i] = constants.START_MANA }; return m }(),
 		Structures: structures,
@@ -52,6 +53,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		gs.Hand[team] = []int{}
 		gs.Field[team] = []int{}
 		gs.Grave[team] = []int{}
+		gs.Continuous[team] = []int{}
 
 		for _, defNo := range defNos {
 			def := defs.CardDefs[defNo]

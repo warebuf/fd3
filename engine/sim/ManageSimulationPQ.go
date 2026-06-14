@@ -162,6 +162,9 @@ func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) sta
 	case state.EffectMana:
 		templ.A = teamIndex
 		return templ
+	case state.EffectDraw:
+		templ.A = teamIndex
+		return templ
 	case state.EffectAttack:
 		return templ
 	case state.EffectHeal:
