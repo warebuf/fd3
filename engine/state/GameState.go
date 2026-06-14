@@ -19,7 +19,8 @@ type GameState struct {
 	UpdateID      int
 	WallTimestamp int64 // wall clock time when this state was last updated
 
-	Phase int // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
+	Phase        int   // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
+	PhaseEndInActiveTime int64 // active time (ms) when the current phase ends; 0 if no fixed end
 
 	// pause related
 	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating
@@ -51,6 +52,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		UpdateID:        prevState.UpdateID,
 		WallTimestamp:   prevState.WallTimestamp,
 		Phase:           prevState.Phase,
+		PhaseEndInActiveTime:    prevState.PhaseEndInActiveTime,
 		PausePhase:      prevState.PausePhase,
 		PauseStack:      prevState.PauseStack,
 		FullPauseOffset: prevState.FullPauseOffset,

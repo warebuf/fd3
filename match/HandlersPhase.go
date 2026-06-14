@@ -27,6 +27,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// change the phase
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhaseDraw
+		match.GameState.PhaseEndInActiveTime = 0
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
@@ -56,12 +57,15 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		oldLogsSize := len(match.EventLog)
 
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
+		boardSetupEndActiveTime := phaseChangeWallTime - match.GameState.FullPauseOffset + constants.BOARD_SETUP_DURATION
 		match.GameState.Phase = state.PhaseBoardSetup
+		match.GameState.PhaseEndInActiveTime = boardSetupEndActiveTime
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
 			Phase:         state.PhaseBoardSetup,
+			PhaseEndInActiveTime:  boardSetupEndActiveTime,
 		})
 		match.NextUpdateID += 1
 
@@ -72,7 +76,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Ready = make([]bool, numTeams)
 
 		// schedule reveal in 90 seconds; can be triggered early by both players readying up
-		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+90000, state.PhaseReveal)
+		PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+constants.BOARD_SETUP_DURATION, state.PhaseReveal)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -82,6 +86,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhaseReveal
+		match.GameState.PhaseEndInActiveTime = 0
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeWallTime,
@@ -137,6 +142,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhasePlay
+		match.GameState.PhaseEndInActiveTime = 0
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: phaseChangeTimestamp,
@@ -164,6 +170,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		oldLogsSize := len(match.EventLog)
 		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhaseGameOver
+		match.GameState.PhaseEndInActiveTime = 0
 
 		deadCount := 0
 		for _, s := range match.GameState.Structures {

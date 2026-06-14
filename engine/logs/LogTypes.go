@@ -34,6 +34,7 @@ type PhaseLog struct {
 	UpdateID      int
 	Type          LogType
 	Phase         int
+	PhaseEndInActiveTime  int64 // active time (ms) when this phase ends; 0 if no fixed end
 }
 
 type DrawLog struct {
