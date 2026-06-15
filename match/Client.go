@@ -38,7 +38,7 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 	ie := &eventpq.InputEvent{
 		WallTime:  timestamp,
 		Type:      eventType,
-		TeamIndex:   int(clientIdx),
+		TeamIndex: int(clientIdx),
 		CardIndex: cardIndex,
 	}
 
@@ -138,6 +138,13 @@ func (c *Client) Read() {
 				continue
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex)
+
+		case "active":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "active", c.ID, msg.CardIndex)
 
 		case "ready":
 			var msg readyMessage

@@ -32,7 +32,7 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleInputReady(ie)
 	case "unready":
 		match.handleInputUnready(ie)
-	case "usecontinuous":
+	case "active":
 		match.handleUseContinuous(ie)
 	}
 
