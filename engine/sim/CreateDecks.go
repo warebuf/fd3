@@ -70,6 +70,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Type:          def.Type,
 				Zone:          state.ZoneDeck,
 				AbilityTimers: []state.AbilityTimer{},
+				AuraModifiers: []state.AuraModifier{},
 			}
 
 			gs.Cards = append(gs.Cards, card)
