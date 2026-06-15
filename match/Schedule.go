@@ -116,9 +116,9 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 
 func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) {
 	simTimeAtPop := wallTimeAtPop - gs.SimPauseOffset
-	isReveal := gs.PauseStack[1] > 0
+	isReveal := gs.SimPauseStartedAt > 0
 	if isReveal {
-		simTimeAtPop = gs.PauseStack[1] - gs.SimPauseOffset
+		simTimeAtPop = gs.SimPauseStartedAt - gs.SimPauseOffset
 	}
 
 	abilityID := *abilityIDCounter

@@ -24,7 +24,8 @@ type GameState struct {
 
 	// pause related
 	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating
-	PauseStack      [2]int64 // the wall ms when each pause started
+	FullPauseStartedAt int64
+	SimPauseStartedAt  int64
 	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
 	TeamPaused      int      // which team paused the game; -1 means no team is paused
@@ -55,7 +56,8 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		Phase:           prevState.Phase,
 		PhaseEndInActiveTime:    prevState.PhaseEndInActiveTime,
 		PausePhase:      prevState.PausePhase,
-		PauseStack:      prevState.PauseStack,
+		FullPauseStartedAt: prevState.FullPauseStartedAt,
+		SimPauseStartedAt:  prevState.SimPauseStartedAt,
 		FullPauseOffset: prevState.FullPauseOffset,
 		SimPauseOffset:  prevState.SimPauseOffset,
 		TeamPaused:      prevState.TeamPaused,

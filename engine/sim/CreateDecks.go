@@ -27,7 +27,6 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		WallTimestamp:   0,
 		Phase:           0,
 		PausePhase:      2, // start in simulating state
-		PauseStack:      [2]int64{},
 		FullPauseOffset: 0,
 		SimPauseOffset:  0,
 		TeamPaused:      -1,

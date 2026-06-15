@@ -62,13 +62,8 @@ func (match *Match) handleStage(ie *eventpq.InputEvent) {
 		return
 	}
 
-	nextStageOrder := 1
-	for _, c := range match.GameState.Cards {
-		if c.Team == teamIndex && c.StageOrder >= nextStageOrder {
-			nextStageOrder = c.StageOrder + 1
-		}
-	}
-	match.GameState.Cards[cardIndex].StageOrder = nextStageOrder
+	order := nextStageOrder(match.GameState.Cards, teamIndex)
+	match.GameState.Cards[cardIndex].StageOrder = order
 
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.StageLog{
@@ -77,7 +72,7 @@ func (match *Match) handleStage(ie *eventpq.InputEvent) {
 		Type:          logs.StageIndex,
 		TeamIndex:     teamIndex,
 		CardIndex:     cardIndex,
-		StageOrder:    nextStageOrder,
+		StageOrder:    order,
 	})
 	match.NextUpdateID++
 	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
@@ -108,13 +103,7 @@ func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 		return
 	}
 
-	cleared := match.GameState.Cards[cardIndex].StageOrder
-	match.GameState.Cards[cardIndex].StageOrder = 0
-	for i := range match.GameState.Cards {
-		if match.GameState.Cards[i].Team == teamIndex && match.GameState.Cards[i].StageOrder > cleared {
-			match.GameState.Cards[i].StageOrder--
-		}
-	}
+	clearStageOrder(match.GameState.Cards, teamIndex, cardIndex)
 
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.StageLog{
@@ -198,13 +187,8 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		return
 	case DeclareConditionsNotMet:
-		nextAutoSummon := 1
-		for _, c := range gs.Cards {
-			if c.Team == teamIndex && c.AutoSummon >= nextAutoSummon {
-				nextAutoSummon = c.AutoSummon + 1
-			}
-		}
-		gs.Cards[cardIndex].AutoSummon = nextAutoSummon
+		order := nextAutoSummon(gs.Cards, teamIndex)
+		gs.Cards[cardIndex].AutoSummon = order
 
 		match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 			WallTimestamp: ie.WallTime.UnixMilli(),
@@ -212,7 +196,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 			Type:          logs.AutoSummonIndex,
 			TeamIndex:     teamIndex,
 			CardIndex:     cardIndex,
-			AutoSummonIdx: nextAutoSummon,
+			AutoSummonIdx: order,
 		})
 		match.NextUpdateID++
 		match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
@@ -267,14 +251,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 				break
 			}
 
-			// clear from autosummon queue (played successfully or stale bad-input entry)
-			cleared := gs.Cards[bestCard].AutoSummon
-			gs.Cards[bestCard].AutoSummon = 0
-			for i := range gs.Cards {
-				if gs.Cards[i].Team == teamIndex && gs.Cards[i].AutoSummon > cleared {
-					gs.Cards[i].AutoSummon--
-				}
-			}
+			clearAutoSummon(gs.Cards, teamIndex, bestCard)
 			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 				WallTimestamp: wallTime,
 				UpdateID:      match.NextUpdateID,
@@ -318,13 +295,7 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	cleared := match.GameState.Cards[cardIndex].AutoSummon
-	match.GameState.Cards[cardIndex].AutoSummon = 0
-	for i := range match.GameState.Cards {
-		if match.GameState.Cards[i].Team == teamIndex && match.GameState.Cards[i].AutoSummon > cleared {
-			match.GameState.Cards[i].AutoSummon--
-		}
-	}
+	clearAutoSummon(match.GameState.Cards, teamIndex, cardIndex)
 
 	oldLogsSize := len(match.EventLog)
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
@@ -532,4 +503,44 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		match.publish(executeTime, oldLogsSize)
 	}
 
+}
+
+func nextStageOrder(cards []state.Card, team int) int {
+	next := 1
+	for _, c := range cards {
+		if c.Team == team && c.StageOrder >= next {
+			next = c.StageOrder + 1
+		}
+	}
+	return next
+}
+
+func clearStageOrder(cards []state.Card, team int, cardIndex int) {
+	cleared := cards[cardIndex].StageOrder
+	cards[cardIndex].StageOrder = 0
+	for i := range cards {
+		if cards[i].Team == team && cards[i].StageOrder > cleared {
+			cards[i].StageOrder--
+		}
+	}
+}
+
+func nextAutoSummon(cards []state.Card, team int) int {
+	next := 1
+	for _, c := range cards {
+		if c.Team == team && c.AutoSummon >= next {
+			next = c.AutoSummon + 1
+		}
+	}
+	return next
+}
+
+func clearAutoSummon(cards []state.Card, team int, cardIndex int) {
+	cleared := cards[cardIndex].AutoSummon
+	cards[cardIndex].AutoSummon = 0
+	for i := range cards {
+		if cards[i].Team == team && cards[i].AutoSummon > cleared {
+			cards[i].AutoSummon--
+		}
+	}
 }

@@ -34,9 +34,9 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 
 			// update the states (no need to update time bank)
 			gameState.PausePhase = state.PausePhaseSimulating
-			gameState.SimPauseOffset += transitionAtWallTime - gameState.PauseStack[1]
+			gameState.SimPauseOffset += transitionAtWallTime - gameState.SimPauseStartedAt
 			gameState.TeamPaused = -1
-			gameState.PauseStack[1] = 0
+			gameState.SimPauseStartedAt = 0
 
 			// reschedule unpaused events
 			scheduleEarliestSimItem(match)
@@ -46,7 +46,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			// create the log
 			timeRemaining := int64(0)
 			if gameState.TeamPaused >= 0 {
-				timeElapsed := transitionAtWallTime - gameState.PauseStack[0]
+				timeElapsed := transitionAtWallTime - gameState.FullPauseStartedAt
 				gameState.TimeBank[gameState.TeamPaused] = gameState.TimeBank[gameState.TeamPaused] - timeElapsed
 				if gameState.TimeBank[gameState.TeamPaused] < 0 {
 					gameState.TimeBank[gameState.TeamPaused] = 0
@@ -62,10 +62,10 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			match.NextUpdateID++
 
 			// if we full paused amid a sim paused, enter sim paused
-			if gameState.PauseStack[1] > 0 {
+			if gameState.SimPauseStartedAt > 0 {
 				gameState.PausePhase = state.PausePhaseSimPause
-				gameState.FullPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
-				gameState.PauseStack[0] = 0
+				gameState.FullPauseOffset += transitionAtWallTime - gameState.FullPauseStartedAt
+				gameState.FullPauseStartedAt = 0
 				gameState.TeamPaused = -1
 
 				scheduleStackResolution(match)
@@ -78,9 +78,9 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 
 			} else {
 				gameState.PausePhase = state.PausePhaseSimulating
-				gameState.SimPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
-				gameState.FullPauseOffset += transitionAtWallTime - gameState.PauseStack[0]
-				gameState.PauseStack[0] = 0
+				gameState.SimPauseOffset += transitionAtWallTime - gameState.FullPauseStartedAt
+				gameState.FullPauseOffset += transitionAtWallTime - gameState.FullPauseStartedAt
+				gameState.FullPauseStartedAt = 0
 				gameState.TeamPaused = -1
 
 				scheduleStackResolution(match)
@@ -118,7 +118,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 
 		// changing the states
 		gameState.PausePhase = state.PausePhaseFullPause
-		gameState.PauseStack[0] = transitionAtWallTime
+		gameState.FullPauseStartedAt = transitionAtWallTime
 		gameState.TeamPaused = teamPaused
 
 		// cancelling events that do not occur in a full pause
@@ -155,7 +155,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 
 		// changing the states
 		gameState.PausePhase = state.PausePhaseSimPause
-		gameState.PauseStack[1] = transitionAtWallTime
+		gameState.SimPauseStartedAt = transitionAtWallTime
 		gameState.TeamPaused = teamPaused
 
 		// cancelling events that do not occur in a sim pause
