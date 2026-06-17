@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -468,8 +467,8 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 	teamIndex := ie.TeamIndex
 
 	executeTime := ie.WallTime.UnixMilli() + constants.LEAD
-	now := time.Now().UnixMilli()
-	fmt.Printf("handleInputPause: now=%d ieWallTime=%d executeTime=%d\n", now%1e7, ie.WallTime.UnixMilli()%1e7, executeTime%1e7)
+	//now := time.Now().UnixMilli()
+	//fmt.Printf("handleInputPause: now=%d ieWallTime=%d executeTime=%d\n", now%1e7, ie.WallTime.UnixMilli()%1e7, executeTime%1e7)
 
 	if gs.Phase < state.PhaseDraw {
 		return

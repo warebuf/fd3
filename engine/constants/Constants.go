@@ -4,4 +4,4 @@ const LEAD = 200             // milliseconds, we schedule all inputs 200 millise
 const REACTION_WINDOW = 5000 // milliseconds, how long the reaction window is
 const PAUSE_BANK = 300000    // milliseconds of pause time each player gets per game
 const START_MANA = 100
-const BOARD_SETUP_DURATION = 90000 // milliseconds players have to set up their board
+const BOARD_SETUP_DURATION = 120000 // milliseconds players have to set up their board
