@@ -33,7 +33,6 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		next.TeamIndex,
 		next.CardIndex,
 		ev.WallTime.UnixMilli(),
-		false,
 	)
 
 	if result == DeclareChainStarted {

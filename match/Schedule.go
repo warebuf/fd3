@@ -17,9 +17,8 @@ const (
 	DeclareConditionsNotMet = 3
 )
 
-func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64, chainOnly bool) int {
+func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) int {
 
-	// make sure card is in hand
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return DeclareErrBadInput
 	}
@@ -33,31 +32,22 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 		return DeclareErrBadInput
 	}
 
-	// make sure caster has mana
-	cost := gs.Cards[cardIndex].Cost
-	if gs.Mana[teamIndex] < cost {
-		return DeclareConditionsNotMet
-	}
-
-	// not cards playable during full pause
 	if gs.PausePhase == state.PausePhaseFullPause {
 		return DeclareErrBadInput
 	}
 
-	// can only declare a card during a reveal or play phase, not stage phase
-	if gs.PausePhase == state.PausePhaseSimPause && gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
+	if gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
 		return DeclareErrBadInput
 	}
 
-	// deny cards that require a stack target
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
 		return DeclareErrBadInput
 	}
 
-	// if we are in a chain, deny cards that aren't chain eligible
-	cardType := gs.Cards[cardIndex].Type
-	if chainOnly && ((cardType != state.CardTypeSpell && cardType != state.CardTypeContinuous) || len(gs.Stack) == 0) {
-		return DeclareErrBadInput
+	// mana check last
+	cost := gs.Cards[cardIndex].Cost
+	if gs.Mana[teamIndex] < cost {
+		return DeclareConditionsNotMet
 	}
 
 	gs.Mana[teamIndex] -= cost
@@ -96,6 +86,64 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 	}
 
 	return DeclareSuccess
+
+}
+
+// ScheduleChain plays a spell or continuous into an active chain during a sim pause.
+func ScheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) int {
+
+	if gs.Cards[cardIndex].Zone != state.ZoneHand {
+		return DeclareErrBadInput
+	}
+	handIndex := -1
+	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
+		if cardIndex == gs.Hand[teamIndex][i] {
+			handIndex = i
+		}
+	}
+	if handIndex < 0 {
+		return DeclareErrBadInput
+	}
+
+	cardType := gs.Cards[cardIndex].Type
+	if cardType != state.CardTypeSpell && cardType != state.CardTypeContinuous {
+		return DeclareErrBadInput
+	}
+
+	if len(gs.Stack) == 0 {
+		return DeclareErrBadInput
+	}
+
+	// mana check last
+	cost := gs.Cards[cardIndex].Cost
+	if gs.Mana[teamIndex] < cost {
+		return DeclareConditionsNotMet
+	}
+
+	gs.Mana[teamIndex] -= cost
+	*logList = append(*logList, logs.SpendManaLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
+		Type:          logs.SpendMana,
+		TeamIndex:     teamIndex,
+		Amount:        cost,
+	})
+	*UpdateID += 1
+
+	*logList = append(*logList, logs.DeclareCardLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: wallTimeAtPop + constants.LEAD,
+		Type:          logs.DeclareCard,
+		TeamIndex:     teamIndex,
+		CardIndex:     cardIndex,
+	})
+	*UpdateID += 1
+
+	gs.Cards[cardIndex].StageOrder = 0
+	gs.Cards[cardIndex].Zone = state.ZoneStack
+	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
+	scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
+	return DeclareChainStarted
 
 }
 

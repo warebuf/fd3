@@ -141,23 +141,49 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// reject if card requires a stack target and there is nothing to target
+	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+		return
+	}
+
+	// during reveal, always queue — chaining during reveal requires a separate input type
 	if gs.Phase == state.PhaseReveal {
-		oldStackSize := len(gs.Stack)
+		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		return
+	}
+
+	// during full pause, queue spells/continuous so they fire when sim resumes
+	if gs.PausePhase == state.PausePhaseFullPause {
+		if card.Type == state.CardTypeSpell || card.Type == state.CardTypeContinuous {
+			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		}
+		return
+	}
+
+	// during sim pause, try to join the active chain
+	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
-		result := ScheduleDeclareCard(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli(), true)
-		if result != DeclareChainStarted {
+		result := ScheduleChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		switch result {
+		case DeclareErrBadInput:
+			return
+		case DeclareChainStarted:
+			scheduleStackResolution(match)
+			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+			return
+		case DeclareConditionsNotMet:
+			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 			return
 		}
-		if oldStackSize == 0 {
-			if match.RevealItem != nil {
-				match.EventPQueue.Remove(match.RevealItem)
-				match.RevealItem = nil
-			}
-			match.PendingRevealTime = 0
-		}
-		scheduleStackResolution(match)
-		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		return
+	}
+
+	// simulating: if autosummons already queued for this team, respect the order
+	for _, c := range gs.Cards {
+		if c.Team == teamIndex && c.Zone == state.ZoneHand && c.AutoSummon > 0 {
+			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+			return
+		}
 	}
 
 	// try to play immediately
@@ -171,7 +197,6 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		teamIndex,
 		cardIndex,
 		ie.WallTime.UnixMilli(),
-		gs.PausePhase == state.PausePhaseSimPause,
 	)
 
 	switch result {
@@ -187,19 +212,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		return
 	case DeclareConditionsNotMet:
-		order := nextAutoSummon(gs.Cards, teamIndex)
-		gs.Cards[cardIndex].AutoSummon = order
-
-		match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-			WallTimestamp: ie.WallTime.UnixMilli(),
-			UpdateID:      match.NextUpdateID,
-			Type:          logs.AutoSummonIndex,
-			TeamIndex:     teamIndex,
-			CardIndex:     cardIndex,
-			AutoSummonIdx: order,
-		})
-		match.NextUpdateID++
-		match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		return
 	}
 
@@ -244,7 +257,6 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 				teamIndex,
 				bestCard,
 				wallTime-constants.LEAD,
-				false,
 			)
 
 			if result == DeclareConditionsNotMet || result == DeclareErrBadInput {
@@ -311,13 +323,25 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
 }
 
+func (match *Match) queueAutoSummon(teamIndex, cardIndex int, wallTime int64) {
+	oldLogsSize := len(match.EventLog)
+	order := nextAutoSummon(match.GameState.Cards, teamIndex)
+	match.GameState.Cards[cardIndex].AutoSummon = order
+	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
+		WallTimestamp: wallTime,
+		UpdateID:      match.NextUpdateID,
+		Type:          logs.AutoSummonIndex,
+		TeamIndex:     teamIndex,
+		CardIndex:     cardIndex,
+		AutoSummonIdx: order,
+	})
+	match.NextUpdateID++
+	match.publish(wallTime, oldLogsSize)
+}
+
 func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhaseBoardSetup {
-		return
-	}
-
-	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		return
 	}
 
@@ -358,10 +382,6 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 
 	if match.GameState.Phase != state.PhaseBoardSetup {
-		return
-	}
-
-	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		return
 	}
 
