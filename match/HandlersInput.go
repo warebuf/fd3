@@ -289,7 +289,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
-	if match.GameState.Phase != state.PhasePlay {
+	if match.GameState.Phase != state.PhasePlay && match.GameState.Phase != state.PhaseReveal {
 		return
 	}
 
