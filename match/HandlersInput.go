@@ -1,6 +1,7 @@
 package match
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -34,6 +35,8 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleInputUnready(ie)
 	case "active":
 		match.handleUseContinuous(ie)
+	case "instant":
+		match.handleInstantPlay(ie)
 	}
 
 }
@@ -160,33 +163,52 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// during sim pause, try to join the active chain
+	// simulating or sim pause: queue
+	match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+
+}
+
+func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
+
+	fmt.Println("instant play handler")
+
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay {
+		return
+	}
+
+	cardIndex := ie.CardIndex
+	teamIndex := ie.TeamIndex
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return
+	}
+
+	card := gs.Cards[cardIndex]
+	if card.Zone != state.ZoneHand || card.Team != teamIndex {
+		return
+	}
+
+	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+		return
+	}
+
+	if gs.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
 	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
 		result := ScheduleChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		switch result {
-		case DeclareErrBadInput:
-			return
 		case DeclareChainStarted:
 			scheduleStackResolution(match)
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-			return
-		case DeclareConditionsNotMet:
-			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-			return
 		}
 		return
 	}
 
-	// simulating: if autosummons already queued for this team, respect the order
-	for _, c := range gs.Cards {
-		if c.Team == teamIndex && c.Zone == state.ZoneHand && c.AutoSummon > 0 {
-			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-			return
-		}
-	}
-
-	// try to play immediately
+	// simulating: try to play immediately, no queue fallback
 	oldLogsSize := len(match.EventLog)
 	result := ScheduleDeclareCard(
 		gs,
@@ -200,20 +222,13 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	)
 
 	switch result {
-	case DeclareErrBadInput:
-		return
 	case DeclareSuccess:
 		scheduleEarliestSimItem(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-		return
 	case DeclareChainStarted:
 		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 		scheduleStackResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-		return
-	case DeclareConditionsNotMet:
-		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-		return
 	}
 
 }

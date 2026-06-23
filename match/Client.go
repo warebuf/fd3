@@ -156,6 +156,13 @@ func (c *Client) Read() {
 		case "unready":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, 0)
 
+		case "instant":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex)
+
 		case "fullPause":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0)
 
