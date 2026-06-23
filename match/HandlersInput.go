@@ -124,6 +124,8 @@ func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 
 func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
+	fmt.Println("autosummon handler")
+
 	gs := match.GameState
 
 	if gs.Phase != state.PhasePlay && gs.Phase != state.PhaseReveal {
@@ -141,6 +143,9 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 	if card.AutoSummon != 0 {
+		return
+	}
+	if card.StageOrder != 0 {
 		return
 	}
 
@@ -303,6 +308,8 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 }
 
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
+
+	fmt.Println("unautosummon handler")
 
 	if match.GameState.Phase != state.PhasePlay && match.GameState.Phase != state.PhaseReveal {
 		return
