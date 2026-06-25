@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -69,8 +68,9 @@ func (match *Match) handleStage(ie *eventpq.InputEvent) {
 	match.GameState.Cards[cardIndex].StageOrder = order
 
 	oldLogsSize := len(match.EventLog)
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	match.EventLog = append(match.EventLog, logs.StageLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.StageIndex,
 		TeamIndex:     teamIndex,
@@ -78,7 +78,7 @@ func (match *Match) handleStage(ie *eventpq.InputEvent) {
 		StageOrder:    order,
 	})
 	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
@@ -109,8 +109,9 @@ func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 	clearStageOrder(match.GameState.Cards, teamIndex, cardIndex)
 
 	oldLogsSize := len(match.EventLog)
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	match.EventLog = append(match.EventLog, logs.StageLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.StageIndex,
 		TeamIndex:     teamIndex,
@@ -118,13 +119,11 @@ func (match *Match) handleUnstage(ie *eventpq.InputEvent) {
 		StageOrder:    0,
 	})
 	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
 func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
-
-	fmt.Println("autosummon handler")
 
 	gs := match.GameState
 
@@ -174,8 +173,6 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 }
 
 func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
-
-	fmt.Println("instant play handler")
 
 	gs := match.GameState
 
@@ -238,7 +235,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) processAutoSummonQueue(wallTime int64) {
+func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 
 	gs := match.GameState
 
@@ -276,7 +273,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 				&match.NextUpdateID,
 				teamIndex,
 				bestCard,
-				wallTime-constants.LEAD,
+				executeAtWallTime-constants.LEAD,
 			)
 
 			if result == DeclareConditionsNotMet || result == DeclareErrBadInput {
@@ -285,7 +282,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 
 			clearAutoSummon(gs.Cards, teamIndex, bestCard)
 			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-				WallTimestamp: wallTime,
+				WallTimestamp: executeAtWallTime,
 				UpdateID:      match.NextUpdateID,
 				Type:          logs.AutoSummonIndex,
 				TeamIndex:     teamIndex,
@@ -295,7 +292,7 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 			match.NextUpdateID++
 
 			if result == DeclareChainStarted {
-				match.TransitionPauseState(1, wallTime, -1)
+				match.TransitionPauseState(1, executeAtWallTime, -1)
 				scheduleStackResolution(match)
 				return
 			}
@@ -308,8 +305,6 @@ func (match *Match) processAutoSummonQueue(wallTime int64) {
 }
 
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
-
-	fmt.Println("unautosummon handler")
 
 	if match.GameState.Phase != state.PhasePlay && match.GameState.Phase != state.PhaseReveal {
 		return
@@ -332,8 +327,9 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 	clearAutoSummon(match.GameState.Cards, teamIndex, cardIndex)
 
 	oldLogsSize := len(match.EventLog)
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.AutoSummonIndex,
 		TeamIndex:     teamIndex,
@@ -341,16 +337,19 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 		AutoSummonIdx: 0,
 	})
 	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
-func (match *Match) queueAutoSummon(teamIndex, cardIndex int, wallTime int64) {
+func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int64) {
+
+	executeAtWallTime := popAtWallTime + constants.LEAD
+
 	oldLogsSize := len(match.EventLog)
 	order := nextAutoSummon(match.GameState.Cards, teamIndex)
 	match.GameState.Cards[cardIndex].AutoSummon = order
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		WallTimestamp: wallTime,
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.AutoSummonIndex,
 		TeamIndex:     teamIndex,
@@ -358,7 +357,7 @@ func (match *Match) queueAutoSummon(teamIndex, cardIndex int, wallTime int64) {
 		AutoSummonIdx: order,
 	})
 	match.NextUpdateID++
-	match.publish(wallTime, oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 }
 
 func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
@@ -379,14 +378,15 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 	match.GameState.Ready[teamIndex] = true
 
 	oldLogsSize := len(match.EventLog)
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	match.EventLog = append(match.EventLog, logs.ReadyLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.Ready,
 		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 	allReady := true
 	for _, r := range match.GameState.Ready {
@@ -419,14 +419,15 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 	match.GameState.Ready[teamIndex] = false
 
 	oldLogsSize := len(match.EventLog)
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	match.EventLog = append(match.EventLog, logs.UnreadyLog{
-		WallTimestamp: ie.WallTime.UnixMilli(),
+		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
 		Type:          logs.Unready,
 		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
-	match.publish(ie.WallTime.UnixMilli(), oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
@@ -457,13 +458,13 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
-	wallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
 	gs.Mana[teamIndex] -= def.UseCost
 	match.EventLog = append(match.EventLog, logs.SpendManaLog{
 		UpdateID:      match.NextUpdateID,
-		WallTimestamp: wallTime,
+		WallTimestamp: executeAtWallTime,
 		Type:          logs.SpendMana,
 		TeamIndex:     teamIndex,
 		Amount:        def.UseCost,
@@ -474,7 +475,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	for i, eff := range def.UseEffects {
 		effs[i] = sim.FulfillEffectTemplate(eff, teamIndex, cardIndex)
 	}
-	startAtActiveTime := wallTime - gs.FullPauseOffset
+	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	stackItem := state.StackItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
@@ -486,7 +487,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	gs.Stack = append(gs.Stack, stackItem)
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
-		WallTimestamp:       wallTime,
+		WallTimestamp:       executeAtWallTime,
 		Type:                logs.AddStack,
 		StackType:           stackItem.Type,
 		StartAtActiveTime:   stackItem.StartAtActiveTime,
@@ -497,9 +498,9 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 
-	match.TransitionPauseState(1, wallTime, -1)
+	match.TransitionPauseState(1, executeAtWallTime, -1)
 	scheduleStackResolution(match)
-	match.publish(wallTime, oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
