@@ -12,11 +12,11 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		return
 	}
 
-	wallTime := ev.WallTime.UnixMilli() + constants.LEAD
+	executeAtWallTime := ev.WallTime.UnixMilli() + constants.LEAD
 
 	if len(match.RevealQueue) == 0 {
 		match.PendingRevealTime = 0
-		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhasePlay)
+		PushPhaseEvent(match, executeAtWallTime-match.GameState.FullPauseOffset, state.PhasePlay)
 		return
 	}
 
@@ -39,8 +39,8 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 		match.PendingRevealTime = 0    // clear previous reveal
 		scheduleStackResolution(match) // no need to sim pause, already sim paused
 	} else {
-		pushRevealEvent(match, wallTime-match.GameState.FullPauseOffset+constants.REACTION_WINDOW) // make a reveal same amount of time as 1 stack item
+		pushRevealEvent(match, executeAtWallTime-match.GameState.FullPauseOffset+constants.REACTION_WINDOW) // make a reveal same amount of time as 1 stack item
 	}
-	match.publish(wallTime, oldLogsSize)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }

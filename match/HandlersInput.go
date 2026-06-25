@@ -396,7 +396,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		}
 	}
 	if allReady {
-		PushPhaseEvent(match, ie.WallTime.UnixMilli()-match.GameState.FullPauseOffset, state.PhaseReveal)
+		PushPhaseEvent(match, executeAtWallTime-match.GameState.FullPauseOffset, state.PhaseReveal)
 	}
 
 }
