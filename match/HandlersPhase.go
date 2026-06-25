@@ -61,11 +61,11 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Phase = state.PhaseBoardSetup
 		match.GameState.PhaseEndInActiveTime = boardSetupEndActiveTime
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
-			UpdateID:      match.NextUpdateID,
-			WallTimestamp: phaseChangeWallTime,
-			Type:          logs.Phase,
-			Phase:         state.PhaseBoardSetup,
-			PhaseEndInActiveTime:  boardSetupEndActiveTime,
+			UpdateID:             match.NextUpdateID,
+			WallTimestamp:        phaseChangeWallTime,
+			Type:                 logs.Phase,
+			Phase:                state.PhaseBoardSetup,
+			PhaseEndInActiveTime: boardSetupEndActiveTime,
 		})
 		match.NextUpdateID += 1
 
@@ -140,12 +140,12 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
 		oldLogsSize := len(match.EventLog)
 
-		phaseChangeTimestamp := newPhase.WallTime.UnixMilli() + constants.LEAD
+		phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
 		match.GameState.Phase = state.PhasePlay
 		match.GameState.PhaseEndInActiveTime = 0
 		match.EventLog = append(match.EventLog, logs.PhaseLog{
 			UpdateID:      match.NextUpdateID,
-			WallTimestamp: phaseChangeTimestamp,
+			WallTimestamp: phaseChangeWallTime,
 			Type:          logs.Phase,
 			Phase:         state.PhasePlay,
 		})
@@ -155,16 +155,20 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 			match.GameState.Cards[i].StageOrder = 0
 		}
 
-		match.TransitionPauseState(-1, phaseChangeTimestamp, -1)
+		match.TransitionPauseState(-1, phaseChangeWallTime, -1)
 
 		// begin mana regen for structures
-		startSimTime := phaseChangeTimestamp - match.GameState.SimPauseOffset
+		startSimTime := phaseChangeWallTime - match.GameState.SimPauseOffset
 		for i := range match.GameState.Structures {
 			sim.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, i, startSimTime)
 		}
+
+		// apply any available auto plays
+		match.processAutoSummonQueue(phaseChangeWallTime)
+
 		scheduleEarliestSimItem(match)
 
-		match.publish(phaseChangeTimestamp, oldLogsSize)
+		match.publish(phaseChangeWallTime, oldLogsSize)
 
 	case state.PhaseGameOver: // entering game over
 		oldLogsSize := len(match.EventLog)

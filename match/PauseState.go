@@ -149,7 +149,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			PausePhase:    state.PausePhaseSimPause,
 			TeamIndex:     teamPaused,
 			TimeStart:     transitionAtWallTime,
-			TimeRemaining: 0, // TODO: add the correct amount of time for the current sim pause
+			TimeRemaining: 0, // TODO: add the correct amount of time for the incoming sim pause
 		})
 		match.NextUpdateID++
 

@@ -35,6 +35,8 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 		return
 	}
 
+	fmt.Println("test2")
+
 	ie := &eventpq.InputEvent{
 		WallTime:  timestamp,
 		Type:      eventType,
@@ -130,6 +132,7 @@ func (c *Client) Read() {
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
+			fmt.Println("test")
 			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex)
 
 		case "unautosummon":

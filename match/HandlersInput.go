@@ -1,6 +1,7 @@
 package match
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -156,19 +157,22 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	// during reveal, always queue — chaining during reveal requires a separate input type
 	if gs.Phase == state.PhaseReveal {
 		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		// TODO: if the size is 1, try processing it immediately
 		return
 	}
 
-	// during full pause, queue spells/continuous so they fire when sim resumes
+	// during full pause, only queue spells/continuous so they fire when sim resumes
 	if gs.PausePhase == state.PausePhaseFullPause {
 		if card.Type == state.CardTypeSpell || card.Type == state.CardTypeContinuous {
 			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+			// TODO: if the size is 1, try processing it immediately
 		}
 		return
 	}
 
 	// simulating or sim pause: queue
 	match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+	// TODO: if the size is 1, try processing it immediately
 
 }
 
@@ -236,6 +240,8 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 }
 
 func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
+
+	fmt.Println("processAutoSummonQueue")
 
 	gs := match.GameState
 
@@ -338,6 +344,8 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 	match.publish(executeAtWallTime, oldLogsSize)
+
+	// TODO: if there is a new lead autosummon, try to add it
 
 }
 
