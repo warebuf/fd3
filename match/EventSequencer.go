@@ -117,7 +117,7 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
-		match.processAutoSummonQueue(wallTime)
+		match.processAutoSummonQueue(wallTime, -1)
 		scheduleEarliestSimItem(match)
 	}
 	match.publish(wallTime, oldLogsSize)
@@ -131,7 +131,7 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		oldLogsSize := len(match.EventLog)
 		match.TransitionPauseState(-1, wallTime, -1)
-		match.processAutoSummonQueue(wallTime)
+		match.processAutoSummonQueue(wallTime, -1)
 		match.publish(wallTime, oldLogsSize)
 	}
 }

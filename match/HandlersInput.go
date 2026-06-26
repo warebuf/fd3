@@ -156,7 +156,6 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	// during reveal, always queue — chaining during reveal requires a separate input type
 	if gs.Phase == state.PhaseReveal {
 		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-		// TODO: if the size is 1, try processing it immediately
 		return
 	}
 
@@ -164,14 +163,18 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	if gs.PausePhase == state.PausePhaseFullPause {
 		if card.Type == state.CardTypeSpell || card.Type == state.CardTypeContinuous {
 			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-			// TODO: if the size is 1, try processing it immediately
 		}
 		return
 	}
 
 	// simulating or sim pause: queue
-	match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-	// TODO: if the size is 1, try processing it immediately
+	autosummonIndex := match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
+	if autosummonIndex == 1 {
+		oldLogsSize := len(match.EventLog)
+		executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+		match.processAutoSummonQueue(executeAtWallTime, teamIndex)
+		match.publish(executeAtWallTime, oldLogsSize)
+	}
 
 }
 
@@ -238,7 +241,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 }
 
-func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
+func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam int) {
 
 	gs := match.GameState
 
@@ -250,14 +253,19 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 		return
 	}
 
-	for teamIndex := 0; teamIndex < len(gs.Hand); teamIndex++ {
+	startTeam := 0
+	endTeam := len(gs.Hand)
+	if targetTeam >= 0 {
+		startTeam = targetTeam
+		endTeam = targetTeam + 1
+	}
+
+	for t := startTeam; t < endTeam; t++ {
 		for {
-			// TODO: iterate through all the hand cards, maybe not through this, but we do have to test
-			// find the highest priority (lowest AutoSummon value) queued card in hand for this team
 			bestCard := -1
 			bestPriority := 0
-			for i, card := range gs.Cards {
-				if card.Team == teamIndex && card.Zone == state.ZoneHand && card.AutoSummon > 0 {
+			for _, i := range gs.Hand[t] {
+				if card := gs.Cards[i]; card.AutoSummon > 0 {
 					if bestCard == -1 || card.AutoSummon < bestPriority {
 						bestCard = i
 						bestPriority = card.AutoSummon
@@ -274,7 +282,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 				&match.AbilityIDCounter,
 				&match.EventLog,
 				&match.NextUpdateID,
-				teamIndex,
+				t,
 				bestCard,
 				executeAtWallTime-constants.LEAD,
 			)
@@ -283,12 +291,12 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 				break
 			}
 
-			clearAutoSummon(gs.Cards, teamIndex, bestCard)
+			clearAutoSummon(gs.Cards, t, bestCard)
 			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 				WallTimestamp: executeAtWallTime,
 				UpdateID:      match.NextUpdateID,
 				Type:          logs.AutoSummonIndex,
-				TeamIndex:     teamIndex,
+				TeamIndex:     t,
 				CardIndex:     bestCard,
 				AutoSummonIdx: 0,
 			})
@@ -299,7 +307,6 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 				scheduleStackResolution(match)
 				return
 			}
-
 		}
 	}
 
@@ -327,10 +334,10 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	clearAutoSummon(match.GameState.Cards, teamIndex, cardIndex)
-
 	oldLogsSize := len(match.EventLog)
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+
+	clearAutoSummon(match.GameState.Cards, teamIndex, cardIndex)
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
 		WallTimestamp: executeAtWallTime,
 		UpdateID:      match.NextUpdateID,
@@ -340,13 +347,14 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 		AutoSummonIdx: 0,
 	})
 	match.NextUpdateID++
-	match.publish(executeAtWallTime, oldLogsSize)
 
-	// TODO: if there is a new lead autosummon, try to add it
+	match.processAutoSummonQueue(executeAtWallTime, teamIndex)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 
-func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int64) {
+// returns the autosummon index assigned
+func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int64) int {
 
 	executeAtWallTime := popAtWallTime + constants.LEAD
 
@@ -363,6 +371,8 @@ func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int6
 	})
 	match.NextUpdateID++
 	match.publish(executeAtWallTime, oldLogsSize)
+
+	return order
 }
 
 func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
@@ -549,7 +559,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 
 		oldLogsSize := len(match.EventLog)
 		match.TransitionPauseState(-1, executeTime, teamIndex)
-		match.processAutoSummonQueue(executeTime)
+		match.processAutoSummonQueue(executeTime, -1)
 		match.publish(executeTime, oldLogsSize)
 	}
 

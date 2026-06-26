@@ -97,7 +97,7 @@ func (match *Match) handleStackResolution() {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
 			match.TransitionPauseState(-1, wallTime, -1)
-			match.processAutoSummonQueue(wallTime)
+			match.processAutoSummonQueue(wallTime, -1)
 		}
 	} else { // the new top gets a refreshed reaction window
 		newTopIdx := len(gs.Stack) - 1

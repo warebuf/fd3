@@ -132,8 +132,6 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		// set all ready flags back to false
 		match.GameState.Ready = make([]bool, len(match.GameState.Ready))
 
-		// TODO: ensure that the old reveal event is cleared from PQ, if we start Phase 3 prematurely
-
 		pushRevealEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+500)
 
 		match.publish(phaseChangeWallTime, oldLogsSize)
@@ -166,7 +164,7 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 		}
 
 		// apply any available auto plays
-		match.processAutoSummonQueue(phaseChangeWallTime)
+		match.processAutoSummonQueue(phaseChangeWallTime, -1)
 
 		scheduleEarliestSimItem(match)
 
