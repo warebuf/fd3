@@ -82,7 +82,7 @@ func ScheduleDeclareCard(gs *state.GameState, pq *state.SimulationPQ, abilityIDC
 	} else if gs.Cards[cardIndex].Type == state.CardTypeSpell || gs.Cards[cardIndex].Type == state.CardTypeContinuous {
 		gs.Cards[cardIndex].Zone = state.ZoneStack
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-		scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
+		addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 		return DeclareChainStarted
 	}
 
@@ -143,7 +143,7 @@ func ScheduleChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex
 	gs.Cards[cardIndex].StageOrder = 0
 	gs.Cards[cardIndex].Zone = state.ZoneStack
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-	scheduleStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
+	addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 	return DeclareChainStarted
 
 }
@@ -217,9 +217,10 @@ func scheduleSummon(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounte
 	*UpdateID++
 }
 
-func scheduleStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
+func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
 
+	// create the stack item
 	abilities := defs.CardDefs[card.DefNo].OnPlay
 	effs := make([]state.Effect, len(abilities))
 	for i, ability := range abilities {

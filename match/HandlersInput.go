@@ -1,7 +1,6 @@
 package match
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -241,8 +240,6 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 
-	fmt.Println("processAutoSummonQueue")
-
 	gs := match.GameState
 
 	if gs.Phase != state.PhasePlay {
@@ -255,7 +252,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64) {
 
 	for teamIndex := 0; teamIndex < len(gs.Hand); teamIndex++ {
 		for {
-
+			// TODO: iterate through all the hand cards, maybe not through this, but we do have to test
 			// find the highest priority (lowest AutoSummon value) queued card in hand for this team
 			bestCard := -1
 			bestPriority := 0

@@ -59,7 +59,6 @@ func (match *Match) BroadcastPublishedState() {
 	}
 	gameStateJSON, err := json.Marshal(wrapper)
 	if err != nil {
-		fmt.Println("problem accessing game state", err)
 		return
 	}
 
@@ -86,7 +85,6 @@ func (match *Match) SendPublishedState(ClientID string) {
 	}
 	gameStateJSON, err := json.Marshal(wrapper)
 	if err != nil {
-		fmt.Println("problem accessing game state", err)
 		return
 	}
 

@@ -2,7 +2,6 @@ package match
 
 import (
 	"container/heap"
-	"fmt"
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
@@ -60,7 +59,6 @@ func (match *Match) handleDuePQEvents() {
 			match.StackItem = nil
 			match.handleStackResolution()
 		case "Input":
-			fmt.Println("test3")
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
 			match.PhaseItem = nil
@@ -155,6 +153,12 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 }
 
 func PushPhaseEvent(match *Match, activeTime int64, phase int) {
+
+	// clear previous phase events
+	if match.PhaseItem != nil {
+		match.EventPQueue.Remove(match.PhaseItem)
+	}
+
 	newPhase := &eventpq.NewPhaseEvent{
 		WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD),
 		Phase:    phase,
