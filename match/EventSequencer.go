@@ -181,6 +181,10 @@ func pushRevealEvent(match *Match, activeTime int64) {
 
 func scheduleEarliestSimItem(match *Match) {
 
+	if match.GameState.PausePhase != state.PausePhaseSimulating {
+		return
+	}
+
 	// get the timestamp of earliest in the SimulationPQ
 	earliestSimItem := match.SimulationPQ.Peek()
 

@@ -76,7 +76,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 					pushRevealEvent(match, match.PendingRevealTime)
 				}
 
-			} else {
+			} else { // unpause to sim
 				gameState.PausePhase = state.PausePhaseSimulating
 				gameState.SimPauseOffset += transitionAtWallTime - gameState.FullPauseStartedAt
 				gameState.FullPauseOffset += transitionAtWallTime - gameState.FullPauseStartedAt
