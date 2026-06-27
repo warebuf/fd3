@@ -26,8 +26,6 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	oldLogsSize := len(match.EventLog)
 	result := ScheduleDeclareCard(
 		match.GameState,
-		&match.SimulationPQ,
-		&match.AbilityIDCounter,
 		&match.EventLog,
 		&match.NextUpdateID,
 		next.TeamIndex,

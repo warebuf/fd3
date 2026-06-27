@@ -19,17 +19,17 @@ type GameState struct {
 	UpdateID      int
 	WallTimestamp int64 // wall clock time when this state was last updated
 
-	Phase        int   // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
+	Phase                int   // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
 	PhaseEndInActiveTime int64 // active time (ms) when the current phase ends; 0 if no fixed end
 
 	// pause related
-	PausePhase      int      // 0: indefinite pause, 1: sim pause, 2: simulating
+	PausePhase         int // 0: indefinite pause, 1: sim pause, 2: simulating
 	FullPauseStartedAt int64
 	SimPauseStartedAt  int64
-	FullPauseOffset int64    // total accumulated full-pause ms relative to wall ms
-	SimPauseOffset  int64    // total accumulated sim-pause ms relative to wall ms
-	TeamPaused      int      // which team paused the game; -1 means no team is paused
-	TimeBank        []int64  // remaining pause ms per team
+	FullPauseOffset    int64   // total accumulated full-pause ms relative to wall ms
+	SimPauseOffset     int64   // total accumulated sim-pause ms relative to wall ms
+	TeamPaused         int     // which team paused the game; -1 means no team is paused
+	TimeBank           []int64 // remaining pause ms per team
 
 	// card states
 	Cards      []Card
@@ -51,17 +51,17 @@ type GameState struct {
 
 func DeepCopyGameState(prevState *GameState) *GameState {
 	newState := &GameState{
-		UpdateID:        prevState.UpdateID,
-		WallTimestamp:   prevState.WallTimestamp,
-		Phase:           prevState.Phase,
-		PhaseEndInActiveTime:    prevState.PhaseEndInActiveTime,
-		PausePhase:      prevState.PausePhase,
-		FullPauseStartedAt: prevState.FullPauseStartedAt,
-		SimPauseStartedAt:  prevState.SimPauseStartedAt,
-		FullPauseOffset: prevState.FullPauseOffset,
-		SimPauseOffset:  prevState.SimPauseOffset,
-		TeamPaused:      prevState.TeamPaused,
-		Winner:          prevState.Winner,
+		UpdateID:             prevState.UpdateID,
+		WallTimestamp:        prevState.WallTimestamp,
+		Phase:                prevState.Phase,
+		PhaseEndInActiveTime: prevState.PhaseEndInActiveTime,
+		PausePhase:           prevState.PausePhase,
+		FullPauseStartedAt:   prevState.FullPauseStartedAt,
+		SimPauseStartedAt:    prevState.SimPauseStartedAt,
+		FullPauseOffset:      prevState.FullPauseOffset,
+		SimPauseOffset:       prevState.SimPauseOffset,
+		TeamPaused:           prevState.TeamPaused,
+		Winner:               prevState.Winner,
 	}
 
 	// Cards

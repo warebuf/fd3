@@ -42,22 +42,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	}
 
 	if currSimItem.CardID >= 0 {
-		if currSimItem.Type == state.SimItemSummonResolve {
-			teamIndex := gs.Cards[currSimItem.CardID].Team
-			gs.Cards[currSimItem.CardID].Status = state.CardStatusUnitActive
-
-			*logList = append(*logList, logs.SummonResolutionLog{
-				UpdateID:      *UpdateID,
-				WallTimestamp: executeAtWallTime,
-				Type:          logs.SummonResolution,
-				TeamIndex:     teamIndex,
-				CardIndex:     currSimItem.CardID,
-			})
-			*UpdateID += 1
-
-			ScheduleRecurringAbilities(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, currSimItem.PopAtSimTime+constants.LEAD)
-
-		} else if currSimItem.Type == state.SimItemRecurring {
+		if currSimItem.Type == state.SimItemRecurring {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
 				for _, t := range gs.Cards[currSimItem.CardID].AbilityTimers {
 					if t.AbilityID == currSimItem.AbilityID {

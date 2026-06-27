@@ -34,7 +34,20 @@ func (match *Match) handleStackResolution() {
 
 	card := &gs.Cards[stackTop.CardID]
 	if card.Zone == state.ZoneStack {
-		if card.Type == state.CardTypeContinuous {
+		if card.Type == state.CardTypeUnit {
+			card.Zone = state.ZoneField
+			card.Status = state.CardStatusUnitActive
+			gs.Field[card.Team] = append(gs.Field[card.Team], stackTop.CardID)
+			match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.SummonResolution,
+				TeamIndex:     card.Team,
+				CardIndex:     stackTop.CardID,
+			})
+			match.NextUpdateID++
+			sim.ScheduleRecurringAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, wallTime-gs.SimPauseOffset)
+		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive
 			card.Charges = defs.CardDefs[card.DefNo].Charges

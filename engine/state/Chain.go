@@ -5,6 +5,7 @@ const (
 	StackItemAbility             = 1
 	StackItemSpell               = 2
 	StackItemContinuousActivation = 3
+	StackItemSummon              = 4
 )
 
 type StackItem struct {

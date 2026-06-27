@@ -207,7 +207,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
-		result := ScheduleChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		result := ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		switch result {
 		case DeclareChainStarted:
 			scheduleStackResolution(match)
@@ -220,8 +220,6 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	oldLogsSize := len(match.EventLog)
 	result := ScheduleDeclareCard(
 		gs,
-		&match.SimulationPQ,
-		&match.AbilityIDCounter,
 		&match.EventLog,
 		&match.NextUpdateID,
 		teamIndex,
@@ -229,11 +227,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		ie.WallTime.UnixMilli(),
 	)
 
-	switch result {
-	case DeclareSuccess:
-		scheduleEarliestSimItem(match)
-		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
-	case DeclareChainStarted:
+	if result == DeclareChainStarted {
 		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 		scheduleStackResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
@@ -278,8 +272,6 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 
 			result := ScheduleDeclareCard(
 				gs,
-				&match.SimulationPQ,
-				&match.AbilityIDCounter,
 				&match.EventLog,
 				&match.NextUpdateID,
 				t,

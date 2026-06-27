@@ -31,8 +31,7 @@ func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) {
 type SimItemType int
 
 const (
-	SimItemSummonResolve SimItemType = iota
-	SimItemRecurring
+	SimItemRecurring SimItemType = iota
 	SimItemDraw
 	SimItemStructureRegen
 )
