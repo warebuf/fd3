@@ -153,21 +153,19 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// during reveal, always queue — chaining during reveal requires a separate input type
+	// during reveal, always queue — chaining during reveal requires a different input type
 	if gs.Phase == state.PhaseReveal {
 		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		return
 	}
 
-	// during full pause, only queue spells/continuous so they fire when sim resumes
+	// during full pause, only queue
 	if gs.PausePhase == state.PausePhaseFullPause {
-		if card.Type == state.CardTypeSpell || card.Type == state.CardTypeContinuous {
-			match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
-		}
+		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		return
 	}
 
-	// simulating or sim pause: queue
+	// simulating or sim pause: queue, if autosummon size is 1, try to play immediately
 	autosummonIndex := match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 	if autosummonIndex == 1 {
 		oldLogsSize := len(match.EventLog)
@@ -207,9 +205,8 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
-		result := ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
-		switch result {
-		case DeclareChainStarted:
+		success := ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		if success {
 			scheduleStackResolution(match)
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		}
@@ -218,7 +215,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	// simulating: try to play immediately, no queue fallback
 	oldLogsSize := len(match.EventLog)
-	result := ScheduleDeclareCard(
+	success := ScheduleDeclareCard(
 		gs,
 		&match.EventLog,
 		&match.NextUpdateID,
@@ -227,7 +224,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		ie.WallTime.UnixMilli(),
 	)
 
-	if result == DeclareChainStarted {
+	if success {
 		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 		scheduleStackResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
@@ -270,7 +267,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				break
 			}
 
-			result := ScheduleDeclareCard(
+			success := ScheduleDeclareCard(
 				gs,
 				&match.EventLog,
 				&match.NextUpdateID,
@@ -279,7 +276,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				executeAtWallTime-constants.LEAD,
 			)
 
-			if result == DeclareConditionsNotMet || result == DeclareErrBadInput {
+			if success == false {
 				break
 			}
 
@@ -294,11 +291,9 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 			})
 			match.NextUpdateID++
 
-			if result == DeclareChainStarted {
-				match.TransitionPauseState(1, executeAtWallTime, -1)
-				scheduleStackResolution(match)
-				return
-			}
+			match.TransitionPauseState(1, executeAtWallTime, -1)
+			scheduleStackResolution(match)
+
 		}
 	}
 

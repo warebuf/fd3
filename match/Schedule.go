@@ -10,16 +10,10 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-const (
-	DeclareErrBadInput      = 0
-	DeclareChainStarted     = 1
-	DeclareConditionsNotMet = 2
-)
-
-func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) int {
+func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
-		return DeclareErrBadInput
+		return false
 	}
 	handIndex := -1
 	for i := 0; i < len(gs.Hand[teamIndex]); i++ {
@@ -28,25 +22,25 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		}
 	}
 	if handIndex < 0 {
-		return DeclareErrBadInput
+		return false
 	}
 
 	if gs.PausePhase == state.PausePhaseFullPause {
-		return DeclareErrBadInput
+		return false
 	}
 
 	if gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
-		return DeclareErrBadInput
+		return false
 	}
 
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
-		return DeclareErrBadInput
+		return false
 	}
 
 	// mana check last
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
-		return DeclareConditionsNotMet
+		return false
 	}
 
 	gs.Mana[teamIndex] -= cost
@@ -77,10 +71,9 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	}
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 	addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
-	return DeclareChainStarted
+	return true
 
 }
-
 
 func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
 	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
@@ -96,7 +89,6 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 	}
 	heap.Push(pq, item)
 }
-
 
 func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
