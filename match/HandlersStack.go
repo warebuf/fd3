@@ -46,7 +46,7 @@ func (match *Match) handleStackResolution() {
 				CardIndex:     stackTop.CardID,
 			})
 			match.NextUpdateID++
-			sim.ScheduleRecurringAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, wallTime-gs.SimPauseOffset)
+			sim.ScheduleRecurringAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive

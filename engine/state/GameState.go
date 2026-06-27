@@ -23,9 +23,9 @@ type GameState struct {
 	PhaseEndInActiveTime int64 // active time (ms) when the current phase ends; 0 if no fixed end
 
 	// pause related
-	PausePhase         int // 0: indefinite pause, 1: sim pause, 2: simulating
-	FullPauseStartedAt int64
-	SimPauseStartedAt  int64
+	PausePhase         int     // 0: indefinite pause, 1: sim pause, 2: simulating
+	FullPauseStartedAt int64   // denominated in wall time
+	SimPauseStartedAt  int64   // denominated in wall time
 	FullPauseOffset    int64   // total accumulated full-pause ms relative to wall ms
 	SimPauseOffset     int64   // total accumulated sim-pause ms relative to wall ms
 	TeamPaused         int     // which team paused the game; -1 means no team is paused

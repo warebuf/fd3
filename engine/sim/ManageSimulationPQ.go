@@ -46,7 +46,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
 				for _, t := range gs.Cards[currSimItem.CardID].AbilityTimers {
 					if t.AbilityID == currSimItem.AbilityID {
-						scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD)
+						scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 						break
 					}
 				}
@@ -174,16 +174,17 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 		Type:             state.SimItemStructureRegen,
 		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
 	})
+
 }
 
-func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startTime int64) {
+func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
 	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
 	for a := 0; a < len(recurring); a++ {
-		scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startTime)
+		scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
 	}
 }
 
-func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64) {
+func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64, wallTimestamp int64) {
 	teamIndex := gs.Cards[cardID].Team
 	entry := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring[abilityIdx]
 
@@ -215,9 +216,10 @@ func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})
+
 	*logList = append(*logList, logs.AddAbilityTimerLog{
 		UpdateID:         *UpdateID,
-		WallTimestamp:    startAtSimTime + gs.SimPauseOffset,
+		WallTimestamp:    wallTimestamp,
 		Type:             logs.AddAbilityTimer,
 		CardIndex:        cardID,
 		AbilityID:        abilityID,
