@@ -102,6 +102,14 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 			gs.Cards[cardID].AbilityTimers = []state.AbilityTimer{}
 			gs.Cards[cardID].Status = state.CardStatusDefault
 		}
+		// clear any preselected targets pointing at destroyed cards
+		for i := range gs.Cards {
+			for j := range gs.Cards[i].Targets {
+				if destroyedIDs[gs.Cards[i].Targets[j]] {
+					gs.Cards[i].Targets[j] = -1
+				}
+			}
+		}
 		*logList = append(*logList, logs.DestroyCardLog{
 			UpdateID:        *UpdateID,
 			WallTimestamp:   executeAtWallTime,
@@ -133,6 +141,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 	case state.EffectCounter:
 		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
+
+	case state.EffectGainCharge:
+		effects.ApplyEffectGainCharge(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)

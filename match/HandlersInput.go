@@ -36,6 +36,10 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleUseContinuous(ie)
 	case "instant":
 		match.handleInstantPlay(ie)
+	case "preselect":
+		match.handlePreselect(ie)
+	case "unitAbility":
+		match.handleUnitAbility(ie)
 	}
 
 }
@@ -549,6 +553,91 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		match.processAutoSummonQueue(executeTime, -1)
 		match.publish(executeTime, oldLogsSize)
 	}
+
+}
+
+func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
+
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay {
+		return
+	}
+	if gs.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
+	cardIndex := ie.CardIndex
+	teamIndex := ie.TeamIndex
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return
+	}
+
+	card := gs.Cards[cardIndex]
+	if card.Zone != state.ZoneField || card.Team != teamIndex {
+		return
+	}
+	if card.Charges <= 0 {
+		return
+	}
+
+	def := defs.CardDefs[card.DefNo]
+	if len(def.UseEffects) == 0 {
+		return
+	}
+
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	for _, eff := range def.UseEffects {
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex), cardIndex, executeAtWallTime)
+	}
+
+	gs.Cards[cardIndex].Charges--
+	match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
+		UpdateID:         match.NextUpdateID,
+		WallTimestamp:    executeAtWallTime,
+		Type:             logs.RemoveCharge,
+		TeamIndex:        teamIndex,
+		CardID:           cardIndex,
+		ChargesRemaining: gs.Cards[cardIndex].Charges,
+	})
+	match.NextUpdateID++
+
+	match.publish(executeAtWallTime, oldLogsSize)
+
+}
+
+func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
+
+	gs := match.GameState
+	cardIndex := ie.CardIndex
+	teamIndex := ie.TeamIndex
+	targetCardIndex := ie.TargetCardIndex
+
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return
+	}
+
+	card := gs.Cards[cardIndex]
+	if card.Zone != state.ZoneField || card.Team != teamIndex {
+		return
+	}
+
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	gs.Cards[cardIndex].Targets[0] = targetCardIndex
+	match.EventLog = append(match.EventLog, logs.PreselectLog{
+		UpdateID:        match.NextUpdateID,
+		WallTimestamp:   executeAtWallTime,
+		Type:            logs.Preselect,
+		TeamIndex:       teamIndex,
+		CardID:          cardIndex,
+		TargetCardIndex: targetCardIndex,
+	})
+	match.NextUpdateID++
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }
 

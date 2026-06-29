@@ -16,7 +16,22 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	enemyField := gs.Field[enemyTeam]
 
 	targetIdx := -1
-	if len(enemyField) > 0 {
+
+	// user-targeted: use preselected target if still on the enemy field
+	if eff.A == 1 {
+		preselected := gs.Cards[unitIndex].Targets[0]
+		if preselected != -1 {
+			for _, ci := range enemyField {
+				if ci == preselected {
+					targetIdx = preselected
+					break
+				}
+			}
+		}
+	}
+
+	// random or priority targeting (also fallback for user-targeted with no valid preselect)
+	if targetIdx == -1 && len(enemyField) > 0 {
 		pool := enemyField
 		var tauntTargets []int
 		for _, ci := range enemyField {
@@ -60,29 +75,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 		*UpdateID += 1
 
 		if gs.Cards[targetIdx].HP <= 0 {
-			for i, ci := range gs.Field[enemyTeam] {
-				if ci == targetIdx {
-					gs.Field[enemyTeam] = append(gs.Field[enemyTeam][:i], gs.Field[enemyTeam][i+1:]...)
-					break
-				}
-			}
-			gs.Cards[targetIdx].Zone = state.ZoneGraveyard
-			gs.Grave[enemyTeam] = append(gs.Grave[enemyTeam], targetIdx)
-
-			pq.RemoveSimItemByCardID(targetIdx)
-			gs.Cards[targetIdx].AbilityTimers = []state.AbilityTimer{}
-
-			*logList = append(*logList, logs.DestroyCardLog{
-				UpdateID:        *UpdateID,
-				WallTimestamp:   executeAtWallTime,
-				Type:            logs.DestroyCard,
-				TeamIndex:       teamIndex,
-				CardIndex:       targetIdx,
-				TargetAll:       false,
-				TargetTeamIndex: enemyTeam,
-				TargetCardIndex: targetIdx,
-			})
-			*UpdateID += 1
+			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIdx, teamIndex, executeAtWallTime)
 		}
 	} else {
 		gs.Structures[enemyTeam].HP -= damage

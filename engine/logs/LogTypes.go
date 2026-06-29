@@ -30,6 +30,8 @@ const (
 	PlayContinuous
 	RemoveContinuous
 	RemoveCharge
+	AddCharge
+	Preselect
 )
 
 type PhaseLog struct {
@@ -248,4 +250,22 @@ type RemoveChargeLog struct {
 	TeamIndex        int
 	CardID           int
 	ChargesRemaining int
+}
+
+type AddChargeLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardID        int
+	Charges       int
+}
+
+type PreselectLog struct {
+	WallTimestamp   int64
+	UpdateID        int
+	Type            LogType
+	TeamIndex       int
+	CardID          int
+	TargetCardIndex int
 }

@@ -10,10 +10,11 @@ type Event interface {
 }
 
 type InputEvent struct {
-	WallTime  time.Time
-	Type      string
-	TeamIndex   int
-	CardIndex int
+	WallTime        time.Time
+	Type            string
+	TeamIndex       int
+	CardIndex       int
+	TargetCardIndex int
 }
 
 func (e *InputEvent) GetWallTime() time.Time { return e.WallTime }

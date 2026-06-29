@@ -2,7 +2,6 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
@@ -50,7 +49,6 @@ func (match *Match) handleStackResolution() {
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive
-			card.Charges = defs.CardDefs[card.DefNo].Charges
 			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], stackTop.CardID)
 			match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
 				UpdateID:      match.NextUpdateID,

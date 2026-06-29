@@ -1,6 +1,8 @@
 package defs
 
 import (
+	"math"
+
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -32,6 +34,7 @@ type CardDef struct {
 	UseEffects []state.Effect
 	UseCost    int
 	Charges    int
+	MaxCharges int
 
 	BaseHP int
 	Cost   int
@@ -164,7 +167,32 @@ var CardDefs = []CardDef{
 		Description: "Use (50): Draw a card. 3 uses.",
 		Cost:        80,
 		Charges:     3,
+		MaxCharges:  math.MaxInt,
 		UseCost:     50,
 		UseEffects:  []state.Effect{{Type: state.EffectDraw, B: 1}},
+	},
+	10: {
+		Type:        state.CardTypeUnit,
+		Name:        "Fallen Soldier 2",
+		Description: "Maximum Charges: 3. Accumulate 1 charge every 30 seconds. Spend a charge to deal 1 damage to a target.",
+		BaseHP:      2,
+		Cost:        60,
+		Charges:    0,
+		MaxCharges: 3,
+		Recurring: []Recurring{
+			{
+				Milliseconds: 30000,
+				Effects: []state.Effect{
+					{Type: state.EffectGainCharge},
+				},
+			},
+		},
+		UseEffects: []state.Effect{
+			{
+				Type: state.EffectAttack,
+				A:    1, // targetType, 0: random, 1: user-targetted
+				B:    1, // amount
+			},
+		},
 	},
 }

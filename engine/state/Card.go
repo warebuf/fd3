@@ -70,5 +70,7 @@ type Card struct {
 	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
 	AbilityTimers []AbilityTimer
 	Charges       int
+	MaxCharges    int
+	Targets       [1]int
 	AuraModifiers []AuraModifier
 }
