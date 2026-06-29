@@ -422,6 +422,14 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 		return
 	}
 
+	allWereReady := true
+	for _, r := range match.GameState.Ready {
+		if !r {
+			allWereReady = false
+			break
+		}
+	}
+
 	match.GameState.Ready[teamIndex] = false
 
 	oldLogsSize := len(match.EventLog)
@@ -433,6 +441,11 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
+
+	if allWereReady {
+		PushPhaseEvent(match, match.GameState.PhaseEndInActiveTime, state.PhaseReveal)
+	}
+
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }
@@ -456,6 +469,16 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 
 	card := gs.Cards[cardIndex]
 	if card.Zone != state.ZoneContinuous || card.Team != teamIndex {
+		return
+	}
+
+	pendingActivations := 0
+	for _, item := range gs.Stack {
+		if item.Type == state.StackItemContinuousActivation && item.CardID == cardIndex {
+			pendingActivations++
+		}
+	}
+	if pendingActivations >= card.Charges {
 		return
 	}
 
@@ -623,6 +646,9 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 	if card.Zone != state.ZoneField || card.Team != teamIndex {
 		return
 	}
+	if !isValidTarget(gs, card.TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+		return
+	}
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
@@ -639,6 +665,34 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 	match.NextUpdateID++
 	match.publish(executeAtWallTime, oldLogsSize)
 
+}
+
+func isValidTarget(gs *state.GameState, targetFlags int, sourceIdx int, targetIdx int, teamIndex int) bool {
+	if targetFlags == 0 {
+		return false
+	}
+	if targetIdx < 0 || targetIdx >= len(gs.Cards) {
+		return false
+	}
+	target := gs.Cards[targetIdx]
+	if targetIdx == sourceIdx {
+		return targetFlags&defs.TargetSelf != 0
+	}
+	switch {
+	case target.Team == teamIndex && target.Zone == state.ZoneField:
+		return targetFlags&defs.TargetOwnField != 0
+	case target.Team != teamIndex && target.Zone == state.ZoneField:
+		return targetFlags&defs.TargetOppField != 0
+	case target.Team == teamIndex && target.Zone == state.ZoneHand:
+		return targetFlags&defs.TargetOwnHand != 0
+	case target.Team != teamIndex && target.Zone == state.ZoneHand:
+		return targetFlags&defs.TargetOppHand != 0
+	case target.Team == teamIndex && target.Zone == state.ZoneContinuous:
+		return targetFlags&defs.TargetOwnCont != 0
+	case target.Team != teamIndex && target.Zone == state.ZoneContinuous:
+		return targetFlags&defs.TargetOppCont != 0
+	}
+	return false
 }
 
 func nextStageOrder(cards []state.Card, team int) int {

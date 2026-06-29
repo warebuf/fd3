@@ -9,15 +9,21 @@ func ApplyEffectDraw(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 	teamIndex := eff.A
 	numCards := eff.B
 
+	actualDrawn := 0
 	for i := 0; i < numCards; i++ {
-		if len(gs.Deck[teamIndex]) == 0 { // TODO: if deck is empty
-			return
+		if len(gs.Deck[teamIndex]) == 0 {
+			break
 		}
 
 		cardIdx := gs.Deck[teamIndex][0]
 		gs.Deck[teamIndex] = gs.Deck[teamIndex][1:]              // draw top card
 		gs.Hand[teamIndex] = append(gs.Hand[teamIndex], cardIdx) // move to hand
 		gs.Cards[cardIdx].Zone = state.ZoneHand                  // update card state
+		actualDrawn++
+	}
+
+	if actualDrawn == 0 {
+		return
 	}
 
 	*logList = append(*logList, logs.DrawLog{
@@ -25,7 +31,7 @@ func ApplyEffectDraw(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 		WallTimestamp: executeAtWallTime,
 		Type:          logs.Draw,
 		TeamIndex:     teamIndex,
-		NumCards:      numCards,
+		NumCards:      actualDrawn,
 	})
 	*UpdateID += 1
 }

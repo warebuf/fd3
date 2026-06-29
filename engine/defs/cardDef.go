@@ -6,6 +6,16 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+const (
+	TargetSelf     = 1 << iota // the card itself
+	TargetOwnField             // friendly field cards (excluding self)
+	TargetOppField             // opponent field cards
+	TargetOwnHand              // friendly hand cards
+	TargetOppHand              // opponent hand cards
+	TargetOwnCont              // friendly continuous zone
+	TargetOppCont              // opponent continuous zone
+)
+
 type Recurring struct {
 	Milliseconds int64
 	Effects      []state.Effect
@@ -30,6 +40,8 @@ type CardDef struct {
 	OnPlay    []state.Effect
 	Recurring []Recurring
 	Aura      []AuraEffect
+
+	TargetFlags int
 
 	UseEffects []state.Effect
 	UseCost    int
@@ -177,8 +189,9 @@ var CardDefs = []CardDef{
 		Description: "Maximum Charges: 3. Accumulate 1 charge every 30 seconds. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        60,
-		Charges:    0,
-		MaxCharges: 3,
+		Charges:     0,
+		MaxCharges:  3,
+		TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
 		Recurring: []Recurring{
 			{
 				Milliseconds: 30000,

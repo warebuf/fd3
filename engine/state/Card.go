@@ -71,6 +71,7 @@ type Card struct {
 	AbilityTimers []AbilityTimer
 	Charges       int
 	MaxCharges    int
+	TargetFlags   int
 	Targets       [1]int
 	AuraModifiers []AuraModifier
 }

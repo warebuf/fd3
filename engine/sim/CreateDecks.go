@@ -71,6 +71,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Zone:          state.ZoneDeck,
 				Charges:       def.Charges,
 				MaxCharges:    def.MaxCharges,
+				TargetFlags:   def.TargetFlags,
 				Targets:       [1]int{-1},
 				AbilityTimers: []state.AbilityTimer{},
 				AuraModifiers: []state.AuraModifier{},

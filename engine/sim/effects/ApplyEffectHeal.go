@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/warebuf/fd3/engine/logs"
@@ -19,7 +20,11 @@ func ApplyEffectHeal(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 
 	targetIdx := friendlyField[rand.Intn(len(friendlyField))]
 
-	gs.Cards[targetIdx].HP += amount
+	if amount > math.MaxInt-gs.Cards[targetIdx].HP {
+		gs.Cards[targetIdx].HP = math.MaxInt
+	} else {
+		gs.Cards[targetIdx].HP += amount
+	}
 	*logList = append(*logList, logs.HealLog{
 		UpdateID:        *UpdateID,
 		WallTimestamp:   executeAtWallTime,

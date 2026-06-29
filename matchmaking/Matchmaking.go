@@ -102,13 +102,7 @@ func (m *Matchmaker) loop(MatchMap map[string]*match.Match) {
 					case selected[i].Found <- matchObj.ID:
 					default:
 					}
-					select {
-					case selected[i].Found <- matchObj.ID:
-					default:
-					}
 					m.queue.Delete(selected[i].TicketID)
-					m.queue.Delete(selected[i].TicketID)
-					m.inGame[selected[i].TicketID] = struct{}{}
 					m.inGame[selected[i].TicketID] = struct{}{}
 				}
 			}

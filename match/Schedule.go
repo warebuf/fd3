@@ -12,6 +12,10 @@ import (
 
 func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return false
+	}
+
 	if gs.Cards[cardIndex].Zone != state.ZoneHand {
 		return false
 	}
