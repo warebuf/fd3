@@ -16,11 +16,17 @@ type handMessage struct {
 	CardIndex int    `json:"CardIndex"`
 }
 
+type preselectMessage struct {
+	Type            string `json:"Type"`
+	CardIndex       int    `json:"CardIndex"`
+	TargetCardIndex int    `json:"TargetCardIndex"`
+}
+
 type readyMessage struct {
 	Type string `json:"type"`
 }
 
-func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int) {
+func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int, targetCardIndex int) {
 
 	// check if client is in the whitelist
 	clientIdx, ok := match.Whitelist[clientID]
@@ -36,10 +42,11 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 	}
 
 	ie := &eventpq.InputEvent{
-		WallTime:  timestamp,
-		Type:      eventType,
-		TeamIndex: int(clientIdx),
-		CardIndex: cardIndex,
+		WallTime:        timestamp,
+		Type:            eventType,
+		TeamIndex:       int(clientIdx),
+		CardIndex:       cardIndex,
+		TargetCardIndex: targetCardIndex,
 	}
 
 	match.InputEventChan <- ie
@@ -116,55 +123,69 @@ func (c *Client) Read() {
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "stage", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "stage", c.ID, msg.CardIndex, -1)
 
 		case "unstage":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unstage", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unstage", c.ID, msg.CardIndex, -1)
 
 		case "autosummon":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex, -1)
 
 		case "unautosummon":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex, -1)
 
 		case "active":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "active", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "active", c.ID, msg.CardIndex, -1)
 
 		case "ready":
 			var msg readyMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, 0)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, 0, -1)
 
 		case "unready":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, 0)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, 0, -1)
 
 		case "instant":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex, -1)
+
+		case "unitAbility":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unitAbility", c.ID, msg.CardIndex, -1)
+
+		case "preselect":
+			var msg preselectMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "preselect", c.ID, msg.CardIndex, msg.TargetCardIndex)
 
 		case "fullPause":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0, -1)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
