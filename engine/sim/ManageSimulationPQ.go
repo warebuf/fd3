@@ -46,7 +46,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
 				for _, t := range gs.Cards[currSimItem.CardID].AbilityTimers {
 					if t.AbilityID == currSimItem.AbilityID {
-						scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
+						ScheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 						break
 					}
 				}
@@ -191,13 +191,24 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
 	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
 	for a := 0; a < len(recurring); a++ {
-		scheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
+		ScheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
 	}
 }
 
-func scheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64, wallTimestamp int64) {
-	teamIndex := gs.Cards[cardID].Team
-	entry := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring[abilityIdx]
+func ScheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64, wallTimestamp int64) {
+	card := gs.Cards[cardID]
+	entry := defs.CardDefs[card.DefNo].Recurring[abilityIdx]
+
+	// don't reschedule a gain-charge ability when the card is already at max charges
+	if card.MaxCharges > 0 && card.Charges >= card.MaxCharges {
+		for _, eff := range entry.Effects {
+			if eff.Type == state.EffectGainCharge {
+				return
+			}
+		}
+	}
+
+	teamIndex := card.Team
 
 	effs := make([]state.Effect, len(entry.Effects))
 	for b := 0; b < len(entry.Effects); b++ {

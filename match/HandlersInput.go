@@ -616,6 +616,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex), cardIndex, executeAtWallTime)
 	}
 
+	wasAtMax := card.MaxCharges > 0 && card.Charges == card.MaxCharges
 	gs.Cards[cardIndex].Charges--
 	match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 		UpdateID:         match.NextUpdateID,
@@ -626,6 +627,19 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		ChargesRemaining: gs.Cards[cardIndex].Charges,
 	})
 	match.NextUpdateID++
+
+	// if the card was at max charges, the gain-charge recurring was paused — restart it now
+	if wasAtMax {
+		startAtSimTime := executeAtWallTime - gs.SimPauseOffset
+		for abilityIdx, r := range def.Recurring {
+			for _, eff := range r.Effects {
+				if eff.Type == state.EffectGainCharge {
+					sim.ScheduleRecurringAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, cardIndex, abilityIdx, startAtSimTime, executeAtWallTime)
+					break
+				}
+			}
+		}
+	}
 
 	match.publish(executeAtWallTime, oldLogsSize)
 
