@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/warebuf/fd3/engine/logs"
