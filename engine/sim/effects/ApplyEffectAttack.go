@@ -18,7 +18,14 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 	targetIdx := -1
 
-	// user-targeted: use preselected target if still on the enemy field
+	var tauntTargets []int
+	for _, ci := range enemyField {
+		if gs.Cards[ci].Taunt {
+			tauntTargets = append(tauntTargets, ci)
+		}
+	}
+
+	// user-targeted: use preselected target if still on the enemy field, but taunt redirects
 	if eff.A == 1 {
 		preselected := gs.Cards[unitIndex].Targets[0]
 		if preselected != -1 {
@@ -29,17 +36,14 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				}
 			}
 		}
+		if len(tauntTargets) > 0 && (targetIdx == -1 || !gs.Cards[targetIdx].Taunt) {
+			targetIdx = tauntTargets[rand.Intn(len(tauntTargets))]
+		}
 	}
 
 	// random or priority targeting (also fallback for user-targeted with no valid preselect)
 	if targetIdx == -1 && len(enemyField) > 0 {
 		pool := enemyField
-		var tauntTargets []int
-		for _, ci := range enemyField {
-			if gs.Cards[ci].Taunt {
-				tauntTargets = append(tauntTargets, ci)
-			}
-		}
 		if len(tauntTargets) > 0 {
 			pool = tauntTargets
 		}
@@ -62,11 +66,12 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	}
 
 	if targetIdx >= 0 {
-		if damage >= gs.Cards[targetIdx].HP {
-			gs.Cards[targetIdx].HP = 0
-		} else {
-			gs.Cards[targetIdx].HP -= damage
+		// allow negative HP but clamp to math.MinInt; wrap-around check avoids overflow in the guard itself
+		newHP := gs.Cards[targetIdx].HP - damage
+		if damage > 0 && newHP >= gs.Cards[targetIdx].HP {
+			newHP = math.MinInt
 		}
+		gs.Cards[targetIdx].HP = newHP
 		*logList = append(*logList, logs.AttackLog{
 			UpdateID:        *UpdateID,
 			WallTimestamp:   executeAtWallTime,
