@@ -27,9 +27,9 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 
 	// clear any preselected targets pointing at this card
 	for i := range gs.Cards {
-		for j := range gs.Cards[i].Targets {
-			if gs.Cards[i].Targets[j] == cardID {
-				gs.Cards[i].Targets[j] = -1
+		for j := range gs.Cards[i].Actives {
+			if gs.Cards[i].Actives[j].Target == cardID {
+				gs.Cards[i].Actives[j].Target = -1
 			}
 		}
 	}

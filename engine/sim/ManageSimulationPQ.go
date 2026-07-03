@@ -104,9 +104,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 		// clear any preselected targets pointing at destroyed cards
 		for i := range gs.Cards {
-			for j := range gs.Cards[i].Targets {
-				if destroyedIDs[gs.Cards[i].Targets[j]] {
-					gs.Cards[i].Targets[j] = -1
+			for j := range gs.Cards[i].Actives {
+				if destroyedIDs[gs.Cards[i].Actives[j].Target] {
+					gs.Cards[i].Actives[j].Target = -1
 				}
 			}
 		}
@@ -143,7 +143,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
 
 	case state.EffectGainCharge:
-		effects.ApplyEffectGainCharge(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
+		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
@@ -199,10 +199,15 @@ func ScheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 	card := gs.Cards[cardID]
 	entry := defs.CardDefs[card.DefNo].Recurring[abilityIdx]
 
-	// don't reschedule a gain-charge ability when the card is already at max charges
-	if card.MaxCharges > 0 && card.Charges >= card.MaxCharges {
-		for _, eff := range entry.Effects {
-			if eff.Type == state.EffectGainCharge {
+	if entry.Milliseconds == 0 {
+		return // unused Recurring slot
+	}
+
+	// don't reschedule a gain-charge ability when its targeted Active slot is already at max charges
+	for _, eff := range entry.Effects {
+		if eff.Type == state.EffectGainCharge {
+			active := card.Actives[eff.A]
+			if active.MaxCharges > 0 && active.Charges >= active.MaxCharges {
 				return
 			}
 		}
@@ -210,9 +215,12 @@ func ScheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 
 	teamIndex := card.Team
 
-	effs := make([]state.Effect, len(entry.Effects))
-	for b := 0; b < len(entry.Effects); b++ {
-		effs[b] = FulfillEffectTemplate(entry.Effects[b], teamIndex, cardID)
+	var effs []state.Effect
+	for _, e := range entry.Effects {
+		if e.Type == 0 {
+			continue // unused Effect slot
+		}
+		effs = append(effs, FulfillEffectTemplate(e, teamIndex, cardID))
 	}
 
 	abilityID := *abilityIDCounter

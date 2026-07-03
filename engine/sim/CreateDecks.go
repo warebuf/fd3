@@ -69,12 +69,16 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Team:          team,
 				Type:          def.Type,
 				Zone:          state.ZoneDeck,
-				Charges:       def.Charges,
-				MaxCharges:    def.MaxCharges,
-				TargetFlags:   def.TargetFlags,
-				Targets:       [1]int{-1},
 				AbilityTimers: []state.AbilityTimer{},
 				AuraModifiers: []state.AuraModifier{},
+			}
+			for i, ability := range def.Active {
+				card.Actives[i] = state.ActiveState{
+					Charges:     ability.Charges,
+					MaxCharges:  ability.MaxCharges,
+					Target:      -1,
+					TargetFlags: ability.TargetFlags,
+				}
 			}
 
 			gs.Cards = append(gs.Cards, card)

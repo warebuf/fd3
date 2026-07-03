@@ -51,6 +51,16 @@ type AbilityTimer struct {
 	ExecuteAtSimTime int64
 }
 
+// ActiveState is the runtime state for one Active ability slot on a card
+// (a card can have up to 3, matching defs.CardDef.Active's [3]Ability).
+type ActiveState struct {
+	Charges     int
+	MaxCharges  int
+	Target      int // preselected target for this ability slot, -1 if none
+	TargetFlags int
+	Pending     int // activations currently in flight on the stack, not yet resolved
+}
+
 type Card struct {
 	// descriptive info
 	DefNo       int // the card's serial number
@@ -69,9 +79,6 @@ type Card struct {
 	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
 	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
 	AbilityTimers []AbilityTimer
-	Charges       int
-	MaxCharges    int
-	TargetFlags   int
-	Targets       [1]int
+	Actives       [3]ActiveState
 	AuraModifiers []AuraModifier
 }
