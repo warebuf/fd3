@@ -28,7 +28,7 @@ type Ability struct {
 	Cost         int
 	Charges      int
 	MaxCharges   int
-	Milliseconds int64 // only used by Recurring
+	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
 }
 
@@ -43,9 +43,9 @@ type CardDef struct {
 
 	RequiresStackTarget bool
 
-	OnPlay    [3]Ability
-	Recurring [3]Ability
-	Active    [3]Ability
+	OnPlay [3]Ability
+	OnTick [3]Ability
+	Active [3]Ability
 
 	BaseHP int
 	Cost   int
@@ -59,7 +59,7 @@ var CardDefs = []CardDef{
 		Description: "Deal 1 random damage every 20 seconds",
 		BaseHP:      2,
 		Cost:        60,
-		Recurring: [3]Ability{{
+		OnTick: [3]Ability{{
 			Milliseconds: 20000,
 			Effects: [3]state.Effect{
 				{
@@ -91,7 +91,7 @@ var CardDefs = []CardDef{
 		Description: "Gain 10 mana every 10 seconds",
 		BaseHP:      2,
 		Cost:        60,
-		Recurring: [3]Ability{{
+		OnTick: [3]Ability{{
 			Milliseconds: 10000,
 			Effects: [3]state.Effect{
 				{
@@ -122,7 +122,7 @@ var CardDefs = []CardDef{
 		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage to a random enemy every 20 seconds",
 		BaseHP:      2,
 		Cost:        100,
-		Recurring: [3]Ability{{
+		OnTick: [3]Ability{{
 			Milliseconds: 20000,
 			Effects: [3]state.Effect{
 				{
@@ -148,7 +148,7 @@ var CardDefs = []CardDef{
 		Description: "Heal 1 HP to a random friendly unit every 15 seconds",
 		BaseHP:      2,
 		Cost:        80,
-		Recurring: [3]Ability{{
+		OnTick: [3]Ability{{
 			Milliseconds: 15000,
 			Effects: [3]state.Effect{
 				{
@@ -188,7 +188,7 @@ var CardDefs = []CardDef{
 		Description: "Maximum Charges: 3. Accumulate 1 charge every 30 seconds. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        60,
-		Recurring: [3]Ability{{
+		OnTick: [3]Ability{{
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{Type: state.EffectGainCharge},

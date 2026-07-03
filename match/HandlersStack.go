@@ -28,7 +28,7 @@ func (match *Match) handleStackResolution() {
 
 	// apply effects
 	for _, eff := range stackTop.Effects {
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardID, wallTime)
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardID, stackTop.ActiveIndex, wallTime)
 	}
 
 	card := &gs.Cards[stackTop.CardID]
@@ -45,7 +45,7 @@ func (match *Match) handleStackResolution() {
 				CardIndex:     stackTop.CardID,
 			})
 			match.NextUpdateID++
-			sim.ScheduleRecurringAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			sim.ScheduleOnTickAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive
@@ -56,7 +56,7 @@ func (match *Match) handleStackResolution() {
 				Type:          logs.PlayContinuous,
 				TeamIndex:     card.Team,
 				CardID:        stackTop.CardID,
-				Charges:       card.Charges,
+				Charges:       card.Actives[0].Charges,
 			})
 			match.NextUpdateID++
 		} else {
@@ -64,17 +64,17 @@ func (match *Match) handleStackResolution() {
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
 		}
 	} else if stackTop.Type == state.StackItemContinuousActivation {
-		card.Charges--
+		card.Actives[stackTop.ActiveIndex].Charges--
 		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 			UpdateID:         match.NextUpdateID,
 			WallTimestamp:    wallTime,
 			Type:             logs.RemoveCharge,
 			TeamIndex:        card.Team,
 			CardID:           stackTop.CardID,
-			ChargesRemaining: card.Charges,
+			ChargesRemaining: card.Actives[stackTop.ActiveIndex].Charges,
 		})
 		match.NextUpdateID++
-		if card.Charges <= 0 {
+		if card.Actives[stackTop.ActiveIndex].Charges <= 0 {
 			for i, id := range gs.Continuous[card.Team] {
 				if id == stackTop.CardID {
 					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
@@ -111,20 +111,20 @@ func (match *Match) handleStackResolution() {
 			match.processAutoSummonQueue(wallTime, -1)
 		}
 	} else { // the new top gets a refreshed reaction window
-		newTopIdx := len(gs.Stack) - 1
+		newTopIndex := len(gs.Stack) - 1
 		freshStart := wallTime - gs.FullPauseOffset
-		gs.Stack[newTopIdx].StartAtActiveTime = freshStart
-		gs.Stack[newTopIdx].PopAtActiveTime = freshStart + constants.REACTION_WINDOW - constants.LEAD
-		gs.Stack[newTopIdx].ExecuteAtActiveTime = freshStart + constants.REACTION_WINDOW
+		gs.Stack[newTopIndex].StartAtActiveTime = freshStart
+		gs.Stack[newTopIndex].PopAtActiveTime = freshStart + constants.REACTION_WINDOW - constants.LEAD
+		gs.Stack[newTopIndex].ExecuteAtActiveTime = freshStart + constants.REACTION_WINDOW
 
 		match.EventLog = append(match.EventLog, logs.RefreshStackLog{
 			UpdateID:            match.NextUpdateID,
 			WallTimestamp:       wallTime,
 			Type:                logs.RefreshStack,
-			CardID:              gs.Stack[newTopIdx].CardID,
-			StartAtActiveTime:   gs.Stack[newTopIdx].StartAtActiveTime,
-			PopAtActiveTime:     gs.Stack[newTopIdx].PopAtActiveTime,
-			ExecuteAtActiveTime: gs.Stack[newTopIdx].ExecuteAtActiveTime,
+			CardID:              gs.Stack[newTopIndex].CardID,
+			StartAtActiveTime:   gs.Stack[newTopIndex].StartAtActiveTime,
+			PopAtActiveTime:     gs.Stack[newTopIndex].PopAtActiveTime,
+			ExecuteAtActiveTime: gs.Stack[newTopIndex].ExecuteAtActiveTime,
 		})
 		match.NextUpdateID++
 

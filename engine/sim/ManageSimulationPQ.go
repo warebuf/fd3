@@ -38,22 +38,23 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
-		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, executeAtWallTime)
+		// SimulationItem-sourced effects (OnTick, structure regen, draw) are never Active-ability-triggered
+		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, -1, executeAtWallTime)
 	}
 
 	if currSimItem.CardID >= 0 {
-		if currSimItem.Type == state.SimItemRecurring {
+		if currSimItem.Type == state.SimItemOnTick {
 			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				for _, t := range gs.Cards[currSimItem.CardID].AbilityTimers {
+				for _, t := range gs.Cards[currSimItem.CardID].OnTick {
 					if t.AbilityID == currSimItem.AbilityID {
-						ScheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIdx, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
+						ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 						break
 					}
 				}
 			}
 		}
 
-		clearAbilityTimer(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, executeAtWallTime)
+		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, executeAtWallTime)
 	}
 
 	if currSimItem.Type == state.SimItemStructureRegen {
@@ -62,15 +63,15 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	}
 }
 
-func clearAbilityTimer(cards []state.Card, logList *[]any, UpdateID *int, cardID int, abilityID int, wallTime int64) {
-	timers := cards[cardID].AbilityTimers
+func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardID int, abilityID int, wallTime int64) {
+	timers := cards[cardID].OnTick
 	for i, t := range timers {
 		if t.AbilityID == abilityID {
-			cards[cardID].AbilityTimers = append(timers[:i], timers[i+1:]...)
-			*logList = append(*logList, logs.ClearAbilityTimerLog{
+			cards[cardID].OnTick = append(timers[:i], timers[i+1:]...)
+			*logList = append(*logList, logs.ClearTickAbilityLog{
 				UpdateID:      *UpdateID,
 				WallTimestamp: wallTime,
-				Type:          logs.ClearAbilityTimer,
+				Type:          logs.ClearTickAbility,
 				CardIndex:     cardID,
 				AbilityID:     abilityID,
 			})
@@ -80,7 +81,7 @@ func clearAbilityTimer(cards []state.Card, logList *[]any, UpdateID *int, cardID
 	}
 }
 
-func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, executeAtWallTime int64) {
+func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, activeIndex int, executeAtWallTime int64) {
 	switch eff.Type {
 
 	case state.EffectDraw:
@@ -99,7 +100,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 		pq.RemoveSimItemsByCardIDs(destroyedIDs)
 		for cardID := range destroyedIDs {
-			gs.Cards[cardID].AbilityTimers = []state.AbilityTimer{}
+			gs.Cards[cardID].OnTick = []state.TickAbility{}
 			gs.Cards[cardID].Status = state.CardStatusDefault
 		}
 		// clear any preselected targets pointing at destroyed cards
@@ -134,7 +135,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		*UpdateID += 1
 
 	case state.EffectAttack:
-		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
+		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardID, activeIndex, executeAtWallTime)
 
 	case state.EffectHeal:
 		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
@@ -188,28 +189,33 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 
 }
 
-func ScheduleRecurringAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
-	recurring := defs.CardDefs[gs.Cards[cardID].DefNo].Recurring
-	for a := 0; a < len(recurring); a++ {
-		ScheduleRecurringAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
+func ScheduleOnTickAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
+	onTick := defs.CardDefs[gs.Cards[cardID].DefNo].OnTick
+	for a := 0; a < len(onTick); a++ {
+		ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
 	}
 }
 
-func ScheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIdx int, startAtSimTime int64, wallTimestamp int64) {
+func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
 	card := gs.Cards[cardID]
-	entry := defs.CardDefs[card.DefNo].Recurring[abilityIdx]
+	entry := defs.CardDefs[card.DefNo].OnTick[abilityIndex]
 
 	if entry.Milliseconds == 0 {
-		return // unused Recurring slot
+		return // unused OnTick slot
 	}
 
-	// don't reschedule a gain-charge ability when its targeted Active slot is already at max charges
+	// a gain-charge ability stops rescheduling once its targeted Active slot maxes out
+	condition := state.TickIndefinite
+	activeIndex := -1
 	for _, eff := range entry.Effects {
 		if eff.Type == state.EffectGainCharge {
-			active := card.Actives[eff.A]
+			condition = state.TickUntilChargeMax
+			activeIndex = eff.A
+			active := card.Actives[activeIndex]
 			if active.MaxCharges > 0 && active.Charges >= active.MaxCharges {
 				return
 			}
+			break
 		}
 	}
 
@@ -234,27 +240,29 @@ func ScheduleRecurringAbility(gs *state.GameState, pq *state.SimulationPQ, abili
 
 		AbilityID: abilityID,
 		CardID:    cardID,
-		Type:      state.SimItemRecurring,
+		Type:      state.SimItemOnTick,
 		Effects:   effs,
 	}
 	heap.Push(pq, item)
 
-	gs.Cards[cardID].AbilityTimers = append(gs.Cards[cardID].AbilityTimers, state.AbilityTimer{
+	gs.Cards[cardID].OnTick = append(gs.Cards[cardID].OnTick, state.TickAbility{
 		AbilityID:        abilityID,
-		AbilityIdx:       abilityIdx,
-		Type:             state.AbilityTimerNormal,
+		AbilityIndex:     abilityIndex,
+		Condition:        condition,
+		ActiveIndex:      activeIndex,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})
 
-	*logList = append(*logList, logs.AddAbilityTimerLog{
+	*logList = append(*logList, logs.AddTickAbilityLog{
 		UpdateID:         *UpdateID,
 		WallTimestamp:    wallTimestamp,
-		Type:             logs.AddAbilityTimer,
+		Type:             logs.AddTickAbility,
 		CardIndex:        cardID,
 		AbilityID:        abilityID,
-		AbilityIdx:       abilityIdx,
-		TimerType:        state.AbilityTimerNormal,
+		AbilityIndex:     abilityIndex,
+		Condition:        condition,
+		ActiveIndex:      activeIndex,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})

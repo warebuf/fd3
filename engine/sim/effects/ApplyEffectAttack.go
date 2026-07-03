@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, executeAtWallTime int64) {
+func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, activeIndex int, executeAtWallTime int64) {
 	unitIndex := sourceCardID
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
@@ -16,7 +16,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 	enemyField := gs.Field[enemyTeam]
 
-	targetIdx := -1
+	targetIndex := -1
 
 	var tauntTargets []int
 	for _, ci := range enemyField {
@@ -27,22 +27,25 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 	// user-targeted: use preselected target if still on the enemy field, but taunt redirects
 	if eff.A == 1 {
-		preselected := gs.Cards[unitIndex].Targets[0]
+		preselected := -1
+		if activeIndex >= 0 {
+			preselected = gs.Cards[unitIndex].Actives[activeIndex].Target
+		}
 		if preselected != -1 {
 			for _, ci := range enemyField {
 				if ci == preselected {
-					targetIdx = preselected
+					targetIndex = preselected
 					break
 				}
 			}
 		}
-		if len(tauntTargets) > 0 && (targetIdx == -1 || !gs.Cards[targetIdx].Taunt) {
-			targetIdx = tauntTargets[rand.Intn(len(tauntTargets))]
+		if len(tauntTargets) > 0 && (targetIndex == -1 || !gs.Cards[targetIndex].Taunt) {
+			targetIndex = tauntTargets[rand.Intn(len(tauntTargets))]
 		}
 	}
 
 	// random or priority targeting (also fallback for user-targeted with no valid preselect)
-	if targetIdx == -1 && len(enemyField) > 0 {
+	if targetIndex == -1 && len(enemyField) > 0 {
 		pool := enemyField
 		if len(tauntTargets) > 0 {
 			pool = tauntTargets
@@ -56,22 +59,22 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				}
 			}
 			if len(priorityTargets) > 0 {
-				targetIdx = priorityTargets[rand.Intn(len(priorityTargets))]
+				targetIndex = priorityTargets[rand.Intn(len(priorityTargets))]
 				damage *= 2
 			}
 		}
-		if targetIdx == -1 {
-			targetIdx = pool[rand.Intn(len(pool))]
+		if targetIndex == -1 {
+			targetIndex = pool[rand.Intn(len(pool))]
 		}
 	}
 
-	if targetIdx >= 0 {
+	if targetIndex >= 0 {
 		// allow negative HP but clamp to math.MinInt; wrap-around check avoids overflow in the guard itself
-		newHP := gs.Cards[targetIdx].HP - damage
-		if damage > 0 && newHP >= gs.Cards[targetIdx].HP {
+		newHP := gs.Cards[targetIndex].HP - damage
+		if damage > 0 && newHP >= gs.Cards[targetIndex].HP {
 			newHP = math.MinInt
 		}
-		gs.Cards[targetIdx].HP = newHP
+		gs.Cards[targetIndex].HP = newHP
 		*logList = append(*logList, logs.AttackLog{
 			UpdateID:        *UpdateID,
 			WallTimestamp:   executeAtWallTime,
@@ -79,13 +82,13 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			AttackerIndex:   unitIndex,
 			TargetIsUnit:    true,
 			TargetTeamIndex: enemyTeam,
-			TargetCardIndex: targetIdx,
+			TargetCardIndex: targetIndex,
 			Damage:          damage,
 		})
 		*UpdateID += 1
 
-		if gs.Cards[targetIdx].HP <= 0 {
-			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIdx, teamIndex, executeAtWallTime)
+		if gs.Cards[targetIndex].HP <= 0 {
+			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, teamIndex, executeAtWallTime)
 		}
 	} else {
 		if damage >= gs.Structures[enemyTeam].HP {

@@ -23,7 +23,7 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 
 	// cancel scheduled abilities
 	pq.RemoveSimItemByCardID(cardID)
-	card.AbilityTimers = []state.AbilityTimer{}
+	card.OnTick = []state.TickAbility{}
 
 	// clear any preselected targets pointing at this card
 	for i := range gs.Cards {

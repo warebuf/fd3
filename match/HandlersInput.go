@@ -286,12 +286,12 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 
 			clearAutoSummon(gs.Cards, t, bestCard)
 			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-				WallTimestamp: executeAtWallTime,
-				UpdateID:      match.NextUpdateID,
-				Type:          logs.AutoSummonIndex,
-				TeamIndex:     t,
-				CardIndex:     bestCard,
-				AutoSummonIdx: 0,
+				WallTimestamp:      executeAtWallTime,
+				UpdateID:           match.NextUpdateID,
+				Type:               logs.AutoSummonIndex,
+				TeamIndex:          t,
+				CardIndex:          bestCard,
+				AutoSummonPriority: 0,
 			})
 			match.NextUpdateID++
 
@@ -330,12 +330,12 @@ func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
 	clearAutoSummon(match.GameState.Cards, teamIndex, cardIndex)
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		WallTimestamp: executeAtWallTime,
-		UpdateID:      match.NextUpdateID,
-		Type:          logs.AutoSummonIndex,
-		TeamIndex:     teamIndex,
-		CardIndex:     cardIndex,
-		AutoSummonIdx: 0,
+		WallTimestamp:      executeAtWallTime,
+		UpdateID:           match.NextUpdateID,
+		Type:               logs.AutoSummonIndex,
+		TeamIndex:          teamIndex,
+		CardIndex:          cardIndex,
+		AutoSummonPriority: 0,
 	})
 	match.NextUpdateID++
 
@@ -353,12 +353,12 @@ func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int6
 	order := nextAutoSummon(match.GameState.Cards, teamIndex)
 	match.GameState.Cards[cardIndex].AutoSummon = order
 	match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-		WallTimestamp: executeAtWallTime,
-		UpdateID:      match.NextUpdateID,
-		Type:          logs.AutoSummonIndex,
-		TeamIndex:     teamIndex,
-		CardIndex:     cardIndex,
-		AutoSummonIdx: order,
+		WallTimestamp:      executeAtWallTime,
+		UpdateID:           match.NextUpdateID,
+		Type:               logs.AutoSummonIndex,
+		TeamIndex:          teamIndex,
+		CardIndex:          cardIndex,
+		AutoSummonPriority: order,
 	})
 	match.NextUpdateID++
 	match.publish(executeAtWallTime, oldLogsSize)
@@ -472,37 +472,45 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// input events don't yet carry which Active slot to use, so this always targets slot 0
+	// (no current card has more than one Active ability)
+	const activeIndex = 0
+	active := card.Actives[activeIndex]
+
 	pendingActivations := 0
 	for _, item := range gs.Stack {
-		if item.Type == state.StackItemContinuousActivation && item.CardID == cardIndex {
+		if item.Type == state.StackItemContinuousActivation && item.CardID == cardIndex && item.ActiveIndex == activeIndex {
 			pendingActivations++
 		}
 	}
-	if pendingActivations >= card.Charges {
+	if pendingActivations >= active.Charges {
 		return
 	}
 
-	def := defs.CardDefs[card.DefNo]
-	if gs.Mana[teamIndex] < def.UseCost {
+	def := defs.CardDefs[card.DefNo].Active[activeIndex]
+	if gs.Mana[teamIndex] < def.Cost {
 		return
 	}
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	gs.Mana[teamIndex] -= def.UseCost
+	gs.Mana[teamIndex] -= def.Cost
 	match.EventLog = append(match.EventLog, logs.SpendManaLog{
 		UpdateID:      match.NextUpdateID,
 		WallTimestamp: executeAtWallTime,
 		Type:          logs.SpendMana,
 		TeamIndex:     teamIndex,
-		Amount:        def.UseCost,
+		Amount:        def.Cost,
 	})
 	match.NextUpdateID++
 
-	effs := make([]state.Effect, len(def.UseEffects))
-	for i, eff := range def.UseEffects {
-		effs[i] = sim.FulfillEffectTemplate(eff, teamIndex, cardIndex)
+	var effs []state.Effect
+	for _, eff := range def.Effects {
+		if eff.Type == 0 {
+			continue // unused Effect slot
+		}
+		effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	stackItem := state.StackItem{
@@ -510,6 +518,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardID:              cardIndex,
+		ActiveIndex:         activeIndex,
 		Type:                state.StackItemContinuousActivation,
 		Effects:             effs,
 	}
@@ -600,41 +609,51 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	if card.Zone != state.ZoneField || card.Team != teamIndex {
 		return
 	}
-	if card.Charges <= 0 {
+
+	// input events don't yet carry which Active slot to use, so this always targets slot 0
+	// (no current card has more than one Active ability)
+	const activeIndex = 0
+	if card.Actives[activeIndex].Charges <= 0 {
 		return
 	}
 
 	def := defs.CardDefs[card.DefNo]
-	if len(def.UseEffects) == 0 {
-		return
-	}
+	activeDef := def.Active[activeIndex]
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	for _, eff := range def.UseEffects {
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex), cardIndex, executeAtWallTime)
+	hasEffects := false
+	for _, eff := range activeDef.Effects {
+		if eff.Type == 0 {
+			continue // unused Effect slot
+		}
+		hasEffects = true
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex), cardIndex, activeIndex, executeAtWallTime)
+	}
+	if !hasEffects {
+		return
 	}
 
-	wasAtMax := card.MaxCharges > 0 && card.Charges == card.MaxCharges
-	gs.Cards[cardIndex].Charges--
+	wasAtMax := card.Actives[activeIndex].MaxCharges > 0 && card.Actives[activeIndex].Charges == card.Actives[activeIndex].MaxCharges
+	gs.Cards[cardIndex].Actives[activeIndex].Charges--
 	match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 		UpdateID:         match.NextUpdateID,
 		WallTimestamp:    executeAtWallTime,
 		Type:             logs.RemoveCharge,
 		TeamIndex:        teamIndex,
 		CardID:           cardIndex,
-		ChargesRemaining: gs.Cards[cardIndex].Charges,
+		ChargesRemaining: gs.Cards[cardIndex].Actives[activeIndex].Charges,
 	})
 	match.NextUpdateID++
 
-	// if the card was at max charges, the gain-charge recurring was paused — restart it now
+	// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
 	if wasAtMax {
 		startAtSimTime := executeAtWallTime - gs.SimPauseOffset
-		for abilityIdx, r := range def.Recurring {
+		for tickIndex, r := range def.OnTick {
 			for _, eff := range r.Effects {
-				if eff.Type == state.EffectGainCharge {
-					sim.ScheduleRecurringAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, cardIndex, abilityIdx, startAtSimTime, executeAtWallTime)
+				if eff.Type == state.EffectGainCharge && eff.A == activeIndex {
+					sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, cardIndex, tickIndex, startAtSimTime, executeAtWallTime)
 					break
 				}
 			}
@@ -660,14 +679,18 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 	if card.Zone != state.ZoneField || card.Team != teamIndex {
 		return
 	}
-	if !isValidTarget(gs, card.TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+
+	// input events don't yet carry which Active slot to preselect for, so this always targets slot 0
+	// (no current card has more than one Active ability)
+	const activeIndex = 0
+	if !isValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 		return
 	}
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	gs.Cards[cardIndex].Targets[0] = targetCardIndex
+	gs.Cards[cardIndex].Actives[activeIndex].Target = targetCardIndex
 	match.EventLog = append(match.EventLog, logs.PreselectLog{
 		UpdateID:        match.NextUpdateID,
 		WallTimestamp:   executeAtWallTime,
@@ -681,15 +704,15 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 }
 
-func isValidTarget(gs *state.GameState, targetFlags int, sourceIdx int, targetIdx int, teamIndex int) bool {
+func isValidTarget(gs *state.GameState, targetFlags int, sourceIndex int, targetIndex int, teamIndex int) bool {
 	if targetFlags == 0 {
 		return false
 	}
-	if targetIdx < 0 || targetIdx >= len(gs.Cards) {
+	if targetIndex < 0 || targetIndex >= len(gs.Cards) {
 		return false
 	}
-	target := gs.Cards[targetIdx]
-	if targetIdx == sourceIdx {
+	target := gs.Cards[targetIndex]
+	if targetIndex == sourceIndex {
 		return targetFlags&defs.TargetSelf != 0
 	}
 	switch {

@@ -31,14 +31,14 @@ func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) {
 type SimItemType int
 
 const (
-	SimItemRecurring SimItemType = iota
+	SimItemOnTick SimItemType = iota
 	SimItemDraw
 	SimItemStructureRegen
 )
 
 type SimulationItem struct {
 	SeqID     int // PQ tiebreaker (internal)
-	AbilityID int // references the AbilityTimer on the card; -1 for non-ability items
+	AbilityID int // references the TickAbility on the card; -1 for non-ability items
 	index     int // heap position (internal)
 
 	StartAtSimTime   int64 // when the countdown starts for this item (denominated in SimTime ms)

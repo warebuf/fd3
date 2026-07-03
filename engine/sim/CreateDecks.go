@@ -40,7 +40,13 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Grave:      make([][]int, numTeams),
 		Continuous: make([][]int, numTeams),
 		Stack:      []state.StackItem{},
-		Mana:       func() []int { m := make([]int, numTeams); for i := range m { m[i] = constants.START_MANA }; return m }(),
+		Mana: func() []int {
+			m := make([]int, numTeams)
+			for i := range m {
+				m[i] = constants.START_MANA
+			}
+			return m
+		}(),
 		Structures: structures,
 		Ready:      make([]bool, numTeams),
 	}
@@ -69,11 +75,11 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Team:          team,
 				Type:          def.Type,
 				Zone:          state.ZoneDeck,
-				AbilityTimers: []state.AbilityTimer{},
+				OnTick:        []state.TickAbility{},
 				AuraModifiers: []state.AuraModifier{},
 			}
 			for i, ability := range def.Active {
-				card.Actives[i] = state.ActiveState{
+				card.Actives[i] = state.ActiveAbility{
 					Charges:     ability.Charges,
 					MaxCharges:  ability.MaxCharges,
 					Target:      -1,

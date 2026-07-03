@@ -22,8 +22,11 @@ const (
 	ZoneContinuous
 )
 
+type TickCondition int
+
 const (
-	AbilityTimerNormal = iota
+	TickIndefinite     TickCondition = iota // always reschedules
+	TickUntilChargeMax                      // stops rescheduling once the Active slot it charges hits MaxCharges
 )
 
 type CardStatus int
@@ -43,17 +46,16 @@ type AuraModifier struct {
 	Amount       int
 }
 
-type AbilityTimer struct {
+type TickAbility struct {
 	AbilityID        int
-	AbilityIdx       int // index into card def's ability list
-	Type             int // AbilityTimerNormal, AbilityTimerSummon
+	AbilityIndex     int // index into card def's ability list
+	Condition        TickCondition
+	ActiveIndex      int // which Actives[] slot Condition checks against, -1 if not applicable (Condition == TickIndefinite)
 	StartAtSimTime   int64
 	ExecuteAtSimTime int64
 }
 
-// ActiveState is the runtime state for one Active ability slot on a card
-// (a card can have up to 3, matching defs.CardDef.Active's [3]Ability).
-type ActiveState struct {
+type ActiveAbility struct {
 	Charges     int
 	MaxCharges  int
 	Target      int // preselected target for this ability slot, -1 if none
@@ -78,7 +80,7 @@ type Card struct {
 	Status        CardStatus
 	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
 	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
-	AbilityTimers []AbilityTimer
-	Actives       [3]ActiveState
+	OnTick        []TickAbility
+	Actives       [3]ActiveAbility
 	AuraModifiers []AuraModifier
 }

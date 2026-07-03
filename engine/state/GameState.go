@@ -68,9 +68,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Cards = make([]Card, len(prevState.Cards))
 	for i, card := range prevState.Cards {
 		newState.Cards[i] = card
-		if len(card.AbilityTimers) > 0 {
-			newState.Cards[i].AbilityTimers = make([]AbilityTimer, len(card.AbilityTimers))
-			copy(newState.Cards[i].AbilityTimers, card.AbilityTimers)
+		if len(card.OnTick) > 0 {
+			newState.Cards[i].OnTick = make([]TickAbility, len(card.OnTick))
+			copy(newState.Cards[i].OnTick, card.OnTick)
 		}
 	}
 

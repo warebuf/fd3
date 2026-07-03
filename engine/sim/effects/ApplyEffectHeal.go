@@ -18,19 +18,19 @@ func ApplyEffectHeal(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 		return
 	}
 
-	targetIdx := friendlyField[rand.Intn(len(friendlyField))]
+	targetIndex := friendlyField[rand.Intn(len(friendlyField))]
 
-	if amount > math.MaxInt-gs.Cards[targetIdx].HP {
-		gs.Cards[targetIdx].HP = math.MaxInt
+	if amount > math.MaxInt-gs.Cards[targetIndex].HP {
+		gs.Cards[targetIndex].HP = math.MaxInt
 	} else {
-		gs.Cards[targetIdx].HP += amount
+		gs.Cards[targetIndex].HP += amount
 	}
 	*logList = append(*logList, logs.HealLog{
 		UpdateID:        *UpdateID,
 		WallTimestamp:   executeAtWallTime,
 		Type:            logs.Heal,
 		HealerIndex:     healerIndex,
-		TargetCardIndex: targetIdx,
+		TargetCardIndex: targetIndex,
 		Amount:          amount,
 	})
 	*UpdateID++

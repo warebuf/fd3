@@ -102,10 +102,14 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		stackItemType = state.StackItemSummon
 	}
 
-	abilities := defs.CardDefs[card.DefNo].OnPlay
-	effs := make([]state.Effect, len(abilities))
-	for i, ability := range abilities {
-		effs[i] = sim.FulfillEffectTemplate(ability, teamIndex, cardIndex)
+	var effs []state.Effect
+	for _, ability := range defs.CardDefs[card.DefNo].OnPlay {
+		for _, eff := range ability.Effects {
+			if eff.Type == 0 {
+				continue // unused Effect slot
+			}
+			effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
+		}
 	}
 
 	startAtActiveTime := declarationTime - gs.FullPauseOffset
@@ -114,6 +118,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardID:              cardIndex,
+		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
 		Type:                stackItemType,
 		Effects:             effs,
 	}

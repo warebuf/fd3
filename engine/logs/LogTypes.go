@@ -22,8 +22,8 @@ const (
 	AutoSummonIndex
 	Pause
 	Unpause
-	AddAbilityTimer
-	ClearAbilityTimer
+	AddTickAbility
+	ClearTickAbility
 	GameOver
 	CounterStack
 	RefreshStack
@@ -35,11 +35,11 @@ const (
 )
 
 type PhaseLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	Phase         int
-	PhaseEndInActiveTime  int64 // active time (ms) when this phase ends; 0 if no fixed end
+	WallTimestamp        int64
+	UpdateID             int
+	Type                 LogType
+	Phase                int
+	PhaseEndInActiveTime int64 // active time (ms) when this phase ends; 0 if no fixed end
 }
 
 type DrawLog struct {
@@ -166,15 +166,15 @@ type StageLog struct {
 }
 
 type AutoSummonLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	CardIndex     int
-	AutoSummonIdx int // 0 when cleared, assigned priority when set
+	WallTimestamp      int64
+	UpdateID           int
+	Type               LogType
+	TeamIndex          int
+	CardIndex          int
+	AutoSummonPriority int // 0 when cleared, assigned priority when set
 }
 
-type ClearAbilityTimerLog struct {
+type ClearTickAbilityLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
@@ -182,14 +182,15 @@ type ClearAbilityTimerLog struct {
 	AbilityID     int
 }
 
-type AddAbilityTimerLog struct {
+type AddTickAbilityLog struct {
 	WallTimestamp    int64
 	UpdateID         int
 	Type             LogType
 	CardIndex        int
 	AbilityID        int
-	AbilityIdx       int
-	TimerType        int
+	AbilityIndex     int
+	Condition        state.TickCondition
+	ActiveIndex      int
 	StartAtSimTime   int64
 	ExecuteAtSimTime int64
 }

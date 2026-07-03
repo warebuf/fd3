@@ -29,14 +29,14 @@ type readyMessage struct {
 func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int, targetCardIndex int) {
 
 	// check if client is in the whitelist
-	clientIdx, ok := match.Whitelist[clientID]
+	clientIndex, ok := match.Whitelist[clientID]
 	if !ok {
 		return
 	}
 
 	// this function should only be doing rate limit checks, not sim checks
 
-	// can check that unitIdx is non negative
+	// can check that unitIndex is non negative
 	if cardIndex < 0 {
 		return
 	}
@@ -44,7 +44,7 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 	ie := &eventpq.InputEvent{
 		WallTime:        timestamp,
 		Type:            eventType,
-		TeamIndex:       int(clientIdx),
+		TeamIndex:       int(clientIndex),
 		CardIndex:       cardIndex,
 		TargetCardIndex: targetCardIndex,
 	}
