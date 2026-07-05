@@ -5,7 +5,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// TODO: a ZoneField check should be decided by the ability's con
 func AutoAbilityChargeCheck(gs *state.GameState, cardID int, activeIndex int) bool {
 	card := gs.Cards[cardID]
 	if card.Zone != state.ZoneField {
