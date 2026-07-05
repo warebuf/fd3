@@ -213,7 +213,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		oldLogsSize := len(match.EventLog)
 		success := ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		if success {
-			scheduleStackResolution(match)
+			scheduleRStackResolution(match)
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 		}
 		return
@@ -232,7 +232,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if success {
 		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
-		scheduleStackResolution(match)
+		scheduleRStackResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 	}
 
@@ -298,7 +298,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 			match.NextUpdateID++
 
 			match.TransitionPauseState(1, executeAtWallTime, -1)
-			scheduleStackResolution(match)
+			scheduleRStackResolution(match)
 
 		}
 	}
@@ -534,7 +534,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	match.NextUpdateID++
 
 	match.TransitionPauseState(1, executeAtWallTime, -1)
-	scheduleStackResolution(match)
+	scheduleRStackResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }
@@ -657,7 +657,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	match.NextUpdateID++
 
 	match.TransitionPauseState(1, executeAtWallTime, -1)
-	scheduleStackResolution(match)
+	scheduleRStackResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }

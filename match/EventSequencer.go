@@ -56,8 +56,8 @@ func (match *Match) handleDuePQEvents() {
 			match.EarliestSimItem = nil
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
 		case "StackResolution":
-			match.GameState.ReactionStack = nil
-			match.handleStackResolution()
+			match.LatestReactionItem = nil
+			match.handleRStackResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":
@@ -121,7 +121,7 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 		if len(match.GameState.ReactionStack) > 0 {
 			match.TransitionPauseState(1, wallTime, -1)
 		}
-		scheduleStackResolution(match)
+		scheduleRStackResolution(match)
 		match.processAutoSummonQueue(wallTime, -1)
 		scheduleEarliestSimItem(match)
 	}
@@ -219,7 +219,7 @@ func scheduleEarliestSimItem(match *Match) {
 
 }
 
-func scheduleStackResolution(match *Match) {
+func scheduleRStackResolution(match *Match) {
 
 	// if no stack items, clean the pointer
 	if len(match.GameState.ReactionStack) == 0 {
