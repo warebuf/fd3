@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/warebuf/fd3/debug"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -22,7 +23,7 @@ type Match struct {
 
 	EventLog     []any // a log of all events that have occurred
 	NextUpdateID int
-	DebugTrace   []TraceEntry
+	DebugTrace   []debug.TraceEntry
 
 	// networking related
 	InputEventChan chan *eventpq.InputEvent

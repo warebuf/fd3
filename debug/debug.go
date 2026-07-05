@@ -1,4 +1,4 @@
-package match
+package debug
 
 import (
 	"encoding/json"
@@ -13,18 +13,17 @@ type TraceEntry struct {
 	State *state.GameState `json:"state"`
 }
 
-// NOTE: this should unfortunately be it's own package, something debugging related
-func (match *Match) WriteTrace() {
+func WriteTrace(id string, trace []TraceEntry) {
 	if err := os.MkdirAll("traces", 0755); err != nil {
 		fmt.Println("WriteTrace: mkdir error:", err)
 		return
 	}
-	data, err := json.MarshalIndent(match.DebugTrace, "", "  ")
+	data, err := json.MarshalIndent(trace, "", "  ")
 	if err != nil {
 		fmt.Println("WriteTrace: marshal error:", err)
 		return
 	}
-	filename := fmt.Sprintf("traces/%s.json", match.ID)
+	filename := fmt.Sprintf("traces/%s.json", id)
 	if err := os.WriteFile(filename, data, 0644); err != nil {
 		fmt.Println("WriteTrace: write error:", err)
 	}

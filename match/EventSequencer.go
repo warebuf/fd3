@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"time"
 
+	"github.com/warebuf/fd3/debug"
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
@@ -151,9 +152,9 @@ func (match *Match) publish(wallTime int64, oldLogsSize int) {
 	match.PublishedState = state.DeepCopyGameState(match.GameState)
 	stateCopy := state.DeepCopyGameState(match.GameState)
 	for _, log := range match.EventLog[oldLogsSize:] {
-		match.DebugTrace = append(match.DebugTrace, TraceEntry{Log: log, State: stateCopy})
+		match.DebugTrace = append(match.DebugTrace, debug.TraceEntry{Log: log, State: stateCopy})
 	}
-	//match.WriteTrace()
+	//debug.WriteTrace(match.ID, match.DebugTrace)
 	match.BroadcastLogs(oldLogsSize)
 }
 
