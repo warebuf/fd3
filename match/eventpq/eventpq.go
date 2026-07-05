@@ -26,11 +26,11 @@ type NewPhaseEvent struct {
 
 func (e *NewPhaseEvent) GetWallTime() time.Time { return e.WallTime }
 
-type EffectEvent struct {
+type SimPQEvent struct {
 	WallTime time.Time
 }
 
-func (e *EffectEvent) GetWallTime() time.Time { return e.WallTime }
+func (e *SimPQEvent) GetWallTime() time.Time { return e.WallTime }
 
 type StackResolutionEvent struct {
 	WallTime time.Time

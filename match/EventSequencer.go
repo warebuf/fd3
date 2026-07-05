@@ -53,9 +53,9 @@ func (match *Match) handleDuePQEvents() {
 		heap.Pop(&match.EventPQueue)
 
 		switch next.Type {
-		case "Effect":
+		case "SimPQ":
 			match.EarliestSimItem = nil
-			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
+			match.handleSimPQEvent(next.Event.(*eventpq.SimPQEvent))
 		case "StackResolution":
 			match.LatestReactionItem = nil
 			match.handleRStackResolution()
@@ -108,13 +108,12 @@ func (match *Match) setPQTimer() {
 
 }
 
-// NOTE: we should probably rename effectEvent to simulationPQEvent
-func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
+func (match *Match) handleSimPQEvent(simPQEvent *eventpq.SimPQEvent) {
 	if match.GameState.Phase == state.PhaseGameOver {
 		return
 	}
 	oldLogsSize := len(match.EventLog)
-	wallTime := effEvent.WallTime.UnixMilli() + constants.LEAD
+	wallTime := simPQEvent.WallTime.UnixMilli() + constants.LEAD
 	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
@@ -208,15 +207,15 @@ func scheduleEarliestSimItem(match *Match) {
 
 	// if the simItem exists and is in the EventPQ, update and reheapify
 	if match.EarliestSimItem != nil {
-		effEv, _ := match.EarliestSimItem.Event.(*eventpq.EffectEvent)
-		effEv.WallTime = earliest
+		simPQEv, _ := match.EarliestSimItem.Event.(*eventpq.SimPQEvent)
+		simPQEv.WallTime = earliest
 		match.EventPQueue.Fix(match.EarliestSimItem)
 		return
 	}
 
 	// otherwise schedule the simItem in the EventPQ
-	ev := &eventpq.EffectEvent{WallTime: earliest}
-	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "Effect")
+	ev := &eventpq.SimPQEvent{WallTime: earliest}
+	match.EarliestSimItem = match.EventPQueue.CreateAndPushEventItem(ev, "SimPQ")
 
 }
 
