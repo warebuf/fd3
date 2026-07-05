@@ -13,6 +13,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// not sure where this belongs, maybe not sim package
 func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
 	for {
 		if gs.Winner >= 0 || gs.Winner == -2 {
@@ -84,6 +85,7 @@ func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardID 
 	}
 }
 
+// NOTE: you could probably split this out of this file since it is quite important across the project
 func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, activeIndex int, executeAtWallTime int64) {
 	switch eff.Type {
 

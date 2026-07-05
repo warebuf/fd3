@@ -13,6 +13,7 @@ type TraceEntry struct {
 	State *state.GameState `json:"state"`
 }
 
+// NOTE: this should unfortunately be it's own package, something debugging related
 func (match *Match) WriteTrace() {
 	if err := os.MkdirAll("traces", 0755); err != nil {
 		fmt.Println("WriteTrace: mkdir error:", err)

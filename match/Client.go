@@ -26,6 +26,7 @@ type readyMessage struct {
 	Type string `json:"type"`
 }
 
+// NOTE: this could be it's own file
 func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int, targetCardIndex int) {
 
 	// check if client is in the whitelist
