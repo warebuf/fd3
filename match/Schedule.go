@@ -87,7 +87,7 @@ func ScheduleDrawCard(gs *state.GameState, pq *state.SimulationPQ, logList *[]an
 		PopAtSimTime:     executeAtSimTime - constants.LEAD,
 		ExecuteAtSimTime: executeAtSimTime,
 		AbilityID:        -1,
-		CardID:           -1,
+		CardIndex:        -1,
 		Type:             state.SimItemDraw,
 		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}

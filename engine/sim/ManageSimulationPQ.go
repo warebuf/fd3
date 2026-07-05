@@ -8,6 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/sim/effects"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -39,22 +40,22 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
 		// SimulationItem-sourced effects (OnTick, structure regen, draw) are never Active-ability-triggered
-		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardID, -1, executeAtWallTime)
+		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 	}
 
-	if currSimItem.CardID >= 0 {
+	if currSimItem.CardIndex >= 0 {
 		if currSimItem.Type == state.SimItemOnTick {
-			if gs.Cards[currSimItem.CardID].Zone == state.ZoneField {
-				for _, t := range gs.Cards[currSimItem.CardID].OnTick {
+			if gs.Cards[currSimItem.CardIndex].Zone == state.ZoneField {
+				for _, t := range gs.Cards[currSimItem.CardIndex].OnTick {
 					if t.AbilityID == currSimItem.AbilityID {
-						ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardID, t.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
+						ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardIndex, t.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 						break
 					}
 				}
 			}
 		}
 
-		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardID, currSimItem.AbilityID, executeAtWallTime)
+		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityID, executeAtWallTime)
 	}
 
 	if currSimItem.Type == state.SimItemStructureRegen {
@@ -98,7 +99,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 			}
 			gs.Field[a] = []int{}
 		}
-		pq.RemoveSimItemsByCardIDs(destroyedIDs)
+		pq.RemoveSimItemsByCardIndexes(destroyedIDs)
 		for cardID := range destroyedIDs {
 			gs.Cards[cardID].OnTick = []state.TickAbility{}
 			gs.Cards[cardID].Status = state.CardStatusDefault
@@ -134,6 +135,11 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		})
 		*UpdateID += 1
 
+		cardIndexes, activeIndexes := conditions.AutoAbilityManaCheck(gs, eff.A)
+		for i := 0; i < len(cardIndexes); i++ {
+			pushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
+		}
+
 	case state.EffectAttack:
 		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardID, activeIndex, executeAtWallTime)
 
@@ -145,6 +151,10 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 	case state.EffectGainCharge:
 		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
+
+		if conditions.AutoAbilityChargeCheck(gs, sourceCardID, eff.A) {
+			pushAbilityOnStack(gs, logList, UpdateID, sourceCardID, eff.A, executeAtWallTime)
+		}
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
@@ -182,7 +192,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 		PopAtSimTime:     scheduledTime,
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 		AbilityID:        -1,
-		CardID:           -1,
+		CardIndex:        -1,
 		Type:             state.SimItemStructureRegen,
 		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
 	})
@@ -239,7 +249,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
 		AbilityID: abilityID,
-		CardID:    cardID,
+		CardIndex: cardID,
 		Type:      state.SimItemOnTick,
 		Effects:   effs,
 	}

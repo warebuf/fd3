@@ -477,13 +477,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	const activeIndex = 0
 	active := card.Actives[activeIndex]
 
-	pendingActivations := 0
-	for _, item := range gs.Stack {
-		if item.Type == state.StackItemContinuousActivation && item.CardID == cardIndex && item.ActiveIndex == activeIndex {
-			pendingActivations++
-		}
-	}
-	if pendingActivations >= active.Charges {
+	if active.Pending >= active.Charges {
 		return
 	}
 
@@ -523,6 +517,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		Effects:             effs,
 	}
 	gs.Stack = append(gs.Stack, stackItem)
+	gs.Cards[cardIndex].Actives[activeIndex].Pending++
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
 		WallTimestamp:       executeAtWallTime,
@@ -613,53 +608,54 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	// input events don't yet carry which Active slot to use, so this always targets slot 0
 	// (no current card has more than one Active ability)
 	const activeIndex = 0
-	if card.Actives[activeIndex].Charges <= 0 {
+	active := card.Actives[activeIndex]
+	if active.Pending >= active.Charges {
 		return
 	}
 
-	def := defs.CardDefs[card.DefNo]
-	activeDef := def.Active[activeIndex]
+	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
 
-	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
-	oldLogsSize := len(match.EventLog)
-
-	hasEffects := false
+	var effs []state.Effect
 	for _, eff := range activeDef.Effects {
 		if eff.Type == 0 {
 			continue // unused Effect slot
 		}
-		hasEffects = true
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex), cardIndex, activeIndex, executeAtWallTime)
+		effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
-	if !hasEffects {
+	if len(effs) == 0 {
 		return
 	}
 
-	wasAtMax := card.Actives[activeIndex].MaxCharges > 0 && card.Actives[activeIndex].Charges == card.Actives[activeIndex].MaxCharges
-	gs.Cards[cardIndex].Actives[activeIndex].Charges--
-	match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
-		UpdateID:         match.NextUpdateID,
-		WallTimestamp:    executeAtWallTime,
-		Type:             logs.RemoveCharge,
-		TeamIndex:        teamIndex,
-		CardID:           cardIndex,
-		ChargesRemaining: gs.Cards[cardIndex].Actives[activeIndex].Charges,
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
+	stackItem := state.StackItem{
+		StartAtActiveTime:   startAtActiveTime,
+		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		CardID:              cardIndex,
+		ActiveIndex:         activeIndex,
+		Type:                state.StackItemAbility,
+		Effects:             effs,
+	}
+	gs.Stack = append(gs.Stack, stackItem)
+	gs.Cards[cardIndex].Actives[activeIndex].Pending++
+	match.EventLog = append(match.EventLog, logs.AddStackLog{
+		UpdateID:            match.NextUpdateID,
+		WallTimestamp:       executeAtWallTime,
+		Type:                logs.AddStack,
+		StackType:           stackItem.Type,
+		StartAtActiveTime:   stackItem.StartAtActiveTime,
+		PopAtActiveTime:     stackItem.PopAtActiveTime,
+		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
+		CardID:              stackItem.CardID,
+		Effects:             stackItem.Effects,
 	})
 	match.NextUpdateID++
 
-	// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
-	if wasAtMax {
-		startAtSimTime := executeAtWallTime - gs.SimPauseOffset
-		for tickIndex, r := range def.OnTick {
-			for _, eff := range r.Effects {
-				if eff.Type == state.EffectGainCharge && eff.A == activeIndex {
-					sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, cardIndex, tickIndex, startAtSimTime, executeAtWallTime)
-					break
-				}
-			}
-		}
-	}
-
+	match.TransitionPauseState(1, executeAtWallTime, -1)
+	scheduleStackResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }

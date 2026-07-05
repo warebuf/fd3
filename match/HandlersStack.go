@@ -2,6 +2,7 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
@@ -64,6 +65,7 @@ func (match *Match) handleStackResolution() {
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
 		}
 	} else if stackTop.Type == state.StackItemContinuousActivation {
+		card.Actives[stackTop.ActiveIndex].Pending--
 		card.Actives[stackTop.ActiveIndex].Charges--
 		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 			UpdateID:         match.NextUpdateID,
@@ -92,6 +94,33 @@ func (match *Match) handleStackResolution() {
 				CardID:        stackTop.CardID,
 			})
 			match.NextUpdateID++
+		}
+	} else if stackTop.Type == state.StackItemAbility {
+		wasAtMax := card.Actives[stackTop.ActiveIndex].MaxCharges > 0 && card.Actives[stackTop.ActiveIndex].Charges == card.Actives[stackTop.ActiveIndex].MaxCharges
+		card.Actives[stackTop.ActiveIndex].Pending--
+		card.Actives[stackTop.ActiveIndex].Charges--
+		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
+			UpdateID:         match.NextUpdateID,
+			WallTimestamp:    wallTime,
+			Type:             logs.RemoveCharge,
+			TeamIndex:        card.Team,
+			CardID:           stackTop.CardID,
+			ChargesRemaining: card.Actives[stackTop.ActiveIndex].Charges,
+		})
+		match.NextUpdateID++
+
+		// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
+		if wasAtMax {
+			startAtSimTime := wallTime - gs.SimPauseOffset
+			def := defs.CardDefs[card.DefNo]
+			for tickIndex, r := range def.OnTick {
+				for _, eff := range r.Effects {
+					if eff.Type == state.EffectGainCharge && eff.A == stackTop.ActiveIndex {
+						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, tickIndex, startAtSimTime, wallTime)
+						break
+					}
+				}
+			}
 		}
 	}
 

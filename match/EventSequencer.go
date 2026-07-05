@@ -117,6 +117,10 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
+		if len(match.GameState.Stack) > 0 {
+			match.TransitionPauseState(1, wallTime, -1)
+		}
+		scheduleStackResolution(match)
 		match.processAutoSummonQueue(wallTime, -1)
 		scheduleEarliestSimItem(match)
 	}

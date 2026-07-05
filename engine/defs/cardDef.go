@@ -30,6 +30,7 @@ type Ability struct {
 	MaxCharges   int
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
+	AutoActivate bool // if true, fires itself once Charges/Cost/Cons all hold, instead of waiting for player input
 }
 
 // change from dynamic arrs to fixed size

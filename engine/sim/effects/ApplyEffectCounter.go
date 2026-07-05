@@ -17,6 +17,8 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 	if card.Zone == state.ZoneStack {
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardID)
+	} else if target.Type == state.StackItemContinuousActivation {
+		card.Actives[target.ActiveIndex].Pending--
 	}
 
 	*logList = append(*logList, logs.CounterStackLog{

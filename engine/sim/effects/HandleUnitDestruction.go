@@ -22,7 +22,7 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	gs.Grave[cardTeam] = append(gs.Grave[cardTeam], cardID)
 
 	// cancel scheduled abilities
-	pq.RemoveSimItemByCardID(cardID)
+	pq.RemoveSimItemByCardIndex(cardID)
 	card.OnTick = []state.TickAbility{}
 
 	// clear any preselected targets pointing at this card

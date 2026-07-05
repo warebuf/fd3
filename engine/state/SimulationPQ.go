@@ -4,10 +4,10 @@ import (
 	"container/heap"
 )
 
-func (pq *SimulationPQ) RemoveSimItemsByCardIDs(cardIDs map[int]bool) {
+func (pq *SimulationPQ) RemoveSimItemsByCardIndexes(cardIndexes map[int]bool) {
 	var toRemove []*SimulationItem
 	for _, item := range pq.Items {
-		if cardIDs[item.CardID] {
+		if cardIndexes[item.CardIndex] {
 			toRemove = append(toRemove, item)
 		}
 	}
@@ -16,10 +16,10 @@ func (pq *SimulationPQ) RemoveSimItemsByCardIDs(cardIDs map[int]bool) {
 	}
 }
 
-func (pq *SimulationPQ) RemoveSimItemByCardID(cardID int) {
+func (pq *SimulationPQ) RemoveSimItemByCardIndex(cardIndex int) {
 	var toRemove []*SimulationItem
 	for _, item := range pq.Items {
-		if item.CardID == cardID {
+		if item.CardIndex == cardIndex {
 			toRemove = append(toRemove, item)
 		}
 	}
@@ -45,9 +45,9 @@ type SimulationItem struct {
 	PopAtSimTime     int64 // the time we can apply to the game state (denominated in SimTime ms)
 	ExecuteAtSimTime int64 // the time the item executes (denominated in SimTime ms)
 
-	CardID  int
-	Type    SimItemType
-	Effects []Effect
+	CardIndex int
+	Type      SimItemType
+	Effects   []Effect
 }
 
 type SimulationPQ struct {
