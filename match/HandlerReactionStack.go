@@ -112,7 +112,7 @@ func (match *Match) handleRStackResolution() {
 			def := defs.CardDefs[card.DefNo]
 			for tickIndex, r := range def.OnTick {
 				for _, eff := range r.Effects {
-					if eff.Type == state.EffectGainCharge && eff.A == reactionTop.ActiveIndex { // NOTE: not sure about the second part
+					if eff.Type == state.EffectGainCharge && eff.A == reactionTop.ActiveIndex {
 						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 						break
 					}

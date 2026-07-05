@@ -192,7 +192,7 @@ var CardDefs = []CardDef{
 		OnTick: [3]Ability{{
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
-				{Type: state.EffectGainCharge},
+				{Type: state.EffectGainCharge, A: 0},
 			},
 		}},
 		Active: [3]Ability{{
