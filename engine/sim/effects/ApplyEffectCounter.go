@@ -14,10 +14,20 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 	gs.ReactionStack = gs.ReactionStack[:len(gs.ReactionStack)-1]
 
 	card := &gs.Cards[target.CardIndex]
-	if card.Zone == state.ZoneStack {
+	switch target.Type {
+	case state.ReactionSpell, state.ReactionSummon:
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
-	} else if target.Type == state.ReactionContinuousAbility { // TODO: this code is weird
+	case state.ReactionContinuousAbility:
+		for i, id := range gs.Continuous[card.Team] {
+			if id == target.CardIndex {
+				gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
+				break
+			}
+		}
+		card.Zone = state.ZoneGraveyard
+		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
+	case state.ReactionUnitAbility:
 		card.Actives[target.ActiveIndex].Pending--
 	}
 
