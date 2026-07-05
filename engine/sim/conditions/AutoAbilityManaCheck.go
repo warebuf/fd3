@@ -21,8 +21,9 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 
 		for activeIndex := 0; activeIndex < len(def.Active); activeIndex++ {
 			ability := def.Active[activeIndex]
+			active := card.Actives[activeIndex]
 
-			if !ability.AutoActivate {
+			if !active.AutoAbility {
 				continue
 			}
 
@@ -30,7 +31,6 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			active := card.Actives[activeIndex]
 			if active.MaxCharges > 0 && active.Charges <= 0 {
 				continue
 			}

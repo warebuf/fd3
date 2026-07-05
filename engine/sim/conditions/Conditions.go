@@ -20,6 +20,10 @@ func CheckAbilityConditions(gs *state.GameState, cardID int, activeIndex int) bo
 			if gs.Mana[card.Team] < ability.Cost {
 				return false
 			}
+		case defs.ConditionChargeAtLeastOne:
+			if card.Actives[activeIndex].Charges < 1 {
+				return false
+			}
 		default:
 			return false // unknown/unimplemented condition type - fail closed
 		}

@@ -184,6 +184,13 @@ func (c *Client) Read() {
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "preselect", c.ID, msg.CardIndex, msg.TargetCardIndex)
 
+		case "toggleAutoAbility":
+			var msg handMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleAutoAbility", c.ID, msg.CardIndex, -1)
+
 		case "fullPause":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0, -1)
 

@@ -32,6 +32,7 @@ const (
 	RemoveCharge
 	AddCharge
 	Preselect
+	ToggleAutoAbility
 )
 
 type PhaseLog struct {
@@ -269,4 +270,14 @@ type PreselectLog struct {
 	TeamIndex       int
 	CardID          int
 	TargetCardIndex int
+}
+
+type ToggleAutoAbilityLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
+	AbilityIndex  int
+	On            bool
 }

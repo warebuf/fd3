@@ -12,17 +12,18 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardID int, activeIndex int) bo
 		return false
 	}
 
-	ability := defs.CardDefs[card.DefNo].Active[activeIndex]
-	if !ability.AutoActivate {
+	active := card.Actives[activeIndex]
+	if !active.AutoAbility {
 		return false
 	}
 
+	ability := defs.CardDefs[card.DefNo].Active[activeIndex]
 	// if any effects exist
 	if ability.Effects[0].Type == 0 {
 		return false
 	}
 
-	if card.Actives[activeIndex].Charges <= 0 {
+	if active.Charges <= 0 {
 		return false
 	}
 

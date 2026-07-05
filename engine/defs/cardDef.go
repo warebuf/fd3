@@ -19,7 +19,8 @@ const (
 type ConditionType int
 
 const (
-	ConditionManaAtLeast ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
+	ConditionManaAtLeast      ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
+	ConditionChargeAtLeastOne                          // checks this Ability's own Charges >= 1
 )
 
 type Ability struct {
@@ -30,7 +31,6 @@ type Ability struct {
 	MaxCharges   int
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
-	AutoActivate bool // if true, fires itself once Charges/Cost/Cons all hold, instead of waiting for player input
 }
 
 // change from dynamic arrs to fixed size
@@ -106,7 +106,6 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeSpell,
 		Name:        "Downforce",
 		Description: "Gain 30 mana",
-		BaseHP:      0,
 		Cost:        0,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
@@ -180,6 +179,7 @@ var CardDefs = []CardDef{
 			Charges:    3,
 			MaxCharges: math.MaxInt,
 			Cost:       50,
+			Cons:       [3]ConditionType{ConditionManaAtLeast},
 			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
@@ -198,6 +198,7 @@ var CardDefs = []CardDef{
 		Active: [3]Ability{{
 			MaxCharges:  3,
 			TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
+			Cons:        [3]ConditionType{ConditionChargeAtLeastOne},
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,

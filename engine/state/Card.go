@@ -60,7 +60,8 @@ type ActiveAbility struct {
 	MaxCharges  int
 	Target      int // preselected target for this ability slot, -1 if none
 	TargetFlags int
-	Pending     int // activations currently in flight on the stack, not yet resolved
+	Pending     int  // activations currently in flight on the stack, not yet resolved
+	AutoAbility bool // if true, fires itself once Charges/Cost/Cons all hold, instead of waiting for player input; player-toggleable at runtime
 }
 
 type Card struct {
