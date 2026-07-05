@@ -1,7 +1,5 @@
 package state
 
-// NOTE: we need to figure out the correct name for this stuff
-
 type ReactionType int
 
 const (

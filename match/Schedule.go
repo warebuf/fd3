@@ -70,9 +70,6 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	gs.Cards[cardIndex].AutoSummon = 0
 
 	gs.Cards[cardIndex].Zone = state.ZoneStack
-	if gs.Cards[cardIndex].Type == state.CardTypeUnit {
-		gs.Cards[cardIndex].Status = state.CardStatusSummoning
-	}
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 	addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 	return true

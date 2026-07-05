@@ -106,7 +106,6 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		pq.RemoveSimItemsByCardIndexes(destroyedIndexes)
 		for cardIndexes := range destroyedIndexes {
 			gs.Cards[cardIndexes].OnTick = []state.TickAbility{}
-			gs.Cards[cardIndexes].Status = state.CardStatusDefault
 		}
 		// clear any preselected targets pointing at destroyed cards
 		for i := range gs.Cards {

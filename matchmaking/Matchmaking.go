@@ -20,18 +20,17 @@ type Ticket struct {
 	Deck             []int
 	StartingHand     []int
 	StructureDefNo   int
-	ClosedConnection <-chan struct{} // NOTE why this and not a simple bool
+	ClosedConnection <-chan struct{} // we use a channel so we don't have to poll
 	Found            chan string     // receives matchID
 	RejectedTicket   chan struct{}   // if UserID is in the system, reject
 }
 
-// NOTE: we need to review this concept, because I don't understand the point of a channel
-// and why it is superior to a single mutex
+// TODO: we have both a mutex and a channel here but we only need 1
 type Matchmaker struct {
 	mutex sync.Mutex
 	queue *orderedmap.OrderedMap[string, *Ticket] // users waiting for a game, need to use a linked list
 	Join  chan *Ticket                            // new waiter arrives
-	Leave chan string                             // NOTE: WHY BUFFERED VS UNBUFFERED
+	Leave chan string
 
 	inGame map[string]struct{} // list of users in game
 }
