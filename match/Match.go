@@ -31,11 +31,11 @@ type Match struct {
 	EventPQueue  eventpq.EventPQ
 	EventPQTimer *time.Timer
 
-	EarliestSimItem *eventpq.EventItem
-	StackItem       *eventpq.EventItem
-	PauseEndItem    *eventpq.EventItem
-	PhaseItem       *eventpq.EventItem
-	RevealItem      *eventpq.EventItem
+	EarliestSimItem    *eventpq.EventItem
+	LatestReactionItem *eventpq.EventItem
+	PauseEndItem       *eventpq.EventItem
+	PhaseItem          *eventpq.EventItem
+	RevealItem         *eventpq.EventItem
 
 	PendingPhase     int   // if paused, this is the next phase scheduled. is 0 by default. if 0, no pending phases
 	PendingPhaseTime int64 // execute at active time; 0 means no pending reveal

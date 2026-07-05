@@ -2,18 +2,17 @@ package state
 
 // NOTE: we need to figure out the correct name for this stuff
 
-// TODO: these are stupid, reduce
+type ReactionType int
+
 const (
-	StackItemCard                 = 0
-	StackItemAbility              = 1
-	StackItemSpell                = 2
-	StackItemContinuousActivation = 3
-	StackItemSummon               = 4
-	StackItemUnitEffect           = 5
+	ReactionUnitAbility ReactionType = iota + 1
+	ReactionSpell
+	ReactionContinuousAbility
+	ReactionSummon
 )
 
-type StackItem struct {
-	Type                int
+type ReactionItem struct {
+	Type                ReactionType
 	CardIndex           int
 	ActiveIndex         int // which Actives[] slot this activation came from, -1 if not Active-ability-sourced
 	StartAtActiveTime   int64

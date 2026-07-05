@@ -37,7 +37,7 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return false
 	}
 
-	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
 		return false
 	}
 
@@ -97,9 +97,9 @@ func ScheduleSystemDraw(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
 	card := gs.Cards[cardIndex]
 
-	stackItemType := state.StackItemSpell
+	reactionType := state.ReactionSpell
 	if card.Type == state.CardTypeUnit {
-		stackItemType = state.StackItemSummon
+		reactionType = state.ReactionSummon
 	}
 
 	var effs []state.Effect
@@ -113,27 +113,27 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 	}
 
 	startAtActiveTime := declarationTime - gs.FullPauseOffset
-	stackItem := &state.StackItem{
+	reactionItem := &state.ReactionItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
-		Type:                stackItemType,
+		Type:                reactionType,
 		Effects:             effs,
 	}
-	gs.Stack = append(gs.Stack, *stackItem)
+	gs.ReactionStack = append(gs.ReactionStack, *reactionItem)
 
 	*logList = append(*logList, logs.AddStackLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       declarationTime,
 		Type:                logs.AddStack,
-		StackType:           stackItem.Type,
-		StartAtActiveTime:   stackItem.StartAtActiveTime,
-		PopAtActiveTime:     stackItem.PopAtActiveTime,
-		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardIndex:           stackItem.CardIndex,
-		Effects:             stackItem.Effects,
+		StackType:           int(reactionItem.Type),
+		StartAtActiveTime:   reactionItem.StartAtActiveTime,
+		PopAtActiveTime:     reactionItem.PopAtActiveTime,
+		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
+		CardIndex:           reactionItem.CardIndex,
+		Effects:             reactionItem.Effects,
 	})
 	*UpdateID += 1
 }

@@ -155,7 +155,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	}
 
 	// reject if card requires a stack target and there is nothing to target
-	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
 		return
 	}
 
@@ -201,7 +201,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.Stack) == 0 {
+	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
 		return
 	}
 
@@ -509,27 +509,27 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	stackItem := state.StackItem{
+	reactionItem := state.ReactionItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
-		Type:                state.StackItemContinuousActivation,
+		Type:                state.ReactionContinuousAbility,
 		Effects:             effs,
 	}
-	gs.Stack = append(gs.Stack, stackItem)
+	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
 	gs.Cards[cardIndex].Actives[activeIndex].Pending++
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
 		WallTimestamp:       executeAtWallTime,
 		Type:                logs.AddStack,
-		StackType:           stackItem.Type,
-		StartAtActiveTime:   stackItem.StartAtActiveTime,
-		PopAtActiveTime:     stackItem.PopAtActiveTime,
-		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardIndex:           stackItem.CardIndex,
-		Effects:             stackItem.Effects,
+		StackType:           int(reactionItem.Type),
+		StartAtActiveTime:   reactionItem.StartAtActiveTime,
+		PopAtActiveTime:     reactionItem.PopAtActiveTime,
+		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
+		CardIndex:           reactionItem.CardIndex,
+		Effects:             reactionItem.Effects,
 	})
 	match.NextUpdateID++
 
@@ -632,27 +632,27 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	oldLogsSize := len(match.EventLog)
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	stackItem := state.StackItem{
+	reactionItem := state.ReactionItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
-		Type:                state.StackItemAbility,
+		Type:                state.ReactionUnitAbility,
 		Effects:             effs,
 	}
-	gs.Stack = append(gs.Stack, stackItem)
+	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
 	gs.Cards[cardIndex].Actives[activeIndex].Pending++
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
 		WallTimestamp:       executeAtWallTime,
 		Type:                logs.AddStack,
-		StackType:           stackItem.Type,
-		StartAtActiveTime:   stackItem.StartAtActiveTime,
-		PopAtActiveTime:     stackItem.PopAtActiveTime,
-		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardIndex:           stackItem.CardIndex,
-		Effects:             stackItem.Effects,
+		StackType:           int(reactionItem.Type),
+		StartAtActiveTime:   reactionItem.StartAtActiveTime,
+		PopAtActiveTime:     reactionItem.PopAtActiveTime,
+		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
+		CardIndex:           reactionItem.CardIndex,
+		Effects:             reactionItem.Effects,
 	})
 	match.NextUpdateID++
 

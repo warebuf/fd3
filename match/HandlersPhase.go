@@ -199,9 +199,9 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 			match.EventPQueue.Remove(match.EarliestSimItem)
 			match.EarliestSimItem = nil
 		}
-		if match.StackItem != nil {
-			match.EventPQueue.Remove(match.StackItem)
-			match.StackItem = nil
+		if match.LatestReactionItem != nil {
+			match.EventPQueue.Remove(match.LatestReactionItem)
+			match.LatestReactionItem = nil
 		}
 		if match.PhaseItem != nil {
 			match.EventPQueue.Remove(match.PhaseItem)

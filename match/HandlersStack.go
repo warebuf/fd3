@@ -64,7 +64,7 @@ func (match *Match) handleStackResolution() {
 			card.Zone = state.ZoneGraveyard
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardIndex)
 		}
-	} else if stackTop.Type == state.StackItemContinuousActivation {
+	} else if stackTop.Type == state.ReactionContinuousAbility {
 		card.Actives[stackTop.ActiveIndex].Pending--
 		card.Actives[stackTop.ActiveIndex].Charges--
 		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
@@ -95,7 +95,7 @@ func (match *Match) handleStackResolution() {
 			})
 			match.NextUpdateID++
 		}
-	} else if stackTop.Type == state.StackItemAbility {
+	} else if stackTop.Type == state.ReactionUnitAbility {
 		wasAtMax := card.Actives[stackTop.ActiveIndex].MaxCharges > 0 && card.Actives[stackTop.ActiveIndex].Charges == card.Actives[stackTop.ActiveIndex].MaxCharges
 		card.Actives[stackTop.ActiveIndex].Pending--
 		card.Actives[stackTop.ActiveIndex].Charges--

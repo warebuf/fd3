@@ -26,9 +26,9 @@ func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 	}
 
 	// NOTE: THIS TYPE SHOULD NOT COME FROM ZONE, IT SHOULD COME FROM CARD TYPE
-	stackItemType := state.StackItemAbility
+	reactionItemType := state.ReactionUnitAbility
 	if card.Zone == state.ZoneContinuous {
-		stackItemType = state.StackItemContinuousActivation
+		reactionItemType = state.ReactionContinuousAbility
 	}
 
 	var effs []state.Effect
@@ -41,27 +41,27 @@ func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 	}
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	stackItem := state.StackItem{
+	reactionItem := state.ReactionItem{
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
-		Type:                stackItemType,
+		Type:                reactionItemType,
 		Effects:             effs,
 	}
-	gs.Stack = append(gs.Stack, stackItem)
+	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
 	gs.Cards[cardIndex].Actives[activeIndex].Pending++
 	*logList = append(*logList, logs.AddStackLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       executeAtWallTime,
 		Type:                logs.AddStack,
-		StackType:           stackItem.Type,
-		StartAtActiveTime:   stackItem.StartAtActiveTime,
-		PopAtActiveTime:     stackItem.PopAtActiveTime,
-		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardIndex:           stackItem.CardIndex,
-		Effects:             stackItem.Effects,
+		StackType:           int(reactionItem.Type),
+		StartAtActiveTime:   reactionItem.StartAtActiveTime,
+		PopAtActiveTime:     reactionItem.PopAtActiveTime,
+		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
+		CardIndex:           reactionItem.CardIndex,
+		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++
 }

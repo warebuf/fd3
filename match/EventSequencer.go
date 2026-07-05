@@ -56,7 +56,7 @@ func (match *Match) handleDuePQEvents() {
 			match.EarliestSimItem = nil
 			match.handleEffectEvent(next.Event.(*eventpq.EffectEvent))
 		case "StackResolution":
-			match.StackItem = nil
+			match.GameState.ReactionStack = nil
 			match.handleStackResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
@@ -107,7 +107,7 @@ func (match *Match) setPQTimer() {
 
 }
 
-// NOTE: we should probably rename effectEvent to simPQEvent
+// NOTE: we should probably rename effectEvent to simulationPQEvent
 func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	if match.GameState.Phase == state.PhaseGameOver {
 		return
@@ -118,7 +118,7 @@ func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
-		if len(match.GameState.Stack) > 0 {
+		if len(match.GameState.ReactionStack) > 0 {
 			match.TransitionPauseState(1, wallTime, -1)
 		}
 		scheduleStackResolution(match)
@@ -222,25 +222,25 @@ func scheduleEarliestSimItem(match *Match) {
 func scheduleStackResolution(match *Match) {
 
 	// if no stack items, clean the pointer
-	if len(match.GameState.Stack) == 0 {
+	if len(match.GameState.ReactionStack) == 0 {
 		return
 	}
 
-	// get the top stack item
-	topStackItem := match.GameState.Stack[len(match.GameState.Stack)-1]
+	// get the top reaction stack item
+	topReactionItem := match.GameState.ReactionStack[len(match.GameState.ReactionStack)-1]
 
 	// pop time is denominated in active time
-	earliest := time.UnixMilli(topStackItem.PopAtActiveTime + match.GameState.FullPauseOffset)
+	earliest := time.UnixMilli(topReactionItem.PopAtActiveTime + match.GameState.FullPauseOffset)
 
 	// if the stack item exists and is in the EventPQ, update and reheapify
-	if match.StackItem != nil {
-		effEv, _ := match.StackItem.Event.(*eventpq.StackResolutionEvent)
+	if match.LatestReactionItem != nil {
+		effEv, _ := match.LatestReactionItem.Event.(*eventpq.StackResolutionEvent)
 		effEv.WallTime = earliest
-		match.EventPQueue.Fix(match.StackItem)
+		match.EventPQueue.Fix(match.LatestReactionItem)
 		return
 	}
 
 	// otherwise add it to EventPQ
 	ev := &eventpq.StackResolutionEvent{WallTime: earliest}
-	match.StackItem = match.EventPQueue.CreateAndPushEventItem(ev, "StackResolution")
+	match.LatestReactionItem = match.EventPQueue.CreateAndPushEventItem(ev, "StackResolution")
 }

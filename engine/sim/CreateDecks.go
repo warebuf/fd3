@@ -34,13 +34,13 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Winner:          -1,
 		TimeBank:        timeBank,
 
-		Cards:      []state.Card{},
-		Deck:       make([][]int, numTeams),
-		Hand:       make([][]int, numTeams),
-		Field:      make([][]int, numTeams),
-		Grave:      make([][]int, numTeams),
-		Continuous: make([][]int, numTeams),
-		Stack:      []state.StackItem{},
+		Cards:         []state.Card{},
+		Deck:          make([][]int, numTeams),
+		Hand:          make([][]int, numTeams),
+		Field:         make([][]int, numTeams),
+		Grave:         make([][]int, numTeams),
+		Continuous:    make([][]int, numTeams),
+		ReactionStack: []state.ReactionItem{},
 		Mana: func() []int {
 			m := make([]int, numTeams)
 			for i := range m {
