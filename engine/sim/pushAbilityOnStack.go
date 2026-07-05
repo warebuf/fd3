@@ -24,6 +24,7 @@ func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		*UpdateID++
 	}
 
+	// NOTE: THIS TYPE SHOULD NOT COME FROM ZONE, IT SHOULD COME FROM CARD TYPE
 	stackItemType := state.StackItemAbility
 	if card.Zone == state.ZoneContinuous {
 		stackItemType = state.StackItemContinuousActivation

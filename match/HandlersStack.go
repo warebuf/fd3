@@ -46,7 +46,7 @@ func (match *Match) handleStackResolution() {
 				CardIndex:     stackTop.CardID,
 			})
 			match.NextUpdateID++
-			sim.ScheduleOnTickAbilities(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive
@@ -115,7 +115,7 @@ func (match *Match) handleStackResolution() {
 			def := defs.CardDefs[card.DefNo]
 			for tickIndex, r := range def.OnTick {
 				for _, eff := range r.Effects {
-					if eff.Type == state.EffectGainCharge && eff.A == stackTop.ActiveIndex {
+					if eff.Type == state.EffectGainCharge && eff.A == stackTop.ActiveIndex { // NOTE: not sure about the second part
 						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, tickIndex, startAtSimTime, wallTime)
 						break
 					}

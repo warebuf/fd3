@@ -107,6 +107,7 @@ func (match *Match) setPQTimer() {
 
 }
 
+// NOTE: we should probably rename effectEvent to simPQEvent
 func (match *Match) handleEffectEvent(effEvent *eventpq.EffectEvent) {
 	if match.GameState.Phase == state.PhaseGameOver {
 		return

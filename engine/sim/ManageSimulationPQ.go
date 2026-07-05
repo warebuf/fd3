@@ -39,10 +39,10 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 	for i := 0; i < len(currSimItem.Effects); i++ {
-		// SimulationItem-sourced effects (OnTick, structure regen, draw) are never Active-ability-triggered
 		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 	}
 
+	// TODO: should change the rest of this function to a clean switch statement
 	if currSimItem.CardIndex >= 0 {
 		if currSimItem.Type == state.SimItemOnTick {
 			if gs.Cards[currSimItem.CardIndex].Zone == state.ZoneField {
@@ -64,11 +64,13 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	}
 }
 
+// NOTE: i see this requiring work, why should we append objects rather than modifying them
+// we require management of ontick abilities on the gameState because its the best way to display in the UI
 func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardID int, abilityID int, wallTime int64) {
-	timers := cards[cardID].OnTick
-	for i, t := range timers {
+	onTicks := cards[cardID].OnTick
+	for i, t := range onTicks {
 		if t.AbilityID == abilityID {
-			cards[cardID].OnTick = append(timers[:i], timers[i+1:]...)
+			cards[cardID].OnTick = append(onTicks[:i], onTicks[i+1:]...)
 			*logList = append(*logList, logs.ClearTickAbilityLog{
 				UpdateID:      *UpdateID,
 				WallTimestamp: wallTime,
@@ -199,7 +201,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 
 }
 
-func ScheduleOnTickAbilities(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
+func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
 	onTick := defs.CardDefs[gs.Cards[cardID].DefNo].OnTick
 	for a := 0; a < len(onTick); a++ {
 		ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)

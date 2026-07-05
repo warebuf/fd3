@@ -29,6 +29,7 @@ const (
 	TickUntilChargeMax                      // stops rescheduling once the Active slot it charges hits MaxCharges
 )
 
+// NOTE: to be honest, not sure if we need to maintain this
 type CardStatus int
 
 const (
@@ -46,6 +47,7 @@ type AuraModifier struct {
 	Amount       int
 }
 
+// NOTE: this is weird, we are tracking a lot of things, it is dynamic arr, tickcon is not being used
 type TickAbility struct {
 	AbilityID        int
 	AbilityIndex     int // index into card def's ability list
@@ -55,6 +57,7 @@ type TickAbility struct {
 	ExecuteAtSimTime int64
 }
 
+// NOTE: we maintain targets on this object but not Conditions
 type ActiveAbility struct {
 	Charges     int
 	MaxCharges  int
