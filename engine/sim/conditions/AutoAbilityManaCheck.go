@@ -27,10 +27,6 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			if ability.Effects[0].Type == 0 {
-				continue
-			}
-
 			if active.MaxCharges > 0 && active.Charges <= 0 {
 				continue
 			}

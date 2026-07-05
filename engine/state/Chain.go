@@ -1,5 +1,8 @@
 package state
 
+// NOTE: we need to figure out the correct name for this stuff
+
+// TODO: these are stupid, reduce
 const (
 	StackItemCard                 = 0
 	StackItemAbility              = 1

@@ -36,6 +36,8 @@ const (
 	SimItemStructureRegen
 )
 
+// NOTE: I dont love this name, we can change it
+// NOTE: do we need AbilityID going forward?
 type SimulationItem struct {
 	SeqID     int // PQ tiebreaker (internal)
 	AbilityID int // references the TickAbility on the card; -1 for non-ability items
