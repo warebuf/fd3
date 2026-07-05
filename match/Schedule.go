@@ -117,7 +117,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardID:              cardIndex,
+		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
 		Type:                stackItemType,
 		Effects:             effs,
@@ -132,7 +132,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		StartAtActiveTime:   stackItem.StartAtActiveTime,
 		PopAtActiveTime:     stackItem.PopAtActiveTime,
 		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardID:              stackItem.CardID,
+		CardIndex:           stackItem.CardIndex,
 		Effects:             stackItem.Effects,
 	})
 	*UpdateID += 1

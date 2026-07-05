@@ -8,8 +8,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, activeIndex int, executeAtWallTime int64) {
-	unitIndex := sourceCardID
+func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) {
+	unitIndex := sourceCardIndex
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
 	damage := eff.B

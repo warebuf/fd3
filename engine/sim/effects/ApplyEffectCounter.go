@@ -5,7 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sourceCardID int, executeAtWallTime int64) {
+func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sourceCardIndex int, executeAtWallTime int64) {
 	if len(gs.Stack) == 0 {
 		return
 	}
@@ -13,20 +13,20 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 	target := gs.Stack[len(gs.Stack)-1]
 	gs.Stack = gs.Stack[:len(gs.Stack)-1]
 
-	card := &gs.Cards[target.CardID]
+	card := &gs.Cards[target.CardIndex]
 	if card.Zone == state.ZoneStack {
 		card.Zone = state.ZoneGraveyard
-		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardID)
+		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 	} else if target.Type == state.StackItemContinuousActivation {
 		card.Actives[target.ActiveIndex].Pending--
 	}
 
 	*logList = append(*logList, logs.CounterStackLog{
-		UpdateID:      *UpdateID,
-		WallTimestamp: executeAtWallTime,
-		Type:          logs.CounterStack,
-		SourceCardID:  sourceCardID,
-		TargetCardID:  target.CardID,
+		UpdateID:        *UpdateID,
+		WallTimestamp:   executeAtWallTime,
+		Type:            logs.CounterStack,
+		SourceCardIndex: sourceCardIndex,
+		TargetCardIndex: target.CardIndex,
 	})
 	*UpdateID++
 }

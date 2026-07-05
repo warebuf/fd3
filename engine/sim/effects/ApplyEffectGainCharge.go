@@ -5,8 +5,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, executeAtWallTime int64) {
-	card := &gs.Cards[sourceCardID]
+func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
+	card := &gs.Cards[sourceCardIndex]
 	active := &card.Actives[eff.A] // eff.A: which Active slot this charges
 	if active.Charges < active.MaxCharges {
 		active.Charges++
@@ -15,7 +15,7 @@ func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, e
 			WallTimestamp: executeAtWallTime,
 			Type:          logs.AddCharge,
 			TeamIndex:     card.Team,
-			CardID:        sourceCardID,
+			CardIndex:     sourceCardIndex,
 			Charges:       active.Charges,
 		})
 		*UpdateID++

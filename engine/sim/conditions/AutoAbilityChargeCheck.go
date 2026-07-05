@@ -5,8 +5,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func AutoAbilityChargeCheck(gs *state.GameState, cardID int, activeIndex int) bool {
-	card := gs.Cards[cardID]
+func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int) bool {
+	card := gs.Cards[cardIndex]
 	if card.Zone != state.ZoneField {
 		return false
 	}
@@ -26,5 +26,5 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardID int, activeIndex int) bo
 		return false
 	}
 
-	return CheckAbilityConditions(gs, cardID, activeIndex)
+	return CheckAbilityConditions(gs, cardIndex, activeIndex)
 }

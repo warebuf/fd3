@@ -513,7 +513,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardID:              cardIndex,
+		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
 		Type:                state.StackItemContinuousActivation,
 		Effects:             effs,
@@ -528,7 +528,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		StartAtActiveTime:   stackItem.StartAtActiveTime,
 		PopAtActiveTime:     stackItem.PopAtActiveTime,
 		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardID:              stackItem.CardID,
+		CardIndex:           stackItem.CardIndex,
 		Effects:             stackItem.Effects,
 	})
 	match.NextUpdateID++
@@ -636,7 +636,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		StartAtActiveTime:   startAtActiveTime,
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardID:              cardIndex,
+		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
 		Type:                state.StackItemAbility,
 		Effects:             effs,
@@ -651,7 +651,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		StartAtActiveTime:   stackItem.StartAtActiveTime,
 		PopAtActiveTime:     stackItem.PopAtActiveTime,
 		ExecuteAtActiveTime: stackItem.ExecuteAtActiveTime,
-		CardID:              stackItem.CardID,
+		CardIndex:           stackItem.CardIndex,
 		Effects:             stackItem.Effects,
 	})
 	match.NextUpdateID++
@@ -694,7 +694,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		WallTimestamp:   executeAtWallTime,
 		Type:            logs.Preselect,
 		TeamIndex:       teamIndex,
-		CardID:          cardIndex,
+		CardIndex:       cardIndex,
 		TargetCardIndex: targetCardIndex,
 	})
 	match.NextUpdateID++

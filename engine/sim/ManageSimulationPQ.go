@@ -67,16 +67,16 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 // NOTE: i see this requiring work, why should we append objects rather than modifying them
 // we require management of ontick abilities on the gameState because its the best way to display in the UI
-func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardID int, abilityID int, wallTime int64) {
-	onTicks := cards[cardID].OnTick
+func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardIndex int, abilityID int, wallTime int64) {
+	onTicks := cards[cardIndex].OnTick
 	for i, t := range onTicks {
 		if t.AbilityID == abilityID {
-			cards[cardID].OnTick = append(onTicks[:i], onTicks[i+1:]...)
+			cards[cardIndex].OnTick = append(onTicks[:i], onTicks[i+1:]...)
 			*logList = append(*logList, logs.ClearTickAbilityLog{
 				UpdateID:      *UpdateID,
 				WallTimestamp: wallTime,
 				Type:          logs.ClearTickAbility,
-				CardIndex:     cardID,
+				CardIndex:     cardIndex,
 				AbilityID:     abilityID,
 			})
 			*UpdateID++
@@ -86,32 +86,32 @@ func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardID 
 }
 
 // NOTE: you could probably split this out of this file since it is quite important across the project
-func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, activeIndex int, executeAtWallTime int64) {
+func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) {
 	switch eff.Type {
 
 	case state.EffectDraw:
 		effects.ApplyEffectDraw(gs, logList, UpdateID, eff, executeAtWallTime)
 
 	case state.EffectDestroy:
-		destroyedIDs := map[int]bool{}
+		destroyedIndexes := map[int]bool{}
 		for a := 0; a < len(gs.Field); a++ {
 			for b := 0; b < len(gs.Field[a]); b++ {
 				cardIndex := gs.Field[a][b]
 				gs.Cards[cardIndex].Zone = state.ZoneGraveyard
 				gs.Grave[a] = append(gs.Grave[a], cardIndex)
-				destroyedIDs[cardIndex] = true
+				destroyedIndexes[cardIndex] = true
 			}
 			gs.Field[a] = []int{}
 		}
-		pq.RemoveSimItemsByCardIndexes(destroyedIDs)
-		for cardID := range destroyedIDs {
-			gs.Cards[cardID].OnTick = []state.TickAbility{}
-			gs.Cards[cardID].Status = state.CardStatusDefault
+		pq.RemoveSimItemsByCardIndexes(destroyedIndexes)
+		for cardIndexes := range destroyedIndexes {
+			gs.Cards[cardIndexes].OnTick = []state.TickAbility{}
+			gs.Cards[cardIndexes].Status = state.CardStatusDefault
 		}
 		// clear any preselected targets pointing at destroyed cards
 		for i := range gs.Cards {
 			for j := range gs.Cards[i].Actives {
-				if destroyedIDs[gs.Cards[i].Actives[j].Target] {
+				if destroyedIndexes[gs.Cards[i].Actives[j].Target] {
 					gs.Cards[i].Actives[j].Target = -1
 				}
 			}
@@ -145,19 +145,19 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 
 	case state.EffectAttack:
-		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardID, activeIndex, executeAtWallTime)
+		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardIndex, activeIndex, executeAtWallTime)
 
 	case state.EffectHeal:
-		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
+		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	case state.EffectCounter:
-		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardID, executeAtWallTime)
+		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 
 	case state.EffectGainCharge:
-		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardID, executeAtWallTime)
+		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
-		if conditions.AutoAbilityChargeCheck(gs, sourceCardID, eff.A) {
-			pushAbilityOnStack(gs, logList, UpdateID, sourceCardID, eff.A, executeAtWallTime)
+		if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, eff.A) {
+			pushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, eff.A, executeAtWallTime)
 		}
 
 	default:
@@ -203,15 +203,15 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 
 }
 
-func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, startAtSimTime int64, wallTimestamp int64) {
-	onTick := defs.CardDefs[gs.Cards[cardID].DefNo].OnTick
+func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardIndex int, startAtSimTime int64, wallTimestamp int64) {
+	onTick := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTick
 	for a := 0; a < len(onTick); a++ {
-		ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardID, a, startAtSimTime, wallTimestamp)
+		ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardIndex, a, startAtSimTime, wallTimestamp)
 	}
 }
 
-func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardID int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
-	card := gs.Cards[cardID]
+func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
+	card := gs.Cards[cardIndex]
 	entry := defs.CardDefs[card.DefNo].OnTick[abilityIndex]
 
 	if entry.Milliseconds == 0 {
@@ -240,7 +240,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		if e.Type == 0 {
 			continue // unused Effect slot
 		}
-		effs = append(effs, FulfillEffectTemplate(e, teamIndex, cardID))
+		effs = append(effs, FulfillEffectTemplate(e, teamIndex, cardIndex))
 	}
 
 	abilityID := *abilityIDCounter
@@ -253,13 +253,13 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
 		AbilityID: abilityID,
-		CardIndex: cardID,
+		CardIndex: cardIndex,
 		Type:      state.SimItemOnTick,
 		Effects:   effs,
 	}
 	heap.Push(pq, item)
 
-	gs.Cards[cardID].OnTick = append(gs.Cards[cardID].OnTick, state.TickAbility{
+	gs.Cards[cardIndex].OnTick = append(gs.Cards[cardIndex].OnTick, state.TickAbility{
 		AbilityID:        abilityID,
 		AbilityIndex:     abilityIndex,
 		Condition:        condition,
@@ -272,7 +272,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		UpdateID:         *UpdateID,
 		WallTimestamp:    wallTimestamp,
 		Type:             logs.AddTickAbility,
-		CardIndex:        cardID,
+		CardIndex:        cardIndex,
 		AbilityID:        abilityID,
 		AbilityIndex:     abilityIndex,
 		Condition:        condition,

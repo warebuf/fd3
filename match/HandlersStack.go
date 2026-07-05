@@ -29,40 +29,40 @@ func (match *Match) handleStackResolution() {
 
 	// apply effects
 	for _, eff := range stackTop.Effects {
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardID, stackTop.ActiveIndex, wallTime)
+		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, stackTop.CardIndex, stackTop.ActiveIndex, wallTime)
 	}
 
-	card := &gs.Cards[stackTop.CardID]
+	card := &gs.Cards[stackTop.CardIndex]
 	if card.Zone == state.ZoneStack {
 		if card.Type == state.CardTypeUnit {
 			card.Zone = state.ZoneField
 			card.Status = state.CardStatusUnitActive
-			gs.Field[card.Team] = append(gs.Field[card.Team], stackTop.CardID)
+			gs.Field[card.Team] = append(gs.Field[card.Team], stackTop.CardIndex)
 			match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
 				UpdateID:      match.NextUpdateID,
 				WallTimestamp: wallTime,
 				Type:          logs.SummonResolution,
 				TeamIndex:     card.Team,
-				CardIndex:     stackTop.CardID,
+				CardIndex:     stackTop.CardIndex,
 			})
 			match.NextUpdateID++
-			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			card.Status = state.CardStatusContinuousActive
-			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], stackTop.CardID)
+			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], stackTop.CardIndex)
 			match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
 				UpdateID:      match.NextUpdateID,
 				WallTimestamp: wallTime,
 				Type:          logs.PlayContinuous,
 				TeamIndex:     card.Team,
-				CardID:        stackTop.CardID,
+				CardIndex:     stackTop.CardIndex,
 				Charges:       card.Actives[0].Charges,
 			})
 			match.NextUpdateID++
 		} else {
 			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardIndex)
 		}
 	} else if stackTop.Type == state.StackItemContinuousActivation {
 		card.Actives[stackTop.ActiveIndex].Pending--
@@ -72,26 +72,26 @@ func (match *Match) handleStackResolution() {
 			WallTimestamp:    wallTime,
 			Type:             logs.RemoveCharge,
 			TeamIndex:        card.Team,
-			CardID:           stackTop.CardID,
+			CardIndex:        stackTop.CardIndex,
 			ChargesRemaining: card.Actives[stackTop.ActiveIndex].Charges,
 		})
 		match.NextUpdateID++
 		if card.Actives[stackTop.ActiveIndex].Charges <= 0 {
 			for i, id := range gs.Continuous[card.Team] {
-				if id == stackTop.CardID {
+				if id == stackTop.CardIndex {
 					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
 					break
 				}
 			}
 			card.Zone = state.ZoneGraveyard
 			card.Status = state.CardStatusDefault
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardID)
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], stackTop.CardIndex)
 			match.EventLog = append(match.EventLog, logs.RemoveContinuousLog{
 				UpdateID:      match.NextUpdateID,
 				WallTimestamp: wallTime,
 				Type:          logs.RemoveContinuous,
 				TeamIndex:     card.Team,
-				CardID:        stackTop.CardID,
+				CardIndex:     stackTop.CardIndex,
 			})
 			match.NextUpdateID++
 		}
@@ -104,7 +104,7 @@ func (match *Match) handleStackResolution() {
 			WallTimestamp:    wallTime,
 			Type:             logs.RemoveCharge,
 			TeamIndex:        card.Team,
-			CardID:           stackTop.CardID,
+			CardIndex:        stackTop.CardIndex,
 			ChargesRemaining: card.Actives[stackTop.ActiveIndex].Charges,
 		})
 		match.NextUpdateID++
@@ -116,7 +116,7 @@ func (match *Match) handleStackResolution() {
 			for tickIndex, r := range def.OnTick {
 				for _, eff := range r.Effects {
 					if eff.Type == state.EffectGainCharge && eff.A == stackTop.ActiveIndex { // NOTE: not sure about the second part
-						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardID, tickIndex, startAtSimTime, wallTime)
+						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, stackTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 						break
 					}
 				}
@@ -128,7 +128,7 @@ func (match *Match) handleStackResolution() {
 		UpdateID:      match.NextUpdateID,
 		WallTimestamp: wallTime,
 		Type:          logs.RemoveStack,
-		CardID:        stackTop.CardID,
+		CardIndex:     stackTop.CardIndex,
 	})
 	match.NextUpdateID++
 
@@ -150,7 +150,7 @@ func (match *Match) handleStackResolution() {
 			UpdateID:            match.NextUpdateID,
 			WallTimestamp:       wallTime,
 			Type:                logs.RefreshStack,
-			CardID:              gs.Stack[newTopIndex].CardID,
+			CardIndex:           gs.Stack[newTopIndex].CardIndex,
 			StartAtActiveTime:   gs.Stack[newTopIndex].StartAtActiveTime,
 			PopAtActiveTime:     gs.Stack[newTopIndex].PopAtActiveTime,
 			ExecuteAtActiveTime: gs.Stack[newTopIndex].ExecuteAtActiveTime,

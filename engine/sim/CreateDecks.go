@@ -51,7 +51,7 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Structures: structures,
 		Ready:      make([]bool, numTeams),
 	}
-	nextCardID := 0
+	nextCardIndex := 0
 	for team := 0; team < len(deckDefs); team++ {
 		defNos := deckDefs[team]
 
@@ -89,9 +89,9 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 			}
 
 			gs.Cards = append(gs.Cards, card)
-			gs.Deck[team] = append(gs.Deck[team], nextCardID)
+			gs.Deck[team] = append(gs.Deck[team], nextCardIndex)
 
-			nextCardID++
+			nextCardIndex++
 		}
 	}
 
@@ -166,9 +166,9 @@ func ArrangeStartingHand(gs *state.GameState, teamIndex int, startingHand []int)
 
 	chosen := []int{}
 	for _, defNo := range startingHand {
-		for i, cardID := range deck {
-			if gs.Cards[cardID].DefNo == defNo {
-				chosen = append(chosen, cardID)
+		for i, cardIndex := range deck {
+			if gs.Cards[cardIndex].DefNo == defNo {
+				chosen = append(chosen, cardIndex)
 				deck = append(deck[:i], deck[i+1:]...)
 				break
 			}

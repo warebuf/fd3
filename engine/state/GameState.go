@@ -130,7 +130,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	for i, item := range prevState.Stack {
 		newItem := StackItem{
 			Type:                item.Type,
-			CardID:              item.CardID,
+			CardIndex:           item.CardIndex,
 			StartAtActiveTime:   item.StartAtActiveTime,
 			PopAtActiveTime:     item.PopAtActiveTime,
 			ExecuteAtActiveTime: item.ExecuteAtActiveTime,

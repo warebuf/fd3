@@ -42,9 +42,9 @@ const (
 )
 
 type AuraModifier struct {
-	SourceCardID int
-	Stat         int
-	Amount       int
+	SourceCardIndex int
+	Stat            int
+	Amount          int
 }
 
 // NOTE: this is weird, we are tracking a lot of things, it is dynamic arr, tickcon is not being used

@@ -71,7 +71,7 @@ type RemoveStackLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
-	CardID        int
+	CardIndex     int
 }
 
 type AddStackLog struct {
@@ -82,7 +82,7 @@ type AddStackLog struct {
 	StartAtActiveTime   int64
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
-	CardID              int
+	CardIndex           int
 	Effects             []state.Effect
 }
 
@@ -90,7 +90,7 @@ type RefreshStackLog struct {
 	WallTimestamp       int64
 	UpdateID            int
 	Type                LogType
-	CardID              int
+	CardIndex           int
 	StartAtActiveTime   int64
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
@@ -221,11 +221,11 @@ type GameOverLog struct {
 }
 
 type CounterStackLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	SourceCardID  int // the counterspell card
-	TargetCardID  int // the spell being countered
+	WallTimestamp   int64
+	UpdateID        int
+	Type            LogType
+	SourceCardIndex int // the counterspell card
+	TargetCardIndex int // the spell being countered
 }
 
 type PlayContinuousLog struct {
@@ -233,7 +233,7 @@ type PlayContinuousLog struct {
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
-	CardID        int
+	CardIndex     int
 	Charges       int
 }
 
@@ -242,7 +242,7 @@ type RemoveContinuousLog struct {
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
-	CardID        int
+	CardIndex     int
 }
 
 type RemoveChargeLog struct {
@@ -250,7 +250,7 @@ type RemoveChargeLog struct {
 	UpdateID         int
 	Type             LogType
 	TeamIndex        int
-	CardID           int
+	CardIndex        int
 	ChargesRemaining int
 }
 
@@ -259,7 +259,7 @@ type AddChargeLog struct {
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
-	CardID        int
+	CardIndex     int
 	Charges       int
 }
 
@@ -268,7 +268,7 @@ type PreselectLog struct {
 	UpdateID        int
 	Type            LogType
 	TeamIndex       int
-	CardID          int
+	CardIndex       int
 	TargetCardIndex int
 }
 

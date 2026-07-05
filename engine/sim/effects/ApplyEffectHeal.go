@@ -8,8 +8,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectHeal(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardID int, executeAtWallTime int64) {
-	healerIndex := sourceCardID
+func ApplyEffectHeal(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
+	healerIndex := sourceCardIndex
 	teamIndex := gs.Cards[healerIndex].Team
 	amount := eff.B
 

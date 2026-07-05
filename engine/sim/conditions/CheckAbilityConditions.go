@@ -6,8 +6,8 @@ import (
 )
 
 // checks whether an ability can be played in the current state
-func CheckAbilityConditions(gs *state.GameState, cardID int, activeIndex int) bool {
-	card := gs.Cards[cardID]
+func CheckAbilityConditions(gs *state.GameState, cardIndex int, activeIndex int) bool {
+	card := gs.Cards[cardIndex]
 	ability := defs.CardDefs[card.DefNo].Active[activeIndex]
 
 	for i := 0; i < len(ability.Cons); i++ {
