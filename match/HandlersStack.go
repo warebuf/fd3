@@ -16,13 +16,13 @@ func (match *Match) handleStackResolution() {
 
 	gs := match.GameState
 
-	if len(gs.Stack) == 0 {
+	if len(gs.ReactionStack) == 0 {
 		return
 	}
 
-	// pop the top of the stack
-	stackTop := gs.Stack[len(gs.Stack)-1]
-	gs.Stack = gs.Stack[:len(gs.Stack)-1]
+	// pop the top of the reaction stack
+	stackTop := gs.ReactionStack[len(gs.ReactionStack)-1]
+	gs.ReactionStack = gs.ReactionStack[:len(gs.ReactionStack)-1]
 
 	wallTime := stackTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
@@ -132,7 +132,7 @@ func (match *Match) handleStackResolution() {
 	})
 	match.NextUpdateID++
 
-	if len(gs.Stack) == 0 {
+	if len(gs.ReactionStack) == 0 {
 		if gs.Phase == state.PhaseReveal {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
@@ -140,20 +140,20 @@ func (match *Match) handleStackResolution() {
 			match.processAutoSummonQueue(wallTime, -1)
 		}
 	} else { // the new top gets a refreshed reaction window
-		newTopIndex := len(gs.Stack) - 1
+		newTopIndex := len(gs.ReactionStack) - 1
 		freshStart := wallTime - gs.FullPauseOffset
-		gs.Stack[newTopIndex].StartAtActiveTime = freshStart
-		gs.Stack[newTopIndex].PopAtActiveTime = freshStart + constants.REACTION_WINDOW - constants.LEAD
-		gs.Stack[newTopIndex].ExecuteAtActiveTime = freshStart + constants.REACTION_WINDOW
+		gs.ReactionStack[newTopIndex].StartAtActiveTime = freshStart
+		gs.ReactionStack[newTopIndex].PopAtActiveTime = freshStart + constants.REACTION_WINDOW - constants.LEAD
+		gs.ReactionStack[newTopIndex].ExecuteAtActiveTime = freshStart + constants.REACTION_WINDOW
 
 		match.EventLog = append(match.EventLog, logs.RefreshStackLog{
 			UpdateID:            match.NextUpdateID,
 			WallTimestamp:       wallTime,
 			Type:                logs.RefreshStack,
-			CardIndex:           gs.Stack[newTopIndex].CardIndex,
-			StartAtActiveTime:   gs.Stack[newTopIndex].StartAtActiveTime,
-			PopAtActiveTime:     gs.Stack[newTopIndex].PopAtActiveTime,
-			ExecuteAtActiveTime: gs.Stack[newTopIndex].ExecuteAtActiveTime,
+			CardIndex:           gs.ReactionStack[newTopIndex].CardIndex,
+			StartAtActiveTime:   gs.ReactionStack[newTopIndex].StartAtActiveTime,
+			PopAtActiveTime:     gs.ReactionStack[newTopIndex].PopAtActiveTime,
+			ExecuteAtActiveTime: gs.ReactionStack[newTopIndex].ExecuteAtActiveTime,
 		})
 		match.NextUpdateID++
 
