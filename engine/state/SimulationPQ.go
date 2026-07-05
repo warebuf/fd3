@@ -32,7 +32,7 @@ type SimItemType int
 
 const (
 	SimItemOnTick SimItemType = iota
-	SimItemDraw
+	SimItemSystemDraw
 	SimItemStructureRegen
 )
 
