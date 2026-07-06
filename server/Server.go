@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	"github.com/warebuf/fd3/engine/matchsetup"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
@@ -72,7 +71,7 @@ func (s *Server) GetGuestIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !matchsetup.IsValidSubmission(reqBody.Deck, reqBody.StartingHand, reqBody.StructNo) {
+	if !matchmaking.IsValidSubmission(reqBody.Deck, reqBody.StartingHand, reqBody.StructNo) {
 		http.Error(w, "invalid deck", http.StatusBadRequest)
 		return
 	}

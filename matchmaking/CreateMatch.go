@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/warebuf/fd3/engine/matchsetup"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/match/eventpq"
@@ -36,12 +35,12 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		deckDefs = append(deckDefs, tickets[i].Deck)
 		structureDefNos = append(structureDefNos, tickets[i].StructureDefNo)
 	}
-	gs := matchsetup.CreateDecks(deckDefs, structureDefNos)
+	gs := CreateDecks(deckDefs, structureDefNos)
 
 	// shuffle the decks, then arrange starting hands on top
 	for i := 0; i < len(gs.Deck); i++ {
-		matchsetup.ShuffleDeck(gs, i)
-		matchsetup.ArrangeStartingHand(gs, i, tickets[i].StartingHand)
+		ShuffleDeck(gs, i)
+		ArrangeStartingHand(gs, i, tickets[i].StartingHand)
 	}
 
 	// create match object

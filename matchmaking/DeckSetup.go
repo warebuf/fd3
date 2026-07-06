@@ -1,4 +1,4 @@
-package matchsetup
+package matchmaking
 
 import (
 	"math/rand"
