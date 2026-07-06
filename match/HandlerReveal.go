@@ -34,8 +34,8 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	)
 
 	if success {
-		match.PendingRevealTime = 0     // clear previous reveal
-		scheduleRStackResolution(match) // no need to sim pause, already sim paused
+		match.PendingRevealTime = 0            // clear previous reveal
+		scheduleReactionStackResolution(match) // no need to sim pause, already sim paused
 	} else {
 		pushRevealEvent(match, executeAtWallTime-match.GameState.FullPauseOffset+constants.REACTION_WINDOW) // make a reveal same amount of time as 1 stack item
 	}

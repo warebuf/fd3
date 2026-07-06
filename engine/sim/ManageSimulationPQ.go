@@ -43,24 +43,19 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 	}
 
-	// TODO: should change the rest of this function to a clean switch statement
-	if currSimItem.CardIndex >= 0 {
-		if currSimItem.Type == state.SimItemOnTick {
-			if gs.Cards[currSimItem.CardIndex].Zone == state.ZoneField {
-				ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
-			}
-		}
-
+	switch currSimItem.Type {
+	case state.SimItemOnTick:
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
-	}
+		ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
-	if currSimItem.Type == state.SimItemStructureRegen {
-		teamIndex := currSimItem.Effects[0].A
-		ScheduleStructureManaRegen(gs, pq, logList, UpdateID, teamIndex, currSimItem.PopAtSimTime+constants.LEAD)
+	case state.SimItemStructureRegen:
+		ScheduleStructureManaRegen(gs, pq, logList, UpdateID, currSimItem.TeamIndex, currSimItem.PopAtSimTime+constants.LEAD)
+
+	case state.SimItemSystemDraw:
+		// the draw effect was already applied above; nothing further to schedule
 	}
 }
 
-// NOTE: i see this requiring work, why should we append objects rather than modifying them
 // we require management of ontick abilities on the gameState because its the best way to display in the UI
 func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, wallTime int64) {
 	if !cards[cardIndex].OnTick[abilityIndex].Active {
@@ -188,6 +183,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 		AbilityIndex:     -1,
 		CardIndex:        -1,
+		TeamIndex:        teamIndex,
 		Type:             state.SimItemStructureRegen,
 		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
 	})
@@ -203,6 +199,10 @@ func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 
 func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
 	card := gs.Cards[cardIndex]
+	if card.Zone == state.ZoneGraveyard {
+		return // card is dead, nothing to schedule
+	}
+
 	entry := defs.CardDefs[card.DefNo].OnTick[abilityIndex]
 
 	if entry.Milliseconds == 0 {
@@ -242,6 +242,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 
 		AbilityIndex: abilityIndex,
 		CardIndex:    cardIndex,
+		TeamIndex:    teamIndex,
 		Type:         state.SimItemOnTick,
 		Effects:      effs,
 	}

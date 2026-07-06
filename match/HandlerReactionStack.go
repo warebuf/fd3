@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func (match *Match) handleRStackResolution() {
+func (match *Match) handleReactionStackResolution() {
 
 	if match.GameState.Phase == state.PhaseGameOver {
 		return
@@ -154,7 +154,7 @@ func (match *Match) handleRStackResolution() {
 		})
 		match.NextUpdateID++
 
-		scheduleRStackResolution(match)
+		scheduleReactionStackResolution(match)
 	}
 
 	match.publish(wallTime, oldLogsSize)

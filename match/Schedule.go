@@ -85,6 +85,7 @@ func ScheduleSystemDraw(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 		ExecuteAtSimTime: executeAtSimTime,
 		AbilityIndex:     -1,
 		CardIndex:        -1,
+		TeamIndex:        teamIndex,
 		Type:             state.SimItemSystemDraw,
 		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
 	}

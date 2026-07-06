@@ -46,6 +46,7 @@ type SimulationItem struct {
 	ExecuteAtSimTime int64 // the time the item executes (denominated in SimTime ms)
 
 	CardIndex int
+	TeamIndex int
 	Type      SimItemType
 	Effects   []Effect
 }
