@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -37,7 +38,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
-		success := ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		success := schedule.ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		if success {
 			scheduleReactionStackResolution(match)
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
@@ -47,7 +48,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	// simulating: try to play immediately, no queue fallback
 	oldLogsSize := len(match.EventLog)
-	success := ScheduleDeclareCard(
+	success := schedule.ScheduleDeclareCard(
 		gs,
 		&match.EventLog,
 		&match.NextUpdateID,

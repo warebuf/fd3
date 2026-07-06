@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -179,7 +180,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				break
 			}
 
-			success := ScheduleDeclareCard(
+			success := schedule.ScheduleDeclareCard(
 				gs,
 				&match.EventLog,
 				&match.NextUpdateID,

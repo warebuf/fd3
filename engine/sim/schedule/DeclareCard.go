@@ -1,4 +1,4 @@
-package match
+package schedule
 
 import (
 	"container/heap"
