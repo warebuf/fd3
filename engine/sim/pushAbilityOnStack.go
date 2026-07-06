@@ -7,7 +7,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// NOTE: im not sure where this belongs, maybe not sim
 func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, activeIndex int, executeAtWallTime int64) {
 	card := gs.Cards[cardIndex]
 	teamIndex := card.Team
