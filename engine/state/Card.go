@@ -29,7 +29,6 @@ const (
 	TickUntilChargeMax                      // stops rescheduling once the Active slot it charges hits MaxCharges
 )
 
-
 type AuraModifier struct {
 	SourceCardIndex int
 	Stat            int
@@ -67,13 +66,13 @@ type Card struct {
 	Taunt       bool
 
 	// state info
-	Team          int
-	Type          int // structure, unit, trap, spell, continuous
-	Zone          int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack, 5: continuous
+	Team int
+	Type int // structure, unit, trap, spell, continuous
+	Zone int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack, 5: continuous
 
-	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
-	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
-	OnTick        []TickAbility
+	StageOrder    int           // 0: not staged; 1+: reveal order during board setup phase
+	AutoSummon    int           // 0: not queued; 1+: priority order in play phase autosummon queue
+	OnTick        []TickAbility // NOTE: should make this size 3 prob
 	Actives       [3]ActiveAbility
 	AuraModifiers []AuraModifier
 }
