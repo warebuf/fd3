@@ -43,7 +43,7 @@ type AuraModifier struct {
 }
 
 type TickAbility struct {
-	AbilityIndex     int // index into card def's ability list
+	Active           bool // whether this OnTick slot currently has a scheduled tick
 	Condition        TickCondition
 	ActiveIndex      int // which Actives[] slot Condition checks against, -1 if not applicable (Condition == TickIndefinite)
 	StartAtSimTime   int64
@@ -76,9 +76,9 @@ type Card struct {
 	Type int // structure, unit, trap, spell, continuous
 	Zone int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack, 5: continuous
 
-	StageOrder    int           // 0: not staged; 1+: reveal order during board setup phase
-	AutoSummon    int           // 0: not queued; 1+: priority order in play phase autosummon queue
-	OnTick        []TickAbility // NOTE: should make this size 3 prob
+	StageOrder    int // 0: not staged; 1+: reveal order during board setup phase
+	AutoSummon    int // 0: not queued; 1+: priority order in play phase autosummon queue
+	OnTick        [3]TickAbility
 	Actives       [3]ActiveAbility
 	AuraModifiers []AuraModifier
 }

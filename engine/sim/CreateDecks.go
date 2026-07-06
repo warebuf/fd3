@@ -76,7 +76,6 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Team:          team,
 				Type:          def.Type,
 				Zone:          state.ZoneDeck,
-				OnTick:        []state.TickAbility{},
 				AuraModifiers: []state.AuraModifier{},
 			}
 			for i, ability := range def.Active {

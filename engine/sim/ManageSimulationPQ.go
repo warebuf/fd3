@@ -63,21 +63,18 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 // NOTE: i see this requiring work, why should we append objects rather than modifying them
 // we require management of ontick abilities on the gameState because its the best way to display in the UI
 func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, wallTime int64) {
-	onTicks := cards[cardIndex].OnTick
-	for i, t := range onTicks {
-		if t.AbilityIndex == abilityIndex {
-			cards[cardIndex].OnTick = append(onTicks[:i], onTicks[i+1:]...)
-			*logList = append(*logList, logs.ClearTickAbilityLog{
-				UpdateID:      *UpdateID,
-				WallTimestamp: wallTime,
-				Type:          logs.ClearTickAbility,
-				CardIndex:     cardIndex,
-				AbilityIndex:  abilityIndex,
-			})
-			*UpdateID++
-			return
-		}
+	if !cards[cardIndex].OnTick[abilityIndex].Active {
+		return
 	}
+	cards[cardIndex].OnTick[abilityIndex] = state.TickAbility{}
+	*logList = append(*logList, logs.ClearTickAbilityLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: wallTime,
+		Type:          logs.ClearTickAbility,
+		CardIndex:     cardIndex,
+		AbilityIndex:  abilityIndex,
+	})
+	*UpdateID++
 }
 
 // NOTE: you could probably split this out of this file since it is quite important across the project
@@ -100,7 +97,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		}
 		pq.RemoveSimItemsByCardIndexes(destroyedIndexes)
 		for cardIndexes := range destroyedIndexes {
-			gs.Cards[cardIndexes].OnTick = []state.TickAbility{}
+			gs.Cards[cardIndexes].OnTick = [3]state.TickAbility{}
 		}
 		// clear any preselected targets pointing at destroyed cards
 		for i := range gs.Cards {
@@ -250,13 +247,13 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 	}
 	heap.Push(pq, item)
 
-	gs.Cards[cardIndex].OnTick = append(gs.Cards[cardIndex].OnTick, state.TickAbility{
-		AbilityIndex:     abilityIndex,
+	gs.Cards[cardIndex].OnTick[abilityIndex] = state.TickAbility{
+		Active:           true,
 		Condition:        condition,
 		ActiveIndex:      activeIndex,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
-	})
+	}
 
 	*logList = append(*logList, logs.AddTickAbilityLog{
 		UpdateID:         *UpdateID,

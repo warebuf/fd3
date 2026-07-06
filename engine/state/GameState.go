@@ -66,13 +66,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 
 	// Cards
 	newState.Cards = make([]Card, len(prevState.Cards))
-	for i, card := range prevState.Cards {
-		newState.Cards[i] = card
-		if len(card.OnTick) > 0 {
-			newState.Cards[i].OnTick = make([]TickAbility, len(card.OnTick))
-			copy(newState.Cards[i].OnTick, card.OnTick)
-		}
-	}
+	copy(newState.Cards, prevState.Cards)
 
 	// Deck
 	newState.Deck = make([][]int, len(prevState.Deck))
