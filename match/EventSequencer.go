@@ -114,7 +114,7 @@ func (match *Match) handleSimPQEvent(simPQEvent *eventpq.SimPQEvent) {
 	}
 	oldLogsSize := len(match.EventLog)
 	wallTime := simPQEvent.WallTime.UnixMilli() + constants.LEAD
-	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID)
+	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID)
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {

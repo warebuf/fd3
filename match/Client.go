@@ -205,7 +205,6 @@ func (c *Client) Read() {
 
 }
 
-// note we only use this to write because we must not write to a ws connection from multiple goroutines
 func (c *Client) Write() {
 	for {
 		select {

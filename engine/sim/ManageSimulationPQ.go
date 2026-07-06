@@ -14,7 +14,7 @@ import (
 )
 
 // not sure where this belongs, maybe not sim package
-func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
+func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int) {
 	for {
 		if gs.Winner >= 0 || gs.Winner == -2 {
 			return
@@ -30,11 +30,11 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, abilityIDCo
 		if earliestSimItem.PopAtSimTime > currentSimTime {
 			return
 		}
-		handleLatestSimulationItem(gs, pq, abilityIDCounter, logList, UpdateID)
+		handleLatestSimulationItem(gs, pq, logList, UpdateID)
 	}
 }
 
-func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int) {
+func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int) {
 
 	currSimItem := heap.Pop(pq).(*state.SimulationItem)
 
@@ -47,16 +47,11 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 	if currSimItem.CardIndex >= 0 {
 		if currSimItem.Type == state.SimItemOnTick {
 			if gs.Cards[currSimItem.CardIndex].Zone == state.ZoneField {
-				for _, t := range gs.Cards[currSimItem.CardIndex].OnTick {
-					if t.AbilityID == currSimItem.AbilityID {
-						ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, currSimItem.CardIndex, t.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
-						break
-					}
-				}
+				ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 			}
 		}
 
-		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityID, executeAtWallTime)
+		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 	}
 
 	if currSimItem.Type == state.SimItemStructureRegen {
@@ -67,17 +62,17 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, abi
 
 // NOTE: i see this requiring work, why should we append objects rather than modifying them
 // we require management of ontick abilities on the gameState because its the best way to display in the UI
-func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardIndex int, abilityID int, wallTime int64) {
+func clearTickAbility(cards []state.Card, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, wallTime int64) {
 	onTicks := cards[cardIndex].OnTick
 	for i, t := range onTicks {
-		if t.AbilityID == abilityID {
+		if t.AbilityIndex == abilityIndex {
 			cards[cardIndex].OnTick = append(onTicks[:i], onTicks[i+1:]...)
 			*logList = append(*logList, logs.ClearTickAbilityLog{
 				UpdateID:      *UpdateID,
 				WallTimestamp: wallTime,
 				Type:          logs.ClearTickAbility,
 				CardIndex:     cardIndex,
-				AbilityID:     abilityID,
+				AbilityIndex:  abilityIndex,
 			})
 			*UpdateID++
 			return
@@ -194,7 +189,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 		StartAtSimTime:   startAtSimTime,
 		PopAtSimTime:     scheduledTime,
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
-		AbilityID:        -1,
+		AbilityIndex:     -1,
 		CardIndex:        -1,
 		Type:             state.SimItemStructureRegen,
 		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
@@ -202,14 +197,14 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 
 }
 
-func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardIndex int, startAtSimTime int64, wallTimestamp int64) {
+func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, startAtSimTime int64, wallTimestamp int64) {
 	onTick := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTick
 	for a := 0; a < len(onTick); a++ {
-		ScheduleOnTickAbility(gs, pq, abilityIDCounter, logList, UpdateID, cardIndex, a, startAtSimTime, wallTimestamp)
+		ScheduleOnTickAbility(gs, pq, logList, UpdateID, cardIndex, a, startAtSimTime, wallTimestamp)
 	}
 }
 
-func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityIDCounter *int, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
+func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
 	card := gs.Cards[cardIndex]
 	entry := defs.CardDefs[card.DefNo].OnTick[abilityIndex]
 
@@ -242,24 +237,20 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		effs = append(effs, FulfillEffectTemplate(e, teamIndex, cardIndex))
 	}
 
-	abilityID := *abilityIDCounter
-	*abilityIDCounter++
-
 	scheduledTime := startAtSimTime + entry.Milliseconds - constants.LEAD
 	item := &state.SimulationItem{
 		StartAtSimTime:   startAtSimTime,
 		PopAtSimTime:     scheduledTime,
 		ExecuteAtSimTime: scheduledTime + constants.LEAD,
 
-		AbilityID: abilityID,
-		CardIndex: cardIndex,
-		Type:      state.SimItemOnTick,
-		Effects:   effs,
+		AbilityIndex: abilityIndex,
+		CardIndex:    cardIndex,
+		Type:         state.SimItemOnTick,
+		Effects:      effs,
 	}
 	heap.Push(pq, item)
 
 	gs.Cards[cardIndex].OnTick = append(gs.Cards[cardIndex].OnTick, state.TickAbility{
-		AbilityID:        abilityID,
 		AbilityIndex:     abilityIndex,
 		Condition:        condition,
 		ActiveIndex:      activeIndex,
@@ -272,7 +263,6 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, abilityI
 		WallTimestamp:    wallTimestamp,
 		Type:             logs.AddTickAbility,
 		CardIndex:        cardIndex,
-		AbilityID:        abilityID,
 		AbilityIndex:     abilityIndex,
 		Condition:        condition,
 		ActiveIndex:      activeIndex,

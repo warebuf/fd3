@@ -45,7 +45,7 @@ func (match *Match) handleRStackResolution() {
 				CardIndex:     reactionTop.CardIndex,
 			})
 			match.NextUpdateID++
-			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], reactionTop.CardIndex)
@@ -113,7 +113,7 @@ func (match *Match) handleRStackResolution() {
 			for tickIndex, r := range def.OnTick {
 				for _, eff := range r.Effects {
 					if eff.Type == state.EffectGainCharge && eff.A == reactionTop.ActiveIndex {
-						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.AbilityIDCounter, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
+						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 						break
 					}
 				}

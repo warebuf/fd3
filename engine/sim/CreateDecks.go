@@ -85,6 +85,8 @@ func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 					MaxCharges:  ability.MaxCharges,
 					Target:      -1,
 					TargetFlags: ability.TargetFlags,
+					Cons:        ability.Cons,
+					Cost:        ability.Cost,
 				}
 			}
 

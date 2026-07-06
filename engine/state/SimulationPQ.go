@@ -36,11 +36,10 @@ const (
 	SimItemStructureRegen
 )
 
-// NOTE: do we need AbilityID going forward?
 type SimulationItem struct {
-	SeqID     int // PQ tiebreaker (internal)
-	AbilityID int // references the TickAbility on the card; -1 for non-ability items
-	index     int // heap position (internal)
+	SeqID        int // PQ tiebreaker (internal)
+	AbilityIndex int // which OnTick slot on the card this item belongs to; -1 for non-ability items
+	index        int // heap position (internal)
 
 	StartAtSimTime   int64 // when the countdown starts for this item (denominated in SimTime ms)
 	PopAtSimTime     int64 // the time we can apply to the game state (denominated in SimTime ms)

@@ -180,7 +180,7 @@ type ClearTickAbilityLog struct {
 	UpdateID      int
 	Type          LogType
 	CardIndex     int
-	AbilityID     int
+	AbilityIndex  int
 }
 
 type AddTickAbilityLog struct {
@@ -188,7 +188,6 @@ type AddTickAbilityLog struct {
 	UpdateID         int
 	Type             LogType
 	CardIndex        int
-	AbilityID        int
 	AbilityIndex     int
 	Condition        state.TickCondition
 	ActiveIndex      int

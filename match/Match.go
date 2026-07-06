@@ -18,8 +18,7 @@ type Match struct {
 	GameState      *state.GameState // what the game state should be 200 ms from now
 	PublishedState *state.GameState // a copy of GameState that the players can read
 
-	SimulationPQ     state.SimulationPQ
-	AbilityIDCounter int
+	SimulationPQ state.SimulationPQ
 
 	EventLog     []any // a log of all events that have occurred
 	NextUpdateID int

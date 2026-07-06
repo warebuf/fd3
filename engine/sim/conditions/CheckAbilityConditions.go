@@ -1,27 +1,26 @@
 package conditions
 
 import (
-	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
 // checks whether an ability can be played in the current state
 func CheckAbilityConditions(gs *state.GameState, cardIndex int, activeIndex int) bool {
 	card := gs.Cards[cardIndex]
-	ability := defs.CardDefs[card.DefNo].Active[activeIndex]
+	active := card.Actives[activeIndex]
 
-	for i := 0; i < len(ability.Cons); i++ {
-		c := ability.Cons[i]
+	for i := 0; i < len(active.Cons); i++ {
+		c := active.Cons[i]
 		if c == 0 {
 			return true // no gaps: first unused slot means no more conditions to check
 		}
 		switch c {
-		case defs.ConditionManaAtLeast:
-			if gs.Mana[card.Team] < ability.Cost {
+		case state.ConditionManaAtLeast:
+			if gs.Mana[card.Team] < active.Cost {
 				return false
 			}
-		case defs.ConditionChargeAtLeastOne:
-			if card.Actives[activeIndex].Charges < 1 {
+		case state.ConditionChargeAtLeastOne:
+			if active.Charges < 1 {
 				return false
 			}
 		default:

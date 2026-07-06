@@ -16,16 +16,9 @@ const (
 	TargetOppCont              // opponent continuous zone
 )
 
-type ConditionType int
-
-const (
-	ConditionManaAtLeast      ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
-	ConditionChargeAtLeastOne                          // checks this Ability's own Charges >= 1
-)
-
 type Ability struct {
 	Effects      [3]state.Effect
-	Cons         [3]ConditionType
+	Cons         [3]state.ConditionType
 	Cost         int
 	Charges      int
 	MaxCharges   int
@@ -179,7 +172,7 @@ var CardDefs = []CardDef{
 			Charges:    3,
 			MaxCharges: math.MaxInt,
 			Cost:       50,
-			Cons:       [3]ConditionType{ConditionManaAtLeast},
+			Cons:       [3]state.ConditionType{state.ConditionManaAtLeast},
 			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
@@ -198,7 +191,7 @@ var CardDefs = []CardDef{
 		Active: [3]Ability{{
 			MaxCharges:  3,
 			TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
-			Cons:        [3]ConditionType{ConditionChargeAtLeastOne},
+			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,

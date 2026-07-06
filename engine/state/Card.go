@@ -29,15 +29,20 @@ const (
 	TickUntilChargeMax                      // stops rescheduling once the Active slot it charges hits MaxCharges
 )
 
+type ConditionType int
+
+const (
+	ConditionManaAtLeast      ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
+	ConditionChargeAtLeastOne                          // checks this Ability's own Charges >= 1
+)
+
 type AuraModifier struct {
 	SourceCardIndex int
 	Stat            int
 	Amount          int
 }
 
-// NOTE: this is weird, we are tracking a lot of things, it is dynamic arr, tickcon is not being used
 type TickAbility struct {
-	AbilityID        int
 	AbilityIndex     int // index into card def's ability list
 	Condition        TickCondition
 	ActiveIndex      int // which Actives[] slot Condition checks against, -1 if not applicable (Condition == TickIndefinite)
@@ -45,12 +50,13 @@ type TickAbility struct {
 	ExecuteAtSimTime int64
 }
 
-// NOTE: we maintain targets on this object but not Conditions
 type ActiveAbility struct {
 	Charges     int
 	MaxCharges  int
 	Target      int // preselected target for this ability slot, -1 if none
 	TargetFlags int
+	Cons        [3]ConditionType
+	Cost        int
 	Pending     int  // activations currently in flight on the stack, not yet resolved
 	AutoAbility bool // if true, fires itself once Charges/Cost/Cons all hold, instead of waiting for player input; player-toggleable at runtime
 }
