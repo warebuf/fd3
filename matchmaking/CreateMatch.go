@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/warebuf/fd3/engine/sim"
+	"github.com/warebuf/fd3/engine/matchsetup"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/match/eventpq"
@@ -36,12 +36,12 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		deckDefs = append(deckDefs, tickets[i].Deck)
 		structureDefNos = append(structureDefNos, tickets[i].StructureDefNo)
 	}
-	gs := sim.CreateDecks(deckDefs, structureDefNos)
+	gs := matchsetup.CreateDecks(deckDefs, structureDefNos)
 
 	// shuffle the decks, then arrange starting hands on top
 	for i := 0; i < len(gs.Deck); i++ {
-		sim.ShuffleDeck(gs, i)
-		sim.ArrangeStartingHand(gs, i, tickets[i].StartingHand)
+		matchsetup.ShuffleDeck(gs, i)
+		matchsetup.ArrangeStartingHand(gs, i, tickets[i].StartingHand)
 	}
 
 	// create match object

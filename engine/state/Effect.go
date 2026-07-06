@@ -20,3 +20,22 @@ type Effect struct {
 	B    int
 	C    int
 }
+
+func FulfillEffectTemplate(templ Effect, teamIndex int, cardIndex int) Effect {
+	switch templ.Type {
+	case EffectDestroy:
+		templ.C = cardIndex
+		return templ
+	case EffectMana:
+		templ.A = teamIndex
+		return templ
+	case EffectDraw:
+		templ.A = teamIndex
+		return templ
+	case EffectAttack:
+		return templ
+	case EffectHeal:
+		return templ
+	}
+	return templ
+}

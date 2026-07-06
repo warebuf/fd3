@@ -35,7 +35,7 @@ func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		if eff.Type == 0 {
 			continue // unused Effect slot
 		}
-		effs = append(effs, FulfillEffectTemplate(eff, teamIndex, cardIndex))
+		effs = append(effs, state.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset

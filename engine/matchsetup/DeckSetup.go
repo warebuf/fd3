@@ -1,4 +1,4 @@
-package sim
+package matchsetup
 
 import (
 	"math/rand"
@@ -8,7 +8,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// this could be in it's own package called match init
 func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
 
 	// create structures

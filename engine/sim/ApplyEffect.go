@@ -86,22 +86,3 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		fmt.Println("unhandled effect type:", eff.Type)
 	}
 }
-
-func FulfillEffectTemplate(templ state.Effect, teamIndex int, cardIndex int) state.Effect {
-	switch templ.Type {
-	case state.EffectDestroy:
-		templ.C = cardIndex
-		return templ
-	case state.EffectMana:
-		templ.A = teamIndex
-		return templ
-	case state.EffectDraw:
-		templ.A = teamIndex
-		return templ
-	case state.EffectAttack:
-		return templ
-	case state.EffectHeal:
-		return templ
-	}
-	return templ
-}

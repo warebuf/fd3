@@ -5,6 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
+	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -45,7 +46,7 @@ func (match *Match) handleReactionStackResolution() {
 				CardIndex:     reactionTop.CardIndex,
 			})
 			match.NextUpdateID++
-			sim.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 		} else if card.Type == state.CardTypeContinuous {
 			card.Zone = state.ZoneContinuous
 			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], reactionTop.CardIndex)
@@ -113,7 +114,7 @@ func (match *Match) handleReactionStackResolution() {
 			for tickIndex, r := range def.OnTick {
 				for _, eff := range r.Effects {
 					if eff.Type == state.EffectGainCharge && eff.A == reactionTop.ActiveIndex {
-						sim.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
+						schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 						break
 					}
 				}

@@ -4,7 +4,6 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -119,7 +118,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		if eff.Type == 0 {
 			continue // unused Effect slot
 		}
-		effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
+		effs = append(effs, state.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	reactionItem := state.ReactionItem{
@@ -189,7 +188,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		if eff.Type == 0 {
 			continue // unused Effect slot
 		}
-		effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
+		effs = append(effs, state.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 	}
 	if len(effs) == 0 {
 		return

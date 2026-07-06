@@ -6,7 +6,6 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -106,7 +105,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 			if eff.Type == 0 {
 				continue // unused Effect slot
 			}
-			effs = append(effs, sim.FulfillEffectTemplate(eff, teamIndex, cardIndex))
+			effs = append(effs, state.FulfillEffectTemplate(eff, teamIndex, cardIndex))
 		}
 	}
 
