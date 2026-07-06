@@ -29,6 +29,22 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 
 }
 
+func ScheduleSystemDraw(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
+	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
+
+	item := &state.SimulationItem{
+		StartAtSimTime:   executeAtSimTime,
+		PopAtSimTime:     executeAtSimTime - constants.LEAD,
+		ExecuteAtSimTime: executeAtSimTime,
+		AbilityIndex:     -1,
+		CardIndex:        -1,
+		TeamIndex:        teamIndex,
+		Type:             state.SimItemSystemDraw,
+		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
+	}
+	heap.Push(pq, item)
+}
+
 func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, startAtSimTime int64, wallTimestamp int64) {
 	onTick := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTick
 	for a := 0; a < len(onTick); a++ {

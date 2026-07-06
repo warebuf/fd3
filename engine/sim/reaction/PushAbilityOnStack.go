@@ -1,4 +1,4 @@
-package sim
+package reaction
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func pushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, activeIndex int, executeAtWallTime int64) {
+func PushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, activeIndex int, executeAtWallTime int64) {
 	card := gs.Cards[cardIndex]
 	teamIndex := card.Team
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]

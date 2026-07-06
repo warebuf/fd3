@@ -1,8 +1,6 @@
-package schedule
+package reaction
 
 import (
-	"container/heap"
-
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
@@ -73,22 +71,6 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
 	return true
 
-}
-
-func ScheduleSystemDraw(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
-	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
-
-	item := &state.SimulationItem{
-		StartAtSimTime:   executeAtSimTime,
-		PopAtSimTime:     executeAtSimTime - constants.LEAD,
-		ExecuteAtSimTime: executeAtSimTime,
-		AbilityIndex:     -1,
-		CardIndex:        -1,
-		TeamIndex:        teamIndex,
-		Type:             state.SimItemSystemDraw,
-		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
-	}
-	heap.Push(pq, item)
 }
 
 func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {

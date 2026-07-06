@@ -6,6 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/sim/effects"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -63,7 +64,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 		cardIndexes, activeIndexes := conditions.AutoAbilityManaCheck(gs, eff.A)
 		for i := 0; i < len(cardIndexes); i++ {
-			pushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
+			reaction.PushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
 		}
 
 	case state.EffectAttack:
@@ -79,7 +80,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 		if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, eff.A) {
-			pushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, eff.A, executeAtWallTime)
+			reaction.PushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, eff.A, executeAtWallTime)
 		}
 
 	default:

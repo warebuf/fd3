@@ -2,7 +2,7 @@ package match
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/sim/schedule"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -25,7 +25,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	success := schedule.ScheduleDeclareCard(
+	success := reaction.ScheduleDeclareCard(
 		match.GameState,
 		&match.EventLog,
 		&match.NextUpdateID,

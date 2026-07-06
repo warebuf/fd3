@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func CreateDecks(deckDefs [][]int, structureDefNos []int) *state.GameState {
+func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 
 	// create structures
 	structures := make([]state.Structure, len(deckDefs))

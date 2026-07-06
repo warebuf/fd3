@@ -35,7 +35,7 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 		deckDefs = append(deckDefs, tickets[i].Deck)
 		structureDefNos = append(structureDefNos, tickets[i].StructureDefNo)
 	}
-	gs := CreateDecks(deckDefs, structureDefNos)
+	gs := DeckSetup(deckDefs, structureDefNos)
 
 	// shuffle the decks, then arrange starting hands on top
 	for i := 0; i < len(gs.Deck); i++ {
