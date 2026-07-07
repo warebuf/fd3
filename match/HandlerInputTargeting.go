@@ -41,6 +41,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		Type:            logs.Preselect,
 		TeamIndex:       teamIndex,
 		CardIndex:       cardIndex,
+		AbilityIndex:    activeIndex,
 		TargetCardIndex: targetCardIndex,
 	})
 	match.NextUpdateID++

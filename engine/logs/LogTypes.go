@@ -250,6 +250,7 @@ type RemoveChargeLog struct {
 	Type             LogType
 	TeamIndex        int
 	CardIndex        int
+	AbilityIndex     int
 	ChargesRemaining int
 }
 
@@ -259,6 +260,7 @@ type AddChargeLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
+	AbilityIndex  int
 	Charges       int
 }
 
@@ -268,6 +270,7 @@ type PreselectLog struct {
 	Type            LogType
 	TeamIndex       int
 	CardIndex       int
+	AbilityIndex    int
 	TargetCardIndex int
 }
 

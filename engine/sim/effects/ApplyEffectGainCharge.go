@@ -16,6 +16,7 @@ func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, e
 			Type:          logs.AddCharge,
 			TeamIndex:     card.Team,
 			CardIndex:     sourceCardIndex,
+			AbilityIndex:  eff.A,
 			Charges:       active.Charges,
 		})
 		*UpdateID++

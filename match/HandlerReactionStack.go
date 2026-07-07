@@ -72,6 +72,7 @@ func (match *Match) handleReactionStackResolution() {
 			Type:             logs.RemoveCharge,
 			TeamIndex:        card.Team,
 			CardIndex:        reactionTop.CardIndex,
+			AbilityIndex:     reactionTop.ActiveIndex,
 			ChargesRemaining: card.Actives[reactionTop.ActiveIndex].Charges,
 		})
 		match.NextUpdateID++
@@ -103,6 +104,7 @@ func (match *Match) handleReactionStackResolution() {
 			Type:             logs.RemoveCharge,
 			TeamIndex:        card.Team,
 			CardIndex:        reactionTop.CardIndex,
+			AbilityIndex:     reactionTop.ActiveIndex,
 			ChargesRemaining: card.Actives[reactionTop.ActiveIndex].Charges,
 		})
 		match.NextUpdateID++
