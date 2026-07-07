@@ -81,7 +81,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		reactionType = state.ReactionSummon
 	}
 
-	var effs []state.Effect
+	effs := []state.Effect{}
 	for _, ability := range defs.CardDefs[card.DefNo].OnPlay {
 		for _, eff := range ability.Effects {
 			if eff.Type == 0 {

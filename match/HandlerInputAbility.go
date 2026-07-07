@@ -57,7 +57,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 
-	var effs []state.Effect
+	effs := []state.Effect{}
 	for _, eff := range def.Effects {
 		if eff.Type == 0 {
 			continue // unused Effect slot
@@ -127,7 +127,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
 
-	var effs []state.Effect
+	effs := []state.Effect{}
 	for _, eff := range activeDef.Effects {
 		if eff.Type == 0 {
 			continue // unused Effect slot

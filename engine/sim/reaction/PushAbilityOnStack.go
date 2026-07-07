@@ -29,7 +29,7 @@ func PushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		reactionItemType = state.ReactionContinuousAbility
 	}
 
-	var effs []state.Effect
+	effs := []state.Effect{}
 	for i := 0; i < len(activeDef.Effects); i++ {
 		eff := activeDef.Effects[i]
 		if eff.Type == 0 {
