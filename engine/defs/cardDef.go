@@ -50,7 +50,7 @@ var CardDefs = []CardDef{
 	1: {
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier",
-		Description: "Deal 1 random damage every 20 seconds",
+		Description: "Deal 1 random damage per 20 ticks to an enemy",
 		BaseHP:      2,
 		Cost:        60,
 		OnTick: [3]Ability{{
@@ -67,7 +67,7 @@ var CardDefs = []CardDef{
 	2: {
 		Type:        state.CardTypeSpell,
 		Name:        "Year Zero",
-		Description: "Destroy all summoned units on the field",
+		Description: "Destroy all units on the field",
 		Cost:        300,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
@@ -82,7 +82,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeUnit,
 		Archetype:   state.ArchetypeTree,
 		Name:        "Money Tree",
-		Description: "Gain 10 mana every 10 seconds",
+		Description: "Gain 10 mana per 10 ticks",
 		BaseHP:      2,
 		Cost:        60,
 		OnTick: [3]Ability{{
@@ -112,7 +112,7 @@ var CardDefs = []CardDef{
 	5: {
 		Type:        state.CardTypeUnit,
 		Name:        "Barkbreaker",
-		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage to a random enemy every 20 seconds",
+		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage per 20 ticks to a random",
 		BaseHP:      2,
 		Cost:        100,
 		OnTick: [3]Ability{{
@@ -138,11 +138,11 @@ var CardDefs = []CardDef{
 	7: {
 		Type:        state.CardTypeUnit,
 		Name:        "Tomoe",
-		Description: "Heal 1 HP to a random friendly unit every 15 seconds",
+		Description: "Heal 1 HP per 20 ticks to a random friendly unit",
 		BaseHP:      2,
 		Cost:        80,
 		OnTick: [3]Ability{{
-			Milliseconds: 15000,
+			Milliseconds: 20000,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectHeal,
@@ -179,7 +179,7 @@ var CardDefs = []CardDef{
 	10: {
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier 2",
-		Description: "Maximum Charges: 3. Accumulate 1 charge every 30 seconds. Spend a charge to deal 1 damage to a target.",
+		Description: "Maximum Charges: 3. Gain 1 charge per 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        60,
 		OnTick: [3]Ability{{
