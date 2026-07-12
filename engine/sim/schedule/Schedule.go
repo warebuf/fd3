@@ -15,7 +15,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, log
 	if structDef.ManaRegen == 0 || structDef.ManaRegenInterval == 0 {
 		return
 	}
-	scheduledTime := startAtSimTime + structDef.ManaRegenInterval - constants.LEAD
+	scheduledTime := startAtSimTime + structDef.ManaRegenInterval/constants.SIM_SPEED - constants.LEAD
 	heap.Push(pq, &state.SimulationItem{
 		StartAtSimTime:   startAtSimTime,
 		PopAtSimTime:     scheduledTime,
@@ -89,7 +89,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 		effs = append(effs, state.FulfillEffectTemplate(e, teamIndex, cardIndex))
 	}
 
-	scheduledTime := startAtSimTime + entry.Milliseconds - constants.LEAD
+	scheduledTime := startAtSimTime + entry.Milliseconds/constants.SIM_SPEED - constants.LEAD
 	item := &state.SimulationItem{
 		StartAtSimTime:   startAtSimTime,
 		PopAtSimTime:     scheduledTime,
