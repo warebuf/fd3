@@ -26,19 +26,22 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 		if earliestSimItem.PopAtSimTime > currentSimTime {
 			return
 		}
-		handleLatestSimulationItem(gs, pq, logList, UpdateID)
+		if handleLatestSimulationItem(gs, pq, logList, UpdateID) {
+			return // a reaction was pushed onto the stack; let it resolve before draining more
+		}
 	}
 }
 
-func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int) {
+func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int) bool {
 
 	currSimItem := heap.Pop(pq).(*state.SimulationItem)
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
 
+	pushed := false
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
-		pushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem, executeAtWallTime)
+		pushed = pushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem, executeAtWallTime)
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
@@ -53,12 +56,13 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 		}
 	}
+	return pushed
 }
 
 // ActiveIndex is -1: OnTick abilities aren't Active-slot-sourced.
-func pushOnTickAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, currSimItem *state.SimulationItem, executeAtWallTime int64) {
+func pushOnTickAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, currSimItem *state.SimulationItem, executeAtWallTime int64) bool {
 	if len(currSimItem.Effects) == 0 {
-		return
+		return false
 	}
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
@@ -85,6 +89,7 @@ func pushOnTickAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++
+	return true
 }
 
 // we require management of ontick abilities on the gameState because its the best way to display in the UI
