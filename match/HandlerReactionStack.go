@@ -94,7 +94,7 @@ func (match *Match) handleReactionStackResolution() {
 			})
 			match.NextUpdateID++
 		}
-	} else if reactionTop.Type == state.ReactionUnitAbility {
+	} else if reactionTop.Type == state.ReactionUnitAbility && reactionTop.ActiveIndex >= 0 { // only for Active abilities
 		wasAtMax := card.Actives[reactionTop.ActiveIndex].MaxCharges > 0 && card.Actives[reactionTop.ActiveIndex].Charges == card.Actives[reactionTop.ActiveIndex].MaxCharges
 		card.Actives[reactionTop.ActiveIndex].Pending--
 		card.Actives[reactionTop.ActiveIndex].Charges--

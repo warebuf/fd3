@@ -79,6 +79,8 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 	reactionType := state.ReactionSpell
 	if card.Type == state.CardTypeUnit {
 		reactionType = state.ReactionSummon
+	} else if card.Type == state.CardTypeContinuous {
+		reactionType = state.ReactionContinuousResolution
 	}
 
 	effs := []state.Effect{}

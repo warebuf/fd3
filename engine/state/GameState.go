@@ -125,6 +125,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		newItem := ReactionItem{
 			Type:                item.Type,
 			CardIndex:           item.CardIndex,
+			ActiveIndex:         item.ActiveIndex,
 			StartAtActiveTime:   item.StartAtActiveTime,
 			PopAtActiveTime:     item.PopAtActiveTime,
 			ExecuteAtActiveTime: item.ExecuteAtActiveTime,

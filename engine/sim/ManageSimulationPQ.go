@@ -35,21 +35,56 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 	currSimItem := heap.Pop(pq).(*state.SimulationItem)
 
 	executeAtWallTime := currSimItem.PopAtSimTime + gs.SimPauseOffset + constants.LEAD
-	for i := 0; i < len(currSimItem.Effects); i++ {
-		ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
-	}
 
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
+		pushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem, executeAtWallTime)
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
 	case state.SimItemStructureRegen:
+		for i := 0; i < len(currSimItem.Effects); i++ {
+			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
+		}
 		schedule.ScheduleStructureManaRegen(gs, pq, logList, UpdateID, currSimItem.TeamIndex, currSimItem.PopAtSimTime+constants.LEAD)
 
 	case state.SimItemSystemDraw:
-		// the draw effect was already applied above; nothing further to schedule
+		for i := 0; i < len(currSimItem.Effects); i++ {
+			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
+		}
 	}
+}
+
+// ActiveIndex is -1: OnTick abilities aren't Active-slot-sourced.
+func pushOnTickAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, currSimItem *state.SimulationItem, executeAtWallTime int64) {
+	if len(currSimItem.Effects) == 0 {
+		return
+	}
+
+	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
+	reactionItem := state.ReactionItem{
+		StartAtActiveTime:   startAtActiveTime,
+		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		CardIndex:           currSimItem.CardIndex,
+		ActiveIndex:         -1,
+		Type:                state.ReactionUnitAbility,
+		Effects:             currSimItem.Effects,
+	}
+	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
+
+	*logList = append(*logList, logs.AddStackLog{
+		UpdateID:            *UpdateID,
+		WallTimestamp:       executeAtWallTime,
+		Type:                logs.AddStack,
+		StackType:           int(reactionItem.Type),
+		StartAtActiveTime:   reactionItem.StartAtActiveTime,
+		PopAtActiveTime:     reactionItem.PopAtActiveTime,
+		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
+		CardIndex:           reactionItem.CardIndex,
+		Effects:             reactionItem.Effects,
+	})
+	*UpdateID++
 }
 
 // we require management of ontick abilities on the gameState because its the best way to display in the UI

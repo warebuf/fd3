@@ -15,7 +15,7 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 
 	card := &gs.Cards[target.CardIndex]
 	switch target.Type {
-	case state.ReactionSpell, state.ReactionSummon:
+	case state.ReactionSpell, state.ReactionSummon, state.ReactionContinuousResolution:
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 	case state.ReactionContinuousAbility:
@@ -28,7 +28,9 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 	case state.ReactionUnitAbility:
-		card.Actives[target.ActiveIndex].Pending--
+		if target.ActiveIndex >= 0 {
+			card.Actives[target.ActiveIndex].Pending--
+		}
 	}
 
 	*logList = append(*logList, logs.CounterStackLog{
