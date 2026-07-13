@@ -16,7 +16,7 @@ type Match struct {
 	ByUser    map[string]*Client
 
 	GameState      *state.GameState // what the game state should be 200 ms from now
-	PublishedState *state.GameState // a copy of GameState that the players can read
+	PublishedState *state.GameState // TODO: replace with copy upon request
 
 	SimulationPQ state.SimulationPQ
 
