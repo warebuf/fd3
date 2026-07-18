@@ -14,57 +14,60 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	enemyTeam := 1 - teamIndex
 	damage := eff.B
 
-	enemyField := gs.Field[enemyTeam]
-
 	targetIndex := -1
 
-	var tauntTargets []int
-	for _, ci := range enemyField {
-		if gs.Cards[ci].Taunt {
-			tauntTargets = append(tauntTargets, ci)
-		}
-	}
+	// A == 3: always hit the enemy structure directly, skip unit targeting entirely
+	if eff.A != 3 {
+		enemyField := gs.Field[enemyTeam]
 
-	// user-targeted: use preselected target if still on the enemy field, but taunt redirects
-	if eff.A == 1 {
-		preselected := -1
-		if activeIndex >= 0 {
-			preselected = gs.Cards[unitIndex].Actives[activeIndex].Target
+		var tauntTargets []int
+		for _, ci := range enemyField {
+			if gs.Cards[ci].Taunt {
+				tauntTargets = append(tauntTargets, ci)
+			}
 		}
-		if preselected != -1 {
-			for _, ci := range enemyField {
-				if ci == preselected {
-					targetIndex = preselected
-					break
+
+		// user-targeted: use preselected target if still on the enemy field, but taunt redirects
+		if eff.A == 1 {
+			preselected := -1
+			if activeIndex >= 0 {
+				preselected = gs.Cards[unitIndex].Actives[activeIndex].Target
+			}
+			if preselected != -1 {
+				for _, ci := range enemyField {
+					if ci == preselected {
+						targetIndex = preselected
+						break
+					}
 				}
 			}
-		}
-		if len(tauntTargets) > 0 && (targetIndex == -1 || !gs.Cards[targetIndex].Taunt) {
-			targetIndex = tauntTargets[rand.Intn(len(tauntTargets))]
-		}
-	}
-
-	// random or priority targeting (also fallback for user-targeted with no valid preselect)
-	if targetIndex == -1 && len(enemyField) > 0 {
-		pool := enemyField
-		if len(tauntTargets) > 0 {
-			pool = tauntTargets
+			if len(tauntTargets) > 0 && (targetIndex == -1 || !gs.Cards[targetIndex].Taunt) {
+				targetIndex = tauntTargets[rand.Intn(len(tauntTargets))]
+			}
 		}
 
-		if eff.A == 2 {
-			var priorityTargets []int
-			for _, ci := range pool {
-				if gs.Cards[ci].Archetype == eff.C {
-					priorityTargets = append(priorityTargets, ci)
+		// random or priority targeting (also fallback for user-targeted with no valid preselect)
+		if targetIndex == -1 && len(enemyField) > 0 {
+			pool := enemyField
+			if len(tauntTargets) > 0 {
+				pool = tauntTargets
+			}
+
+			if eff.A == 2 {
+				var priorityTargets []int
+				for _, ci := range pool {
+					if gs.Cards[ci].Archetype == eff.C {
+						priorityTargets = append(priorityTargets, ci)
+					}
+				}
+				if len(priorityTargets) > 0 {
+					targetIndex = priorityTargets[rand.Intn(len(priorityTargets))]
+					damage *= 2
 				}
 			}
-			if len(priorityTargets) > 0 {
-				targetIndex = priorityTargets[rand.Intn(len(priorityTargets))]
-				damage *= 2
+			if targetIndex == -1 {
+				targetIndex = pool[rand.Intn(len(pool))]
 			}
-		}
-		if targetIndex == -1 {
-			targetIndex = pool[rand.Intn(len(pool))]
 		}
 	}
 

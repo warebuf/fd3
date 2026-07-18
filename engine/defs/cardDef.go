@@ -22,6 +22,7 @@ type Ability struct {
 	Cost         int
 	Charges      int
 	MaxCharges   int
+	Unlimited    bool // if true, this ability ignores Charges/Pending entirely and is always available
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
 }
@@ -198,6 +199,21 @@ var CardDefs = []CardDef{
 					A:    1, // targetType, 0: random, 1: user-targetted
 					B:    1, // amount
 				},
+			},
+		}},
+	},
+	11: {
+		Type:        state.CardTypeUnit,
+		Name:        "Forsaken",
+		Description: "Use: Sacrifice a friendly unit you choose. Deal damage directly to the enemy structure equal to 1/10th its mana cost.",
+		BaseHP:      3,
+		Cost:        60,
+		Active: [3]Ability{{
+			Unlimited:   true,
+			TargetFlags: TargetSelf | TargetOwnField,
+			Effects: [3]state.Effect{
+				{Type: state.EffectSacrifice},
+				{Type: state.EffectAttack, A: 3}, // A: 3, always hits enemy structure; B is filled in by the sacrifice at runtime
 			},
 		}},
 	},

@@ -81,6 +81,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				card.Actives[i] = state.ActiveAbility{
 					Charges:     ability.Charges,
 					MaxCharges:  ability.MaxCharges,
+					Unlimited:   ability.Unlimited,
 					Target:      -1,
 					TargetFlags: ability.TargetFlags,
 					Cons:        ability.Cons,
@@ -108,7 +109,7 @@ func ShuffleDeck(gs *state.GameState, team int) {
 
 func IsValidSubmission(deck []int, startingHand []int, structNo int) bool {
 
-	if len(deck) > 30 {
+	if len(deck) > 100 {
 		return false
 	}
 

@@ -86,7 +86,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 		if e.Type == 0 {
 			continue // unused Effect slot
 		}
-		effs = append(effs, state.FulfillEffectTemplate(e, teamIndex, cardIndex))
+		effs = append(effs, state.FulfillEffectTemplate(gs, e, teamIndex, cardIndex, -1))
 	}
 
 	scheduledTime := startAtSimTime + entry.Milliseconds/constants.SIM_SPEED - constants.LEAD

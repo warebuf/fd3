@@ -10,7 +10,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) {
+func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, allEffects []state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) {
 	switch eff.Type {
 
 	case state.EffectDraw:
@@ -82,6 +82,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, eff.A) {
 			reaction.PushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, eff.A, executeAtWallTime)
 		}
+
+	case state.EffectSacrifice:
+		effects.ApplyEffectSacrifice(gs, pq, logList, UpdateID, eff, allEffects, sourceCardIndex, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)

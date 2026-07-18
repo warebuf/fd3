@@ -12,6 +12,7 @@ const (
 	EffectDestroy    // A: Destroy Type (0: All, 1: team specific, 2: card specific), B: target (if team specific, team index, if card specific, card index)
 	EffectCounter    // cancel the top chain item
 	EffectGainCharge // A: active ability slot
+	EffectSacrifice  // A: card index
 )
 
 type Effect struct {
@@ -21,7 +22,7 @@ type Effect struct {
 	C    int
 }
 
-func FulfillEffectTemplate(templ Effect, teamIndex int, cardIndex int) Effect {
+func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex int, activeIndex int) Effect {
 	switch templ.Type {
 	case EffectDestroy:
 		templ.C = cardIndex
@@ -35,6 +36,11 @@ func FulfillEffectTemplate(templ Effect, teamIndex int, cardIndex int) Effect {
 	case EffectAttack:
 		return templ
 	case EffectHeal:
+		return templ
+	case EffectSacrifice:
+		if activeIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].Actives[activeIndex].Target
+		}
 		return templ
 	}
 	return templ

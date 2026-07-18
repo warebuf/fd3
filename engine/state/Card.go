@@ -53,7 +53,8 @@ type TickAbility struct {
 type ActiveAbility struct {
 	Charges     int
 	MaxCharges  int
-	Target      int // preselected target for this ability slot, -1 if none
+	Unlimited   bool // if true, this ability ignores Charges/Pending entirely and is always available
+	Target      int  // preselected target for this ability slot, -1 if none
 	TargetFlags int
 	Cons        [3]ConditionType
 	Cost        int

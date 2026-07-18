@@ -89,7 +89,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 			if eff.Type == 0 {
 				continue // unused Effect slot
 			}
-			effs = append(effs, state.FulfillEffectTemplate(eff, teamIndex, cardIndex))
+			effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1))
 		}
 	}
 
