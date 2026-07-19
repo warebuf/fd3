@@ -36,6 +36,12 @@ const (
 	ConditionChargeAtLeastOne                          // checks this Ability's own Charges >= 1
 )
 
+type TriggerType int
+
+const (
+	TriggerAllySpellResolve TriggerType = iota + 1 // fires when this card's owner has a spell resolve
+)
+
 type AuraModifier struct {
 	SourceCardIndex int
 	Stat            int

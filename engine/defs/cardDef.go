@@ -25,6 +25,7 @@ type Ability struct {
 	Unlimited    bool // if true, this ability ignores Charges/Pending entirely and is always available
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
+	Trigger      state.TriggerType // only used by OnTrigger
 }
 
 // change from dynamic arrs to fixed size
@@ -38,9 +39,10 @@ type CardDef struct {
 
 	RequiresStackTarget bool
 
-	OnPlay [3]Ability
-	OnTick [3]Ability
-	Active [3]Ability
+	OnPlay    [3]Ability
+	OnTick    [3]Ability
+	Active    [3]Ability
+	OnTrigger [3]Ability
 
 	BaseHP int
 	Cost   int

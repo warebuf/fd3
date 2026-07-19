@@ -1,6 +1,8 @@
 package match
 
 import (
+	"fmt"
+
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
@@ -117,8 +119,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// input events don't yet carry which Active slot to use, so this always targets slot 0
-	// (no current card has more than one Active ability)
+	// HARDCODE: ALWAYS TARGETS SLOT 0
 	const activeIndex = 0
 	active := card.Actives[activeIndex]
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
@@ -126,6 +127,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// dynamically populate the effect objects
 	effs := []state.Effect{}
 	for _, eff := range activeDef.Effects {
 		if eff.Type == 0 {
@@ -135,6 +137,24 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 	if len(effs) == 0 {
 		return
+	}
+
+	// validating the effects
+	for i := 0; i < len(effs); i++ {
+		if effs[i].Type != state.EffectSacrifice {
+			continue
+		}
+		fmt.Println("target index", effs[i].A)
+		validTarget := false
+		for j := 0; j < len(gs.Field[teamIndex]); j++ {
+			if gs.Field[teamIndex][j] == effs[i].A {
+				validTarget = true
+				break
+			}
+		}
+		if !validTarget {
+			return
+		}
 	}
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
