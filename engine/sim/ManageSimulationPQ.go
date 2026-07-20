@@ -6,6 +6,7 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -41,7 +42,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 	pushed := false
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
-		pushed = pushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem, executeAtWallTime)
+		pushed = reaction.PushEffectsOnStack(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.Effects, executeAtWallTime)
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
@@ -57,39 +58,6 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		}
 	}
 	return pushed
-}
-
-// ActiveIndex is -1: OnTick abilities aren't Active-slot-sourced.
-func pushOnTickAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, currSimItem *state.SimulationItem, executeAtWallTime int64) bool {
-	if len(currSimItem.Effects) == 0 {
-		return false
-	}
-
-	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	reactionItem := state.ReactionItem{
-		StartAtActiveTime:   startAtActiveTime,
-		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardIndex:           currSimItem.CardIndex,
-		ActiveIndex:         -1,
-		Type:                state.ReactionUnitAbility,
-		Effects:             currSimItem.Effects,
-	}
-	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-
-	*logList = append(*logList, logs.AddStackLog{
-		UpdateID:            *UpdateID,
-		WallTimestamp:       executeAtWallTime,
-		Type:                logs.AddStack,
-		StackType:           int(reactionItem.Type),
-		StartAtActiveTime:   reactionItem.StartAtActiveTime,
-		PopAtActiveTime:     reactionItem.PopAtActiveTime,
-		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
-		CardIndex:           reactionItem.CardIndex,
-		Effects:             reactionItem.Effects,
-	})
-	*UpdateID++
-	return true
 }
 
 // we require management of ontick abilities on the gameState because its the best way to display in the UI

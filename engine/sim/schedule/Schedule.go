@@ -64,15 +64,12 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 		return // unused OnTick slot
 	}
 
-	// a gain-charge ability stops rescheduling once its targeted Active slot maxes out
+	// a gain-charge ability stops rescheduling once the card's Charges maxes out
 	condition := state.TickIndefinite
-	activeIndex := -1
 	for _, eff := range entry.Effects {
 		if eff.Type == state.EffectGainCharge {
 			condition = state.TickUntilChargeMax
-			activeIndex = eff.A
-			active := card.Actives[activeIndex]
-			if active.MaxCharges > 0 && active.Charges >= active.MaxCharges {
+			if card.MaxCharges > 0 && card.Charges >= card.MaxCharges {
 				return
 			}
 			break
@@ -106,7 +103,6 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 	gs.Cards[cardIndex].OnTick[abilityIndex] = state.TickAbility{
 		Active:           true,
 		Condition:        condition,
-		ActiveIndex:      activeIndex,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	}
@@ -118,7 +114,6 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 		CardIndex:        cardIndex,
 		AbilityIndex:     abilityIndex,
 		Condition:        condition,
-		ActiveIndex:      activeIndex,
 		StartAtSimTime:   item.StartAtSimTime,
 		ExecuteAtSimTime: item.ExecuteAtSimTime,
 	})

@@ -20,7 +20,7 @@ func CheckAbilityConditions(gs *state.GameState, cardIndex int, activeIndex int)
 				return false
 			}
 		case state.ConditionChargeAtLeastOne:
-			if active.Charges < 1 {
+			if card.Charges < 1 {
 				return false
 			}
 		default:

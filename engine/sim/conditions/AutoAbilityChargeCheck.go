@@ -15,7 +15,7 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int)
 		return false
 	}
 
-	if active.Charges <= 0 {
+	if card.Charges <= 0 {
 		return false
 	}
 

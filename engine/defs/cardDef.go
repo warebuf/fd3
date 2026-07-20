@@ -16,16 +16,23 @@ const (
 	TargetOppCont              // opponent continuous zone
 )
 
+// which zone(s) the owning card must be in for an OnTrigger ability to fire
+const (
+	TriggerZoneField      = 1 << iota // card is on the field
+	TriggerZoneContinuous             // card is in the continuous zone
+	TriggerZoneGraveyard              // card is in the graveyard
+	TriggerZoneHand                   // card is in hand
+)
+
 type Ability struct {
 	Effects      [3]state.Effect
 	Cons         [3]state.ConditionType
 	Cost         int
-	Charges      int
-	MaxCharges   int
 	Unlimited    bool // if true, this ability ignores Charges/Pending entirely and is always available
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
 	Trigger      state.TriggerType // only used by OnTrigger
+	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone* flags
 }
 
 // change from dynamic arrs to fixed size
@@ -43,6 +50,9 @@ type CardDef struct {
 	OnTick    [3]Ability
 	Active    [3]Ability
 	OnTrigger [3]Ability
+
+	Charges    int // starting charges; shared pool any ability slot on this card may gain or spend from
+	MaxCharges int
 
 	BaseHP int
 	Cost   int
@@ -171,12 +181,12 @@ var CardDefs = []CardDef{
 		Name:        "Rolling in the Deep",
 		Description: "Use (50): Draw a card. 3 uses.",
 		Cost:        80,
+		Charges:     3,
+		MaxCharges:  math.MaxInt,
 		Active: [3]Ability{{
-			Charges:    3,
-			MaxCharges: math.MaxInt,
-			Cost:       50,
-			Cons:       [3]state.ConditionType{state.ConditionManaAtLeast},
-			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
+			Cost:    50,
+			Cons:    [3]state.ConditionType{state.ConditionManaAtLeast},
+			Effects: [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
 	10: {
@@ -185,14 +195,14 @@ var CardDefs = []CardDef{
 		Description: "Maximum Charges: 3. Gain 1 charge every 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        60,
+		MaxCharges:  3,
 		OnTick: [3]Ability{{
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
-				{Type: state.EffectGainCharge, A: 0},
+				{Type: state.EffectGainCharge},
 			},
 		}},
 		Active: [3]Ability{{
-			MaxCharges:  3,
 			TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			Effects: [3]state.Effect{
@@ -217,6 +227,18 @@ var CardDefs = []CardDef{
 				{Type: state.EffectSacrifice},
 				{Type: state.EffectAttack, A: 3}, // A: 3, always hits enemy structure; B is filled in by the sacrifice at runtime
 			},
+		}},
+	},
+	12: {
+		Type:        state.CardTypeContinuous,
+		Name:        "Spellwell",
+		Description: "Gain 1 charge whenever you cast a spell.",
+		Cost:        60,
+		MaxCharges:  math.MaxInt,
+		OnTrigger: [3]Ability{{
+			Trigger:      state.TriggerAllySpellResolve,
+			TriggerZones: TriggerZoneContinuous,
+			Effects:      [3]state.Effect{{Type: state.EffectGainCharge}},
 		}},
 	},
 }

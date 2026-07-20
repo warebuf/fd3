@@ -190,7 +190,6 @@ type AddTickAbilityLog struct {
 	CardIndex        int
 	AbilityIndex     int
 	Condition        state.TickCondition
-	ActiveIndex      int
 	StartAtSimTime   int64
 	ExecuteAtSimTime int64
 }

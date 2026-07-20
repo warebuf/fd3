@@ -7,17 +7,15 @@ import (
 
 func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
 	card := &gs.Cards[sourceCardIndex]
-	active := &card.Actives[eff.A] // eff.A: which Active slot this charges
-	if active.Charges < active.MaxCharges {
-		active.Charges++
+	if card.Charges < card.MaxCharges {
+		card.Charges++
 		*logList = append(*logList, logs.AddChargeLog{
 			UpdateID:      *UpdateID,
 			WallTimestamp: executeAtWallTime,
 			Type:          logs.AddCharge,
 			TeamIndex:     card.Team,
 			CardIndex:     sourceCardIndex,
-			AbilityIndex:  eff.A,
-			Charges:       active.Charges,
+			Charges:       card.Charges,
 		})
 		*UpdateID++
 	}

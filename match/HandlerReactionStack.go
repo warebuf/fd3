@@ -5,6 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -56,16 +57,20 @@ func (match *Match) handleReactionStackResolution() {
 				Type:          logs.PlayContinuous,
 				TeamIndex:     card.Team,
 				CardIndex:     reactionTop.CardIndex,
-				Charges:       card.Actives[0].Charges,
+				Charges:       card.Charges,
 			})
 			match.NextUpdateID++
+		} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers
+			card.Zone = state.ZoneGraveyard
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
+			reaction.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
 		} else {
 			card.Zone = state.ZoneGraveyard
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
 		}
 	} else if reactionTop.Type == state.ReactionContinuousAbility {
 		card.Actives[reactionTop.ActiveIndex].Pending--
-		card.Actives[reactionTop.ActiveIndex].Charges--
+		card.Charges--
 		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 			UpdateID:         match.NextUpdateID,
 			WallTimestamp:    wallTime,
@@ -73,10 +78,10 @@ func (match *Match) handleReactionStackResolution() {
 			TeamIndex:        card.Team,
 			CardIndex:        reactionTop.CardIndex,
 			AbilityIndex:     reactionTop.ActiveIndex,
-			ChargesRemaining: card.Actives[reactionTop.ActiveIndex].Charges,
+			ChargesRemaining: card.Charges,
 		})
 		match.NextUpdateID++
-		if card.Actives[reactionTop.ActiveIndex].Charges <= 0 {
+		if card.Charges <= 0 {
 			for i, id := range gs.Continuous[card.Team] {
 				if id == reactionTop.CardIndex {
 					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
@@ -99,8 +104,8 @@ func (match *Match) handleReactionStackResolution() {
 		card.Actives[reactionTop.ActiveIndex].Pending--
 
 		if !activeDef.Unlimited {
-			wasAtMax := card.Actives[reactionTop.ActiveIndex].Charges == card.Actives[reactionTop.ActiveIndex].MaxCharges
-			card.Actives[reactionTop.ActiveIndex].Charges--
+			wasAtMax := card.Charges == card.MaxCharges
+			card.Charges--
 			match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 				UpdateID:         match.NextUpdateID,
 				WallTimestamp:    wallTime,
@@ -108,7 +113,7 @@ func (match *Match) handleReactionStackResolution() {
 				TeamIndex:        card.Team,
 				CardIndex:        reactionTop.CardIndex,
 				AbilityIndex:     reactionTop.ActiveIndex,
-				ChargesRemaining: card.Actives[reactionTop.ActiveIndex].Charges,
+				ChargesRemaining: card.Charges,
 			})
 			match.NextUpdateID++
 
@@ -117,7 +122,7 @@ func (match *Match) handleReactionStackResolution() {
 				startAtSimTime := wallTime - gs.SimPauseOffset
 				for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
 					for _, eff := range r.Effects {
-						if eff.Type == state.EffectGainCharge && eff.A == reactionTop.ActiveIndex {
+						if eff.Type == state.EffectGainCharge {
 							schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 							break
 						}

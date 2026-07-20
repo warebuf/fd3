@@ -38,12 +38,23 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	active := card.Actives[activeIndex]
 	def := defs.CardDefs[card.DefNo].Active[activeIndex]
 
-	if !def.Unlimited && active.Pending >= active.Charges {
+	if !def.Unlimited && active.Pending >= card.Charges {
 		return
 	}
 
 	if gs.Mana[teamIndex] < def.Cost {
 		return
+	}
+
+	effs := []state.Effect{}
+	for _, eff := range def.Effects {
+		if eff.Type == 0 {
+			continue // unused Effect slot
+		}
+		effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, activeIndex))
+	}
+	if len(effs) == 0 {
+		return // no real Use ability on this slot — don't spend mana or touch Charges
 	}
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
@@ -59,13 +70,6 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 
-	effs := []state.Effect{}
-	for _, eff := range def.Effects {
-		if eff.Type == 0 {
-			continue // unused Effect slot
-		}
-		effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, activeIndex))
-	}
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	reactionItem := state.ReactionItem{
 		StartAtActiveTime:   startAtActiveTime,
@@ -123,7 +127,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	const activeIndex = 0
 	active := card.Actives[activeIndex]
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
-	if !activeDef.Unlimited && active.Pending >= active.Charges {
+	if !activeDef.Unlimited && active.Pending >= card.Charges {
 		return
 	}
 

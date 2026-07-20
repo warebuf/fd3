@@ -75,12 +75,12 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Team:          team,
 				Type:          def.Type,
 				Zone:          state.ZoneDeck,
+				Charges:       def.Charges,
+				MaxCharges:    def.MaxCharges,
 				AuraModifiers: []state.AuraModifier{},
 			}
 			for i, ability := range def.Active {
 				card.Actives[i] = state.ActiveAbility{
-					Charges:     ability.Charges,
-					MaxCharges:  ability.MaxCharges,
 					Unlimited:   ability.Unlimited,
 					Target:      -1,
 					TargetFlags: ability.TargetFlags,

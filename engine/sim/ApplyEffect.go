@@ -79,8 +79,11 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectGainCharge:
 		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
-		if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, eff.A) {
-			reaction.PushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, eff.A, executeAtWallTime)
+		// Charges is shared across the card, so any Active slot could now be auto-fireable
+		for activeIndex := range gs.Cards[sourceCardIndex].Actives {
+			if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, activeIndex) {
+				reaction.PushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, activeIndex, executeAtWallTime)
+			}
 		}
 
 	case state.EffectSacrifice:
