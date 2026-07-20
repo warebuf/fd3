@@ -57,7 +57,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	)
 
 	if success {
-		match.TransitionPauseState(1, ie.WallTime.UnixMilli()+constants.LEAD, -1)
+		match.TransitionPauseState(state.PausePhaseSimPause, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 		scheduleReactionStackResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 	}

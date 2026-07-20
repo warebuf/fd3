@@ -47,7 +47,7 @@ func (match *Match) handleInputPause(ie *eventpq.InputEvent) {
 		}
 
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(-1, executeTime, teamIndex)
+		match.TransitionPauseState(state.PauseTransitionUnpause, executeTime, teamIndex)
 		match.processAutoSummonQueue(executeTime, -1)
 		match.publish(executeTime, oldLogsSize)
 	}

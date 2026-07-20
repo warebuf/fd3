@@ -9,6 +9,7 @@ const (
 	PhaseGameOver   = 5
 )
 
+const PauseTransitionUnpause = -1
 const (
 	PausePhaseFullPause  = 0
 	PausePhaseSimPause   = 1

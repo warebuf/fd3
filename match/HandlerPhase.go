@@ -87,7 +87,7 @@ func (match *Match) handleEnterBoardSetupPhase(newPhase *eventpq.NewPhaseEvent) 
 	})
 	match.NextUpdateID += 1
 
-	match.TransitionPauseState(1, phaseChangeWallTime, -1)
+	match.TransitionPauseState(state.PausePhaseSimPause, phaseChangeWallTime, -1)
 
 	// initialize ready flags
 	numTeams := len(match.GameState.Hand)
@@ -177,7 +177,7 @@ func (match *Match) handleEnterPlayPhase(newPhase *eventpq.NewPhaseEvent) {
 		match.GameState.Cards[i].StageOrder = 0
 	}
 
-	match.TransitionPauseState(-1, phaseChangeWallTime, -1)
+	match.TransitionPauseState(state.PauseTransitionUnpause, phaseChangeWallTime, -1)
 
 	// begin mana regen for structures
 	startSimTime := phaseChangeWallTime - match.GameState.SimPauseOffset

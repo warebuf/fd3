@@ -144,7 +144,7 @@ func (match *Match) handleReactionStackResolution() {
 		if gs.Phase == state.PhaseReveal {
 			pushRevealEvent(match, wallTime-gs.FullPauseOffset+800)
 		} else {
-			match.TransitionPauseState(-1, wallTime, -1)
+			match.TransitionPauseState(state.PauseTransitionUnpause, wallTime, -1)
 			match.processAutoSummonQueue(wallTime, -1)
 		}
 	} else { // the new top gets a refreshed reaction window

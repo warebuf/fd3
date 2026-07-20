@@ -121,7 +121,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 			})
 			match.NextUpdateID++
 
-			match.TransitionPauseState(1, executeAtWallTime, -1)
+			match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 			scheduleReactionStackResolution(match)
 
 		}

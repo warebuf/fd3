@@ -74,6 +74,10 @@ func scheduleReactionStackResolution(match *Match) {
 
 	// if no stack items, clean the pointer
 	if len(match.GameState.ReactionStack) == 0 {
+		if match.LatestReactionItem != nil {
+			match.EventPQueue.Remove(match.LatestReactionItem)
+			match.LatestReactionItem = nil
+		}
 		return
 	}
 

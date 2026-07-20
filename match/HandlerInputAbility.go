@@ -94,7 +94,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 
-	match.TransitionPauseState(1, executeAtWallTime, -1)
+	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleReactionStackResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 
@@ -187,7 +187,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	})
 	match.NextUpdateID++
 
-	match.TransitionPauseState(1, executeAtWallTime, -1)
+	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleReactionStackResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 

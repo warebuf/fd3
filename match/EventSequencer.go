@@ -119,7 +119,7 @@ func (match *Match) handleSimPQEvent(simPQEvent *eventpq.SimPQEvent) {
 		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
 		if len(match.GameState.ReactionStack) > 0 {
-			match.TransitionPauseState(1, wallTime, -1)
+			match.TransitionPauseState(state.PausePhaseSimPause, wallTime, -1)
 		}
 		scheduleReactionStackResolution(match)
 		match.processAutoSummonQueue(wallTime, -1)
@@ -135,7 +135,7 @@ func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
 	wallTime := pauseEndEvent.WallTime.UnixMilli() + constants.LEAD
 	if match.GameState.PausePhase == state.PausePhaseFullPause {
 		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(-1, wallTime, -1)
+		match.TransitionPauseState(state.PauseTransitionUnpause, wallTime, -1)
 		match.processAutoSummonQueue(wallTime, -1)
 		match.publish(wallTime, oldLogsSize)
 	}

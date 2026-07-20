@@ -165,7 +165,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 		}
 
 	case state.PausePhaseSimulating:
-		fmt.Println("please do not use the function this way. just unpause by passing -1 into newPauseState")
+		fmt.Println("please do not use the function this way. just unpause by passing state.PauseTransitionUnpause into newPauseState")
 		return
 	}
 
