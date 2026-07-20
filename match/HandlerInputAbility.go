@@ -129,6 +129,10 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if gs.Mana[teamIndex] < activeDef.Cost {
+		return
+	}
+
 	// dynamically populate the effect objects
 	effs := []state.Effect{}
 	for _, eff := range activeDef.Effects {
@@ -161,6 +165,18 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
+
+	if activeDef.Cost > 0 {
+		gs.Mana[teamIndex] -= activeDef.Cost
+		match.EventLog = append(match.EventLog, logs.SpendManaLog{
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: executeAtWallTime,
+			Type:          logs.SpendMana,
+			TeamIndex:     teamIndex,
+			Amount:        activeDef.Cost,
+		})
+		match.NextUpdateID++
+	}
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	reactionItem := state.ReactionItem{
