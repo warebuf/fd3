@@ -49,7 +49,7 @@ func PushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		Effects:             effs,
 	}
 	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	gs.Cards[cardIndex].Actives[activeIndex].Pending++
+	gs.Cards[cardIndex].PendingCharges++
 	*logList = append(*logList, logs.AddStackLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       executeAtWallTime,

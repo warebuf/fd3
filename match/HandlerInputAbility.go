@@ -35,10 +35,9 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	// input events don't yet carry which Active slot to use, so this always targets slot 0
 	// (no current card has more than one Active ability)
 	const activeIndex = 0
-	active := card.Actives[activeIndex]
 	def := defs.CardDefs[card.DefNo].Active[activeIndex]
 
-	if !def.Unlimited && active.Pending >= card.Charges {
+	if !def.Unlimited && card.PendingCharges >= card.Charges {
 		return
 	}
 
@@ -81,7 +80,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		Effects:             effs,
 	}
 	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	gs.Cards[cardIndex].Actives[activeIndex].Pending++
+	gs.Cards[cardIndex].PendingCharges++
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
 		WallTimestamp:       executeAtWallTime,
@@ -125,9 +124,8 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 
 	// HARDCODE: ALWAYS TARGETS SLOT 0
 	const activeIndex = 0
-	active := card.Actives[activeIndex]
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
-	if !activeDef.Unlimited && active.Pending >= card.Charges {
+	if !activeDef.Unlimited && card.PendingCharges >= card.Charges {
 		return
 	}
 
@@ -175,7 +173,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		Effects:             effs,
 	}
 	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	gs.Cards[cardIndex].Actives[activeIndex].Pending++
+	gs.Cards[cardIndex].PendingCharges++
 	match.EventLog = append(match.EventLog, logs.AddStackLog{
 		UpdateID:            match.NextUpdateID,
 		WallTimestamp:       executeAtWallTime,

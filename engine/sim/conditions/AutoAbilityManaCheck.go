@@ -31,7 +31,7 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			if !ability.Unlimited && active.Pending >= card.Charges {
+			if !ability.Unlimited && card.PendingCharges >= card.Charges {
 				continue
 			}
 

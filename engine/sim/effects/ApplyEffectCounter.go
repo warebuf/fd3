@@ -29,7 +29,7 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 	case state.ReactionUnitAbility:
 		if target.ActiveIndex >= 0 {
-			card.Actives[target.ActiveIndex].Pending--
+			card.PendingCharges--
 		}
 	}
 

@@ -28,7 +28,7 @@ type Ability struct {
 	Effects      [3]state.Effect
 	Cons         [3]state.ConditionType
 	Cost         int
-	Unlimited    bool // if true, this ability ignores Charges/Pending entirely and is always available
+	Unlimited    bool  // if true, this ability ignores Charges/Pending entirely and is always available
 	Milliseconds int64 // only used by OnTick
 	TargetFlags  int
 	Trigger      state.TriggerType // only used by OnTrigger

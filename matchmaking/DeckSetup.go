@@ -10,6 +10,8 @@ import (
 
 func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 
+	// TODO: validate the structure input
+
 	// create structures
 	structures := make([]state.Structure, len(deckDefs))
 	for i, defNo := range structureDefNos {
@@ -72,12 +74,14 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Archetype:   def.Archetype,
 				Taunt:       def.Taunt,
 
-				Team:          team,
-				Type:          def.Type,
-				Zone:          state.ZoneDeck,
-				Charges:       def.Charges,
-				MaxCharges:    def.MaxCharges,
-				AuraModifiers: []state.AuraModifier{},
+				Team:           team,
+				Type:           def.Type,
+				Zone:           state.ZoneDeck,
+				Charges:        def.Charges,
+				MaxCharges:     def.MaxCharges,
+				PendingCharges: 0,
+				StageOrder:     0,
+				AutoSummon:     0,
 			}
 			for i, ability := range def.Active {
 				card.Actives[i] = state.ActiveAbility{
@@ -86,6 +90,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 					TargetFlags: ability.TargetFlags,
 					Cons:        ability.Cons,
 					Cost:        ability.Cost,
+					AutoAbility: false,
 				}
 			}
 

@@ -69,7 +69,7 @@ func (match *Match) handleReactionStackResolution() {
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
 		}
 	} else if reactionTop.Type == state.ReactionContinuousAbility {
-		card.Actives[reactionTop.ActiveIndex].Pending--
+		card.PendingCharges--
 		card.Charges--
 		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 			UpdateID:         match.NextUpdateID,
@@ -101,7 +101,7 @@ func (match *Match) handleReactionStackResolution() {
 		}
 	} else if reactionTop.Type == state.ReactionUnitAbility && reactionTop.ActiveIndex >= 0 { // only for Active abilities
 		activeDef := defs.CardDefs[card.DefNo].Active[reactionTop.ActiveIndex]
-		card.Actives[reactionTop.ActiveIndex].Pending--
+		card.PendingCharges--
 
 		if !activeDef.Unlimited {
 			wasAtMax := card.Charges == card.MaxCharges
