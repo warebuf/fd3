@@ -57,7 +57,6 @@ func (match *Match) handleReactionStackResolution() {
 				Type:          logs.PlayContinuous,
 				TeamIndex:     card.Team,
 				CardIndex:     reactionTop.CardIndex,
-				Charges:       card.Charges,
 			})
 			match.NextUpdateID++
 		} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers

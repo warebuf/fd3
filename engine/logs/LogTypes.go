@@ -232,7 +232,6 @@ type PlayContinuousLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
-	Charges       int
 }
 
 type RemoveContinuousLog struct {
