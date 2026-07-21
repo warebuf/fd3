@@ -61,7 +61,7 @@ func (match *Match) handleEnterDrawPhase(newPhase *eventpq.NewPhaseEvent) {
 	}
 
 	// schedule board setup phase after draws complete
-	PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, state.PhaseBoardSetup)
+	SchedulePhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, state.PhaseBoardSetup)
 
 	match.publish(phaseChangeWallTime, oldLogsSize)
 
@@ -94,7 +94,7 @@ func (match *Match) handleEnterBoardSetupPhase(newPhase *eventpq.NewPhaseEvent) 
 	match.GameState.Ready = make([]bool, numTeams)
 
 	// schedule reveal in 90 seconds; can be triggered early by both players readying up
-	PushPhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+constants.BOARD_SETUP_DURATION, state.PhaseReveal)
+	SchedulePhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+constants.BOARD_SETUP_DURATION, state.PhaseReveal)
 
 	match.publish(phaseChangeWallTime, oldLogsSize)
 }

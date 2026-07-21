@@ -4,25 +4,27 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
-func PushPhaseEvent(match *Match, activeTime int64, phase int) {
+func SchedulePhaseEvent(match *Match, activeTime int64, phase int) {
 
-	// clear previous phase events
-	if match.PhaseItem != nil {
-		match.EventPQueue.Remove(match.PhaseItem)
-	}
-
-	newPhase := &eventpq.NewPhaseEvent{
-		WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD),
-		Phase:    phase,
-	}
+	wallTime := time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD)
 	match.PendingPhase = phase
 	match.PendingPhaseTime = activeTime
+
+	// if a phase event is already pending, update and reheapify it in place
+	if match.PhaseItem != nil {
+		newPhase, _ := match.PhaseItem.Event.(*eventpq.NewPhaseEvent)
+		newPhase.WallTime = wallTime
+		newPhase.Phase = phase
+		match.EventPQueue.Fix(match.PhaseItem)
+		return
+	}
+
+	// otherwise schedule a new phase event in the EventPQ
+	newPhase := &eventpq.NewPhaseEvent{WallTime: wallTime, Phase: phase}
 	match.PhaseItem = match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
 }
 
@@ -100,73 +102,4 @@ func scheduleReactionStackResolution(match *Match) {
 	// otherwise add it to EventPQ
 	ev := &eventpq.StackResolutionEvent{WallTime: earliest}
 	match.LatestReactionItem = match.EventPQueue.CreateAndPushEventItem(ev, "StackResolution")
-}
-
-func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam int) {
-
-	gs := match.GameState
-
-	if gs.Phase != state.PhasePlay {
-		return
-	}
-
-	if gs.PausePhase != state.PausePhaseSimulating {
-		return
-	}
-
-	startTeam := 0
-	endTeam := len(gs.Hand)
-	if targetTeam >= 0 {
-		startTeam = targetTeam
-		endTeam = targetTeam + 1
-	}
-
-	for t := startTeam; t < endTeam; t++ {
-		for {
-			bestCard := -1
-			bestPriority := 0
-			for _, i := range gs.Hand[t] {
-				if card := gs.Cards[i]; card.AutoSummon > 0 {
-					if bestCard == -1 || card.AutoSummon < bestPriority {
-						bestCard = i
-						bestPriority = card.AutoSummon
-					}
-				}
-			}
-			if bestCard == -1 {
-				break
-			}
-
-			success := reaction.ScheduleDeclareCard(
-				gs,
-				&match.EventLog,
-				&match.NextUpdateID,
-				t,
-				bestCard,
-				executeAtWallTime-constants.LEAD,
-			)
-
-			if success == false {
-				break
-			}
-
-			clearAutoSummon(gs.Cards, t, bestCard)
-			match.EventLog = append(match.EventLog, logs.AutoSummonLog{
-				WallTimestamp:      executeAtWallTime,
-				UpdateID:           match.NextUpdateID,
-				Type:               logs.AutoSummonIndex,
-				TeamIndex:          t,
-				CardIndex:          bestCard,
-				AutoSummonPriority: 0,
-			})
-			match.NextUpdateID++
-
-			match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
-			scheduleReactionStackResolution(match)
-
-		}
-	}
-
-	scheduleEarliestSimItem(match)
-
 }

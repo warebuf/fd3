@@ -103,6 +103,22 @@ func (match *Match) SendPublishedState(ClientID string) {
 
 }
 
+// publishes the latest updates
+func (match *Match) publish(wallTime int64, oldLogsSize int) {
+	if len(match.EventLog) <= oldLogsSize {
+		return
+	}
+	match.GameState.WallTimestamp = wallTime
+	match.GameState.UpdateID = match.NextUpdateID - 1
+	match.PublishedState = state.DeepCopyGameState(match.GameState)
+	stateCopy := state.DeepCopyGameState(match.GameState)
+	for _, log := range match.EventLog[oldLogsSize:] {
+		match.DebugTrace = append(match.DebugTrace, debug.TraceEntry{Log: log, State: stateCopy})
+	}
+	//debug.WriteTrace(match.ID, match.DebugTrace)
+	match.BroadcastLogs(oldLogsSize)
+}
+
 func (match *Match) BroadcastLogs(oldLogsSize int) {
 	// serialize actions
 	wrapper := struct {

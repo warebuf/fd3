@@ -70,7 +70,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 
 				scheduleReactionStackResolution(match)
 				if match.PendingPhase > 0 {
-					PushPhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
+					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 				}
 				if match.PendingRevealTime > 0 {
 					pushRevealEvent(match, match.PendingRevealTime)
@@ -86,7 +86,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				scheduleReactionStackResolution(match)
 				scheduleEarliestSimItem(match)
 				if match.PendingPhase > 0 {
-					PushPhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
+					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 				}
 				if match.PendingRevealTime > 0 {
 					pushRevealEvent(match, match.PendingRevealTime)

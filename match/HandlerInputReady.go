@@ -43,7 +43,7 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		}
 	}
 	if allReady {
-		PushPhaseEvent(match, executeAtWallTime-match.GameState.FullPauseOffset, state.PhaseReveal)
+		SchedulePhaseEvent(match, executeAtWallTime-match.GameState.FullPauseOffset, state.PhaseReveal)
 	}
 
 }
@@ -84,7 +84,7 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 	match.NextUpdateID++
 
 	if allWereReady {
-		PushPhaseEvent(match, match.GameState.PhaseEndInActiveTime, state.PhaseReveal)
+		SchedulePhaseEvent(match, match.GameState.PhaseEndInActiveTime, state.PhaseReveal)
 	}
 
 	match.publish(executeAtWallTime, oldLogsSize)

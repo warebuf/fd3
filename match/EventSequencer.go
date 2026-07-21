@@ -4,10 +4,6 @@ import (
 	"container/heap"
 	"time"
 
-	"github.com/warebuf/fd3/debug"
-	"github.com/warebuf/fd3/engine/constants"
-	"github.com/warebuf/fd3/engine/sim"
-	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
@@ -106,53 +102,4 @@ func (match *Match) setPQTimer() {
 	}
 	match.EventPQTimer = time.NewTimer(delay)
 
-}
-
-func (match *Match) handleSimPQEvent(simPQEvent *eventpq.SimPQEvent) {
-	if match.GameState.Phase == state.PhaseGameOver {
-		return
-	}
-	oldLogsSize := len(match.EventLog)
-	wallTime := simPQEvent.WallTime.UnixMilli() + constants.LEAD
-	sim.ManageSimulationPQ(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID)
-	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
-		PushPhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
-	} else {
-		if len(match.GameState.ReactionStack) > 0 {
-			match.TransitionPauseState(state.PausePhaseSimPause, wallTime, -1)
-		}
-		scheduleReactionStackResolution(match)
-		match.processAutoSummonQueue(wallTime, -1)
-		scheduleEarliestSimItem(match)
-	}
-	match.publish(wallTime, oldLogsSize)
-}
-
-func (match *Match) handlePauseEndEvent(pauseEndEvent *eventpq.PauseEndEvent) {
-	if match.GameState.Phase == state.PhaseGameOver {
-		return
-	}
-	wallTime := pauseEndEvent.WallTime.UnixMilli() + constants.LEAD
-	if match.GameState.PausePhase == state.PausePhaseFullPause {
-		oldLogsSize := len(match.EventLog)
-		match.TransitionPauseState(state.PauseTransitionUnpause, wallTime, -1)
-		match.processAutoSummonQueue(wallTime, -1)
-		match.publish(wallTime, oldLogsSize)
-	}
-}
-
-// publishes the latest updates
-func (match *Match) publish(wallTime int64, oldLogsSize int) {
-	if len(match.EventLog) <= oldLogsSize {
-		return
-	}
-	match.GameState.WallTimestamp = wallTime
-	match.GameState.UpdateID = match.NextUpdateID - 1
-	match.PublishedState = state.DeepCopyGameState(match.GameState)
-	stateCopy := state.DeepCopyGameState(match.GameState)
-	for _, log := range match.EventLog[oldLogsSize:] {
-		match.DebugTrace = append(match.DebugTrace, debug.TraceEntry{Log: log, State: stateCopy})
-	}
-	//debug.WriteTrace(match.ID, match.DebugTrace)
-	match.BroadcastLogs(oldLogsSize)
 }
