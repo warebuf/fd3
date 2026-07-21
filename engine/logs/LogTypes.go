@@ -249,7 +249,6 @@ type RemoveChargeLog struct {
 	Type             LogType
 	TeamIndex        int
 	CardIndex        int
-	AbilityIndex     int
 	ChargesRemaining int
 }
 
@@ -259,7 +258,6 @@ type AddChargeLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
-	AbilityIndex  int
 	Charges       int
 }
 
