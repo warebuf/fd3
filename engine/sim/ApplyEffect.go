@@ -89,6 +89,12 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectSacrifice:
 		effects.ApplyEffectSacrifice(gs, pq, logList, UpdateID, eff, allEffects, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectConsume:
+		effects.ApplyEffectConsume(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectSelfDestruct:
+		effects.ApplyEffectSelfDestruct(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

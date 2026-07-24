@@ -13,6 +13,9 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
 	damage := eff.B
+	if activeIndex >= 0 {
+		damage += gs.Cards[unitIndex].Actives[activeIndex].Bonus
+	}
 
 	targetIndex := -1
 

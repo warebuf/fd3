@@ -44,7 +44,8 @@ type CardDef struct {
 	Archetype int
 	Taunt     bool
 
-	RequiresStackTarget bool
+	RequiresStackTarget  bool
+	RequiresOnPlayTarget bool // if true, ScheduleDeclareCard refuses to play this card unless OnPlayTarget is currently a valid target for OnPlay[0].TargetFlags
 
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
@@ -231,7 +232,7 @@ var CardDefs = []CardDef{
 	},
 	12: {
 		Type:        state.CardTypeContinuous,
-		Name:        "Spellwell",
+		Name:        "Charge Reservoir",
 		Description: "Gain 1 charge whenever you cast a spell.",
 		Cost:        60,
 		MaxCharges:  math.MaxInt,
@@ -239,6 +240,28 @@ var CardDefs = []CardDef{
 			Trigger:      state.TriggerAllySpellResolve,
 			TriggerZones: TriggerZoneContinuous,
 			Effects:      [3]state.Effect{{Type: state.EffectGainCharge}},
+		}},
+	},
+	13: {
+		Type:                 state.CardTypeUnit,
+		Name:                 "Charge Consumer",
+		Description:          "Summon: Destroy a friendly card you choose; gain its charges as HP. Use: Deal 1 damage to an enemy, plus those charges, then this unit is destroyed.",
+		BaseHP:               1,
+		Cost:                 60,
+		Charges:              1,
+		MaxCharges:           1,
+		RequiresOnPlayTarget: true,
+		OnPlay: [3]Ability{{
+			TargetFlags: TargetOwnField | TargetOwnCont,
+			Effects:     [3]state.Effect{{Type: state.EffectConsume, C: 0}}, // C: 0, feeds Active slot 0's Bonus
+		}},
+		Active: [3]Ability{{
+			TargetFlags: TargetOppField,
+			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
+			Effects: [3]state.Effect{
+				{Type: state.EffectAttack, A: 1, B: 1}, // A: 1, user-targeted; base 1 damage, plus Bonus
+				{Type: state.EffectSelfDestruct},
+			},
 		}},
 	},
 }

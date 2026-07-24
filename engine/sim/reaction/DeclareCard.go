@@ -38,6 +38,13 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return false
 	}
 
+	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresOnPlayTarget {
+		onPlayFlags := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnPlay[0].TargetFlags
+		if !defs.IsValidTarget(gs, onPlayFlags, cardIndex, gs.Cards[cardIndex].OnPlayTarget, teamIndex) {
+			return false
+		}
+	}
+
 	// mana check last
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {

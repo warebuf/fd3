@@ -82,6 +82,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				PendingCharges: 0,
 				StageOrder:     0,
 				AutoSummon:     0,
+				OnPlayTarget:   -1,
 			}
 			for i, ability := range def.Active {
 				card.Actives[i] = state.ActiveAbility{

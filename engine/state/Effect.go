@@ -13,6 +13,8 @@ const (
 	EffectCounter    // cancel the top chain item
 	EffectGainCharge // A: active ability slot
 	EffectSacrifice  // A: card index
+	EffectConsume    // A: card index (from OnPlayTarget); destroys it. C: which of this card's Active slots gets its Charges as Bonus
+	EffectSelfDestruct
 )
 
 type Effect struct {
@@ -41,6 +43,9 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		if activeIndex >= 0 {
 			templ.A = gs.Cards[cardIndex].Actives[activeIndex].Target
 		}
+		return templ
+	case EffectConsume:
+		templ.A = gs.Cards[cardIndex].OnPlayTarget
 		return templ
 	}
 	return templ

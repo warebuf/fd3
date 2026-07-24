@@ -61,6 +61,9 @@ type ActiveAbility struct {
 
 	// autoability stuff
 	AutoAbility bool // autofires if true, player-toggleable
+
+	// effect stuff
+	Bonus int // added to this ability's EffectAttack B when built; set by an earlier EffectConsume
 }
 
 type Card struct {
@@ -90,4 +93,7 @@ type Card struct {
 	OnTick  [3]TickAbility
 	Actives [3]ActiveAbility
 	Taunt   bool
+
+	// on-play targeting related
+	OnPlayTarget int // preselected target for this card's OnPlay ability, -1 if none
 }
