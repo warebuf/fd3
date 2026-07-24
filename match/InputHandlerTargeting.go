@@ -9,6 +9,8 @@ import (
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
+// TODO: not sure about this func
+
 func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 	gs := match.GameState

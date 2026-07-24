@@ -132,10 +132,10 @@ func (c *Client) Read() {
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, 0, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, -1, -1, -1)
 
 		case "unready":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, 0, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, -1, -1, -1)
 
 		case "instant":
 			var msg handMessage
@@ -170,7 +170,7 @@ func (c *Client) Read() {
 			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleAutoAbility", c.ID, msg.CardIndex, -1, -1)
 
 		case "fullPause":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, 0, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, -1, -1, -1)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
@@ -221,11 +221,6 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 	}
 
 	// this function should only be doing rate limit checks, not sim checks
-
-	// can check that unitIndex is non negative
-	if cardIndex < 0 {
-		return
-	}
 
 	ie := &eventpq.InputEvent{
 		WallTime:        timestamp,
