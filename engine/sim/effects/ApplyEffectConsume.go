@@ -31,7 +31,18 @@ func ApplyEffectConsume(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 	charges := gs.Cards[targetIndex].Charges
 
 	// C: which of this card's Active slots receives the Bonus, set explicitly by the CardDef
-	gs.Cards[sourceCardIndex].Actives[eff.C].Bonus = charges
+	gs.Cards[sourceCardIndex].Actives[eff.C].Bonus += charges
+	*logList = append(*logList, logs.ConsumeLog{
+		UpdateID:        *UpdateID,
+		WallTimestamp:   executeAtWallTime,
+		Type:            logs.Consume,
+		SourceCardIndex: sourceCardIndex,
+		TargetCardIndex: targetIndex,
+		AbilityIndex:    eff.C,
+		Bonus:           gs.Cards[sourceCardIndex].Actives[eff.C].Bonus,
+	})
+	*UpdateID++
+
 	gs.Cards[sourceCardIndex].HP += charges
 	*logList = append(*logList, logs.HealLog{
 		UpdateID:        *UpdateID,

@@ -1,6 +1,7 @@
-package defs
+package rules
 
 import (
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -15,21 +16,21 @@ func IsValidTarget(gs *state.GameState, targetFlags int, sourceIndex int, target
 	}
 	target := gs.Cards[targetIndex]
 	if targetIndex == sourceIndex {
-		return targetFlags&TargetSelf != 0
+		return targetFlags&defs.TargetSelf != 0
 	}
 	switch {
 	case target.Team == teamIndex && target.Zone == state.ZoneField:
-		return targetFlags&TargetOwnField != 0
+		return targetFlags&defs.TargetOwnField != 0
 	case target.Team != teamIndex && target.Zone == state.ZoneField:
-		return targetFlags&TargetOppField != 0
+		return targetFlags&defs.TargetOppField != 0
 	case target.Team == teamIndex && target.Zone == state.ZoneHand:
-		return targetFlags&TargetOwnHand != 0
+		return targetFlags&defs.TargetOwnHand != 0
 	case target.Team != teamIndex && target.Zone == state.ZoneHand:
-		return targetFlags&TargetOppHand != 0
+		return targetFlags&defs.TargetOppHand != 0
 	case target.Team == teamIndex && target.Zone == state.ZoneContinuous:
-		return targetFlags&TargetOwnCont != 0
+		return targetFlags&defs.TargetOwnCont != 0
 	case target.Team != teamIndex && target.Zone == state.ZoneContinuous:
-		return targetFlags&TargetOppCont != 0
+		return targetFlags&defs.TargetOppCont != 0
 	}
 	return false
 }

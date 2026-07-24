@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/rules"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -39,9 +40,13 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 	}
 
 	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresOnPlayTarget {
-		onPlayFlags := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnPlay[0].TargetFlags
-		if !defs.IsValidTarget(gs, onPlayFlags, cardIndex, gs.Cards[cardIndex].OnPlayTarget, teamIndex) {
-			return false
+		for _, ability := range defs.CardDefs[gs.Cards[cardIndex].DefNo].OnPlay {
+			if ability.TargetFlags == 0 {
+				continue // unused ability slot, or an ability that doesn't target anything
+			}
+			if !rules.IsValidTarget(gs, ability.TargetFlags, cardIndex, gs.Cards[cardIndex].OnPlayTarget, teamIndex) {
+				return false
+			}
 		}
 	}
 

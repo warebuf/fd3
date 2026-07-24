@@ -63,7 +63,7 @@ type ActiveAbility struct {
 	AutoAbility bool // autofires if true, player-toggleable
 
 	// effect stuff
-	Bonus int // added to this ability's EffectAttack B when built; set by an earlier EffectConsume
+	Bonus int // added to this ability's EffectAttack B when built; accumulated by earlier EffectConsume(s)
 }
 
 type Card struct {

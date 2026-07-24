@@ -33,6 +33,7 @@ const (
 	AddCharge
 	Preselect
 	ToggleAutoAbility
+	Consume
 )
 
 type PhaseLog struct {
@@ -278,4 +279,14 @@ type ToggleAutoAbilityLog struct {
 	CardIndex     int
 	AbilityIndex  int
 	On            bool
+}
+
+type ConsumeLog struct {
+	WallTimestamp   int64
+	UpdateID        int
+	Type            LogType
+	SourceCardIndex int
+	TargetCardIndex int
+	AbilityIndex    int // which Active slot's Bonus was credited
+	Bonus           int // resulting total Bonus on that slot
 }

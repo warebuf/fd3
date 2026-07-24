@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/rules"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -32,7 +33,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		// input events don't yet carry which Active slot to preselect for, so this always targets slot 0
 		// (no current card has more than one Active ability)
 		const activeIndex = 0
-		if !defs.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+		if !rules.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
 
@@ -52,7 +53,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		// preselecting the target for this card's OnPlay ability, chosen before it's played
 		// (same "no card has more than one such ability" assumption as the Active case above)
 		const onPlayIndex = 0
-		if !defs.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+		if !rules.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
 

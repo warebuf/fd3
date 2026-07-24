@@ -45,7 +45,7 @@ type CardDef struct {
 	Taunt     bool
 
 	RequiresStackTarget  bool
-	RequiresOnPlayTarget bool // if true, ScheduleDeclareCard refuses to play this card unless OnPlayTarget is currently a valid target for OnPlay[0].TargetFlags
+	RequiresOnPlayTarget bool // if true, ScheduleDeclareCard refuses to play this card unless OnPlayTarget is currently a valid target for every OnPlay ability's TargetFlags
 
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
