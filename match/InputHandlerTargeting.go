@@ -60,7 +60,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 			return
 		}
 
-		gs.Cards[cardIndex].OnPlayTarget = targetCardIndex
+		gs.Cards[cardIndex].OnPlay[onPlayIndex].Target = targetCardIndex
 		match.EventLog = append(match.EventLog, logs.PreselectLog{
 			UpdateID:        match.NextUpdateID,
 			WallTimestamp:   executeAtWallTime,

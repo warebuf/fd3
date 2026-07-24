@@ -49,6 +49,11 @@ type TickAbility struct {
 	ExecuteAtSimTime int64
 }
 
+type OnPlayAbility struct {
+	Target      int // preselected target for this card's OnPlay ability, -1 if none
+	TargetFlags int // uses the target enum for bitmasking; 0 if this card's OnPlay ability doesn't target anything
+}
+
 type ActiveAbility struct {
 	// target stuff
 	Target      int // preselected target for this ability slot, -1 if none
@@ -95,5 +100,5 @@ type Card struct {
 	Taunt   bool
 
 	// on-play targeting related
-	OnPlayTarget int // preselected target for this card's OnPlay ability, -1 if none
+	OnPlay [3]OnPlayAbility // mirrors CardDef.OnPlay's TargetFlags; Target is preselected before the card is played
 }

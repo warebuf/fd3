@@ -13,7 +13,7 @@ const (
 	EffectCounter    // cancel the top chain item
 	EffectGainCharge // A: active ability slot
 	EffectSacrifice  // A: card index
-	EffectConsume    // A: card index (from OnPlayTarget); destroys it. C: which of this card's Active slots gets its Charges as Bonus
+	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
 )
 
@@ -24,7 +24,10 @@ type Effect struct {
 	C    int
 }
 
-func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex int, activeIndex int) Effect {
+// abilityIndex indexes Card.Actives for EffectSacrifice or Card.OnPlay for EffectConsume — the two
+// never overlap, since one is only ever built from an Active ability and the other only from OnPlay.
+// Pass -1 when the calling site has neither (e.g. OnTick, OnTrigger).
+func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex int, abilityIndex int) Effect {
 	switch templ.Type {
 	case EffectDestroy:
 		templ.C = cardIndex
@@ -40,12 +43,14 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 	case EffectHeal:
 		return templ
 	case EffectSacrifice:
-		if activeIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].Actives[activeIndex].Target
+		if abilityIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
 		}
 		return templ
 	case EffectConsume:
-		templ.A = gs.Cards[cardIndex].OnPlayTarget
+		if abilityIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+		}
 		return templ
 	}
 	return templ
