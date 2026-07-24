@@ -9,8 +9,6 @@ import (
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
-// TODO: not sure about this func
-
 func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 	gs := match.GameState
@@ -33,7 +31,10 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 	switch card.Zone {
 	case state.ZoneField:
 
-		const activeIndex = 0
+		activeIndex := ie.AbilityIndex
+		if activeIndex < 0 || activeIndex >= len(card.Actives) {
+			return
+		}
 		if !rules.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
