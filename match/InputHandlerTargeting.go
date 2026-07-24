@@ -9,6 +9,8 @@ import (
 	"github.com/warebuf/fd3/match/eventpq"
 )
 
+// TODO: not sure about this func
+
 func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 	gs := match.GameState
@@ -30,8 +32,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 	switch card.Zone {
 	case state.ZoneField:
-		// input events don't yet carry which Active slot to preselect for, so this always targets slot 0
-		// (no current card has more than one Active ability)
+
 		const activeIndex = 0
 		if !rules.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
@@ -50,8 +51,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		match.NextUpdateID++
 
 	case state.ZoneHand:
-		// preselecting the target for this card's OnPlay ability, chosen before it's played
-		// (same "no card has more than one such ability" assumption as the Active case above)
+
 		const onPlayIndex = 0
 		if !rules.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
@@ -59,13 +59,11 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 		gs.Cards[cardIndex].OnPlayTarget = targetCardIndex
 		match.EventLog = append(match.EventLog, logs.PreselectLog{
-			UpdateID:      match.NextUpdateID,
-			WallTimestamp: executeAtWallTime,
-			Type:          logs.Preselect,
-			TeamIndex:     teamIndex,
-			CardIndex:     cardIndex,
-			// -1 mirrors ReactionItem.ActiveIndex's convention: this preselect is for
-			// an OnPlay ability, not an Active-ability slot
+			UpdateID:        match.NextUpdateID,
+			WallTimestamp:   executeAtWallTime,
+			Type:            logs.Preselect,
+			TeamIndex:       teamIndex,
+			CardIndex:       cardIndex,
 			AbilityIndex:    -1,
 			TargetCardIndex: targetCardIndex,
 		})
