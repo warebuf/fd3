@@ -283,4 +283,24 @@ var CardDefs = []CardDef{
 			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
+	16: {
+		Type:                 state.CardTypeSpell,
+		Name:                 "Kindling",
+		Description:          "If none of your cards have 2+ charges, give a friendly card you choose 2 charges.",
+		Cost:                 50,
+		RequiresOnPlayTarget: true,
+		OnPlay: [3]Ability{{
+			TargetFlags: TargetOwnField | TargetOwnCont,
+			Effects:     [3]state.Effect{{Type: state.EffectAddCharges, B: 2}},
+		}},
+	},
+	17: {
+		Type:        state.CardTypeSpell,
+		Name:        "Rummage",
+		Description: "Draw a card.",
+		Cost:        40,
+		OnPlay: [3]Ability{{
+			Effects: [3]state.Effect{{Type: state.EffectDraw, B: 1}},
+		}},
+	},
 }

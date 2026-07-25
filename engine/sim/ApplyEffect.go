@@ -100,6 +100,17 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectConvertToTokens:
 		effects.ApplyEffectConvertToTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectAddCharges:
+		effects.ApplyEffectAddCharges(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+		// Charges is shared across the card, so any Active slot on the target could now be auto-fireable
+		targetIndex := eff.A
+		for activeIndex := range gs.Cards[targetIndex].Actives {
+			if conditions.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {
+				reaction.PushAbilityOnStack(gs, logList, UpdateID, targetIndex, activeIndex, executeAtWallTime)
+			}
+		}
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}
