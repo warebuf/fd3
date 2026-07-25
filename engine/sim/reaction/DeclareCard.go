@@ -126,6 +126,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		PopAtActiveTime:     reactionItem.PopAtActiveTime,
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
+		ActiveIndex:         reactionItem.ActiveIndex,
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID += 1

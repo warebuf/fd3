@@ -84,6 +84,7 @@ type AddStackLog struct {
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64
 	CardIndex           int
+	ActiveIndex         int // which Actives[] slot this item's activation came from, -1 if not an Active ability
 	Effects             []state.Effect
 }
 

@@ -90,6 +90,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		PopAtActiveTime:     reactionItem.PopAtActiveTime,
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
+		ActiveIndex:         reactionItem.ActiveIndex,
 		Effects:             reactionItem.Effects,
 	})
 	match.NextUpdateID++
@@ -199,6 +200,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		PopAtActiveTime:     reactionItem.PopAtActiveTime,
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
+		ActiveIndex:         reactionItem.ActiveIndex,
 		Effects:             reactionItem.Effects,
 	})
 	match.NextUpdateID++

@@ -55,7 +55,10 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 
 	case state.ZoneHand:
 
-		const onPlayIndex = 0
+		onPlayIndex := ie.AbilityIndex
+		if onPlayIndex < 0 || onPlayIndex >= len(card.OnPlay) {
+			return
+		}
 		if !rules.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
@@ -67,7 +70,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 			Type:            logs.Preselect,
 			TeamIndex:       teamIndex,
 			CardIndex:       cardIndex,
-			AbilityIndex:    -1,
+			AbilityIndex:    onPlayIndex,
 			TargetCardIndex: targetCardIndex,
 		})
 		match.NextUpdateID++

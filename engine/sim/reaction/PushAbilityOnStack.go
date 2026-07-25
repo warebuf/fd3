@@ -59,6 +59,7 @@ func PushAbilityOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		PopAtActiveTime:     reactionItem.PopAtActiveTime,
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
+		ActiveIndex:         reactionItem.ActiveIndex,
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++
