@@ -77,6 +77,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Team:           team,
 				Type:           def.Type,
 				Zone:           state.ZoneDeck,
+				IsToken:        def.IsToken,
 				Charges:        def.Charges,
 				MaxCharges:     def.MaxCharges,
 				PendingCharges: 0,
@@ -132,6 +133,11 @@ func IsValidSubmission(deck []int, startingHand []int, structNo int) bool {
 
 		// bounds check
 		if cardNo <= 0 || cardNo >= cardDefsLength { // rejecting 0, negative, and non-existing numbers
+			return false
+		}
+
+		// tokens are spawned at runtime, not deck-buildable
+		if defs.CardDefs[cardNo].IsToken {
 			return false
 		}
 

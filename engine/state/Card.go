@@ -84,6 +84,7 @@ type Card struct {
 	Team      int
 	Type      int // structure, unit, trap, spell, continuous
 	Zone      int // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack, 5: continuous
+	IsToken   bool // tokens skip the graveyard on destruction
 
 	// charge related
 	Charges        int // shared charge pool for this card; any ability slot may gain or spend from it

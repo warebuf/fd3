@@ -15,6 +15,7 @@ const (
 	EffectSacrifice  // A: card index
 	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
+	EffectConvertToTokens // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
 )
 
 type Effect struct {
@@ -51,6 +52,9 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		if abilityIndex >= 0 {
 			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
 		}
+		return templ
+	case EffectConvertToTokens:
+		templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
 		return templ
 	}
 	return templ

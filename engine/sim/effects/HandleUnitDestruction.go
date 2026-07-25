@@ -19,7 +19,9 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 		}
 	}
 	card.Zone = state.ZoneGraveyard
-	gs.Grave[cardTeam] = append(gs.Grave[cardTeam], cardIndex)
+	if !card.IsToken {
+		gs.Grave[cardTeam] = append(gs.Grave[cardTeam], cardIndex)
+	}
 
 	// cancel scheduled abilities
 	pq.RemoveSimItemByCardIndex(cardIndex)

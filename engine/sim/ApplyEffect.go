@@ -22,7 +22,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 			for b := 0; b < len(gs.Field[a]); b++ {
 				cardIndex := gs.Field[a][b]
 				gs.Cards[cardIndex].Zone = state.ZoneGraveyard
-				gs.Grave[a] = append(gs.Grave[a], cardIndex)
+				if !gs.Cards[cardIndex].IsToken {
+					gs.Grave[a] = append(gs.Grave[a], cardIndex)
+				}
 				destroyedIndexes[cardIndex] = true
 			}
 			gs.Field[a] = []int{}
@@ -94,6 +96,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 	case state.EffectSelfDestruct:
 		effects.ApplyEffectSelfDestruct(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectConvertToTokens:
+		effects.ApplyEffectConvertToTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)

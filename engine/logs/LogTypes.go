@@ -34,6 +34,7 @@ const (
 	Preselect
 	ToggleAutoAbility
 	Consume
+	SpawnToken
 )
 
 type PhaseLog struct {
@@ -290,4 +291,20 @@ type ConsumeLog struct {
 	TargetCardIndex int
 	AbilityIndex    int // which Active slot's Bonus was credited
 	Bonus           int // resulting total Bonus on that slot
+}
+
+type SpawnTokenLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
+	DefNo         int
+	Name          string
+	Description   string
+	HP            int
+	Cost          int
+	Archetype     int
+	CardType      int
+	IsToken       bool
 }

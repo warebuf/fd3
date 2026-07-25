@@ -47,6 +47,8 @@ type CardDef struct {
 	RequiresStackTarget  bool
 	RequiresOnPlayTarget bool // if true, ScheduleDeclareCard refuses to play this card unless OnPlayTarget is currently a valid target for every OnPlay ability's TargetFlags
 
+	IsToken bool
+
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
 	Active    [3]Ability
@@ -262,6 +264,23 @@ var CardDefs = []CardDef{
 				{Type: state.EffectAttack, A: 1, B: 1}, // A: 1, user-targeted; base 1 damage, plus Bonus
 				{Type: state.EffectSelfDestruct},
 			},
+		}},
+	},
+	14: {
+		Type:    state.CardTypeUnit,
+		Name:    "Charge Token",
+		BaseHP:  1,
+		IsToken: true,
+	},
+	15: {
+		Type:                 state.CardTypeSpell,
+		Name:                 "Temp Tokens",
+		Description:          "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 seconds.",
+		Cost:                 60,
+		RequiresOnPlayTarget: true,
+		OnPlay: [3]Ability{{
+			TargetFlags: TargetOwnField | TargetOwnCont,
+			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
 }
