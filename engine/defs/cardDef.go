@@ -66,11 +66,11 @@ var CardDefs = []CardDef{
 	1: {
 		Type:        state.CardTypeUnit,
 		Name:        "Fallen Soldier",
-		Description: "Deal 1 random damage every 20 ticks to an enemy",
+		Description: "Deal 1 random damage every 30 ticks to an enemy",
 		BaseHP:      2,
 		Cost:        60,
 		OnTick: [3]Ability{{
-			Milliseconds: 20000,
+			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,
@@ -154,11 +154,11 @@ var CardDefs = []CardDef{
 	7: {
 		Type:        state.CardTypeUnit,
 		Name:        "Tomoe",
-		Description: "Heal 1 HP every 20 ticks to a random friendly unit",
+		Description: "Heal 1 HP every 30 ticks to a random friendly unit",
 		BaseHP:      2,
-		Cost:        80,
+		Cost:        60,
 		OnTick: [3]Ability{{
-			Milliseconds: 20000,
+			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectHeal,
@@ -197,7 +197,7 @@ var CardDefs = []CardDef{
 		Name:        "Fallen Soldier 2",
 		Description: "Maximum Charges: 3. Gain 1 charge every 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
-		Cost:        60,
+		Cost:        70,
 		MaxCharges:  3,
 		OnTick: [3]Ability{{
 			Milliseconds: 30000,
