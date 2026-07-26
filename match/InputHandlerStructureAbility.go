@@ -29,7 +29,7 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 		return
 	}
 
-	eff := state.FulfillEffectTemplate(gs, state.Effect{Type: state.EffectDraw}, teamIndex, -1, -1)
+	eff := state.FulfillEffectTemplate(gs, state.Effect{Type: state.EffectDraw, B: 1}, teamIndex, -1, -1)
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)

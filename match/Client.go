@@ -172,6 +172,9 @@ func (c *Client) Read() {
 		case "fullPause":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, -1, -1, -1)
 
+		case "structureDraw":
+			ScheduleInputEvent(receiveTime, c.MatchObj, "structureDraw", c.ID, -1, -1, -1)
+
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
 			c.MatchObj.SendPublishedState(c.ID)
