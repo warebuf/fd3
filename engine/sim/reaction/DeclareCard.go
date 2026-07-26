@@ -112,6 +112,7 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
+		TeamIndex:           teamIndex,
 		Type:                reactionType,
 		Effects:             effs,
 	}

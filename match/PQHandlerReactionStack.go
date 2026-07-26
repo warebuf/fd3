@@ -34,75 +34,42 @@ func (match *Match) handleReactionStackResolution() {
 		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, reactionTop.Effects, reactionTop.CardIndex, reactionTop.ActiveIndex, wallTime)
 	}
 
-	card := &gs.Cards[reactionTop.CardIndex]
-	if card.Zone == state.ZoneStack {
-		if card.Type == state.CardTypeUnit {
-			card.Zone = state.ZoneField
-			gs.Field[card.Team] = append(gs.Field[card.Team], reactionTop.CardIndex)
-			match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
-				UpdateID:      match.NextUpdateID,
-				WallTimestamp: wallTime,
-				Type:          logs.SummonResolution,
-				TeamIndex:     card.Team,
-				CardIndex:     reactionTop.CardIndex,
-			})
-			match.NextUpdateID++
-			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
-		} else if card.Type == state.CardTypeContinuous {
-			card.Zone = state.ZoneContinuous
-			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], reactionTop.CardIndex)
-			match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
-				UpdateID:      match.NextUpdateID,
-				WallTimestamp: wallTime,
-				Type:          logs.PlayContinuous,
-				TeamIndex:     card.Team,
-				CardIndex:     reactionTop.CardIndex,
-			})
-			match.NextUpdateID++
-		} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers
-			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
-			reaction.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
-		} else {
-			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
-		}
-	} else if reactionTop.Type == state.ReactionContinuousAbility {
-		card.PendingCharges--
-		card.Charges--
-		match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
-			UpdateID:         match.NextUpdateID,
-			WallTimestamp:    wallTime,
-			Type:             logs.RemoveCharge,
-			TeamIndex:        card.Team,
-			CardIndex:        reactionTop.CardIndex,
-			ChargesRemaining: card.Charges,
-		})
-		match.NextUpdateID++
-		if card.Charges <= 0 {
-			for i, id := range gs.Continuous[card.Team] {
-				if id == reactionTop.CardIndex {
-					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
-					break
-				}
+	if reactionTop.Type != state.ReactionStructureAbility {
+		card := &gs.Cards[reactionTop.CardIndex]
+		if card.Zone == state.ZoneStack {
+			if card.Type == state.CardTypeUnit {
+				card.Zone = state.ZoneField
+				gs.Field[card.Team] = append(gs.Field[card.Team], reactionTop.CardIndex)
+				match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
+					UpdateID:      match.NextUpdateID,
+					WallTimestamp: wallTime,
+					Type:          logs.SummonResolution,
+					TeamIndex:     card.Team,
+					CardIndex:     reactionTop.CardIndex,
+				})
+				match.NextUpdateID++
+				schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			} else if card.Type == state.CardTypeContinuous {
+				card.Zone = state.ZoneContinuous
+				gs.Continuous[card.Team] = append(gs.Continuous[card.Team], reactionTop.CardIndex)
+				match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
+					UpdateID:      match.NextUpdateID,
+					WallTimestamp: wallTime,
+					Type:          logs.PlayContinuous,
+					TeamIndex:     card.Team,
+					CardIndex:     reactionTop.CardIndex,
+				})
+				match.NextUpdateID++
+			} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers
+				card.Zone = state.ZoneGraveyard
+				gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
+				reaction.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
+			} else {
+				card.Zone = state.ZoneGraveyard
+				gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
 			}
-			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
-			match.EventLog = append(match.EventLog, logs.RemoveContinuousLog{
-				UpdateID:      match.NextUpdateID,
-				WallTimestamp: wallTime,
-				Type:          logs.RemoveContinuous,
-				TeamIndex:     card.Team,
-				CardIndex:     reactionTop.CardIndex,
-			})
-			match.NextUpdateID++
-		}
-	} else if reactionTop.Type == state.ReactionUnitAbility && reactionTop.ActiveIndex >= 0 { // only for Active abilities
-		activeDef := defs.CardDefs[card.DefNo].Active[reactionTop.ActiveIndex]
-		card.PendingCharges--
-
-		if !activeDef.Unlimited {
-			wasAtMax := card.Charges == card.MaxCharges
+		} else if reactionTop.Type == state.ReactionContinuousAbility {
+			card.PendingCharges--
 			card.Charges--
 			match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
 				UpdateID:         match.NextUpdateID,
@@ -113,15 +80,50 @@ func (match *Match) handleReactionStackResolution() {
 				ChargesRemaining: card.Charges,
 			})
 			match.NextUpdateID++
+			if card.Charges <= 0 {
+				for i, id := range gs.Continuous[card.Team] {
+					if id == reactionTop.CardIndex {
+						gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
+						break
+					}
+				}
+				card.Zone = state.ZoneGraveyard
+				gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
+				match.EventLog = append(match.EventLog, logs.RemoveContinuousLog{
+					UpdateID:      match.NextUpdateID,
+					WallTimestamp: wallTime,
+					Type:          logs.RemoveContinuous,
+					TeamIndex:     card.Team,
+					CardIndex:     reactionTop.CardIndex,
+				})
+				match.NextUpdateID++
+			}
+		} else if reactionTop.Type == state.ReactionUnitAbility && reactionTop.ActiveIndex >= 0 { // only for Active abilities
+			activeDef := defs.CardDefs[card.DefNo].Active[reactionTop.ActiveIndex]
+			card.PendingCharges--
 
-			// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
-			if wasAtMax {
-				startAtSimTime := wallTime - gs.SimPauseOffset
-				for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
-					for _, eff := range r.Effects {
-						if eff.Type == state.EffectGainCharge {
-							schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
-							break
+			if !activeDef.Unlimited {
+				wasAtMax := card.Charges == card.MaxCharges
+				card.Charges--
+				match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
+					UpdateID:         match.NextUpdateID,
+					WallTimestamp:    wallTime,
+					Type:             logs.RemoveCharge,
+					TeamIndex:        card.Team,
+					CardIndex:        reactionTop.CardIndex,
+					ChargesRemaining: card.Charges,
+				})
+				match.NextUpdateID++
+
+				// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
+				if wasAtMax {
+					startAtSimTime := wallTime - gs.SimPauseOffset
+					for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
+						for _, eff := range r.Effects {
+							if eff.Type == state.EffectGainCharge {
+								schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
+								break
+							}
 						}
 					}
 				}

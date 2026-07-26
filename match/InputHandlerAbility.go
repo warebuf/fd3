@@ -76,6 +76,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
+		TeamIndex:           teamIndex,
 		Type:                state.ReactionContinuousAbility,
 		Effects:             effs,
 	}
@@ -186,6 +187,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
+		TeamIndex:           teamIndex,
 		Type:                state.ReactionUnitAbility,
 		Effects:             effs,
 	}

@@ -36,6 +36,8 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleUnitAbility(ie)
 	case "toggleAutoAbility":
 		match.handleToggleAutoAbility(ie)
+	case "structureDraw":
+		match.handleStructureDraw(ie)
 	}
 
 }

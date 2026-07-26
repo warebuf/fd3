@@ -19,6 +19,7 @@ func PushEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1,
+		TeamIndex:           gs.Cards[cardIndex].Team,
 		Type:                state.ReactionUnitAbility,
 		Effects:             effects,
 	}

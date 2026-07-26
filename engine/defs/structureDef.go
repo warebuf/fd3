@@ -6,6 +6,7 @@ type StructureDef struct {
 	BaseHP            int
 	ManaRegen         int
 	ManaRegenInterval int64 // milliseconds
+	DrawCost          int
 }
 
 var StructureDefs = []StructureDef{
@@ -16,5 +17,6 @@ var StructureDefs = []StructureDef{
 		BaseHP:            8,
 		ManaRegen:         1,
 		ManaRegenInterval: 1000,
+		DrawCost:          100,
 	},
 }
