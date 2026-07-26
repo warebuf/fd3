@@ -6,7 +6,6 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/effects"
 	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
@@ -57,9 +56,6 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		for i := 0; i < len(currSimItem.Effects); i++ {
 			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.Effects, currSimItem.CardIndex, -1, executeAtWallTime)
 		}
-
-	case state.SimItemTokenExpire:
-		effects.HandleUnitDestruction(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.TeamIndex, executeAtWallTime)
 	}
 	return pushed
 }

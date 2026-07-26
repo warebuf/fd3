@@ -267,15 +267,20 @@ var CardDefs = []CardDef{
 		}},
 	},
 	14: {
-		Type:    state.CardTypeUnit,
-		Name:    "Charge Token",
-		BaseHP:  1,
-		IsToken: true,
+		Type:        state.CardTypeUnit,
+		Name:        "Charge Token",
+		Description: "Destroyed after 10 ticks.",
+		BaseHP:      1,
+		IsToken:     true,
+		OnTick: [3]Ability{{
+			Milliseconds: 10000,
+			Effects:      [3]state.Effect{{Type: state.EffectSelfDestruct}},
+		}},
 	},
 	15: {
 		Type:                 state.CardTypeSpell,
 		Name:                 "Temp Tokens",
-		Description:          "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 seconds.",
+		Description:          "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
 		Cost:                 60,
 		RequiresOnPlayTarget: true,
 		OnPlay: [3]Ability{{

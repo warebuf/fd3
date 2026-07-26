@@ -1,15 +1,11 @@
 package effects
 
 import (
-	"container/heap"
-
-	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
-
-const tokenExpireMilliseconds = 10000
 
 func ApplyEffectConvertToTokens(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
 	teamIndex := gs.Cards[sourceCardIndex].Team
@@ -104,15 +100,5 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 	})
 	*UpdateID++
 
-	simTime := executeAtWallTime - gs.SimPauseOffset
-	scheduledPopTime := simTime + tokenExpireMilliseconds/constants.SIM_SPEED - constants.LEAD
-	heap.Push(pq, &state.SimulationItem{
-		StartAtSimTime:   simTime,
-		PopAtSimTime:     scheduledPopTime,
-		ExecuteAtSimTime: scheduledPopTime + constants.LEAD,
-		AbilityIndex:     -1,
-		CardIndex:        cardIndex,
-		TeamIndex:        teamIndex,
-		Type:             state.SimItemTokenExpire,
-	})
+	schedule.ScheduleAllOnTicks(gs, pq, logList, UpdateID, cardIndex, gs.SimPauseStartedAt-gs.SimPauseOffset, executeAtWallTime)
 }
