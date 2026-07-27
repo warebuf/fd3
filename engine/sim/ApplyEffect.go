@@ -3,10 +3,7 @@ package sim
 import (
 	"fmt"
 
-	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/sim/effects"
-	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -20,20 +17,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		effects.ApplyEffectDestroyAll(gs, pq, logList, UpdateID, eff, executeAtWallTime)
 
 	case state.EffectMana:
-		gs.Mana[eff.A] += eff.B
-		*logList = append(*logList, logs.GainManaLog{
-			UpdateID:      *UpdateID,
-			WallTimestamp: executeAtWallTime,
-			Type:          logs.GainMana,
-			TeamIndex:     eff.A,
-			Amount:        eff.B,
-		})
-		*UpdateID += 1
-
-		cardIndexes, activeIndexes := conditions.AutoAbilityManaCheck(gs, eff.A)
-		for i := 0; i < len(cardIndexes); i++ {
-			reaction.PushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
-		}
+		effects.ApplyEffectMana(gs, logList, UpdateID, eff, executeAtWallTime)
 
 	case state.EffectAttack:
 		effects.ApplyEffectAttack(gs, pq, logList, UpdateID, eff, sourceCardIndex, activeIndex, executeAtWallTime)
@@ -46,13 +30,6 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 	case state.EffectGainCharge:
 		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
-
-		// Charges is shared across the card, so any Active slot could now be auto-fireable
-		for activeIndex := range gs.Cards[sourceCardIndex].Actives {
-			if conditions.AutoAbilityChargeCheck(gs, sourceCardIndex, activeIndex) {
-				reaction.PushAbilityOnStack(gs, logList, UpdateID, sourceCardIndex, activeIndex, executeAtWallTime)
-			}
-		}
 
 	case state.EffectSacrifice:
 		effects.ApplyEffectSacrifice(gs, pq, logList, UpdateID, eff, allEffects, sourceCardIndex, executeAtWallTime)
@@ -68,14 +45,6 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 
 	case state.EffectAddCharges:
 		effects.ApplyEffectAddCharges(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
-
-		// Charges is shared across the card, so any Active slot on the target could now be auto-fireable
-		targetIndex := eff.A
-		for activeIndex := range gs.Cards[targetIndex].Actives {
-			if conditions.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {
-				reaction.PushAbilityOnStack(gs, logList, UpdateID, targetIndex, activeIndex, executeAtWallTime)
-			}
-		}
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
