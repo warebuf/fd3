@@ -46,8 +46,7 @@ type CardDef struct {
 	Taunt     bool
 
 	RequiresStackTarget bool
-
-	IsToken bool
+	IsToken             bool // if set true, does not go to grave
 
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
@@ -74,7 +73,7 @@ var CardDefs = []CardDef{
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,
-					A:    0, // targetType, 0: random, 1: user-targetted
+					A:    0, // targetType, 0: random, 1: user-targetted, 2: prioritize archetype
 					B:    1, // amount
 				},
 			},
@@ -119,8 +118,8 @@ var CardDefs = []CardDef{
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
 				{
-					Type: state.EffectMana,
-					B:    30, // amount
+					Type: state.EffectMana, // fill A, which is team
+					B:    30,               // amount
 				},
 			},
 		}},
@@ -213,7 +212,7 @@ var CardDefs = []CardDef{
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,
-					A:    1, // targetType, 0: random, 1: user-targetted
+					A:    1, // targetType, 0: random, 1: user-targetted, 2: prioritize archetype, 3: always struct
 					B:    1, // amount
 				},
 			},
