@@ -39,14 +39,12 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 		return false
 	}
 
-	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresOnPlayTarget {
-		for i, ability := range defs.CardDefs[gs.Cards[cardIndex].DefNo].OnPlay {
-			if ability.TargetFlags == 0 {
-				continue // unused ability slot, or an ability that doesn't target anything
-			}
-			if !rules.IsValidTarget(gs, ability.TargetFlags, cardIndex, gs.Cards[cardIndex].OnPlay[i].Target, teamIndex) {
-				return false
-			}
+	for i, ability := range defs.CardDefs[gs.Cards[cardIndex].DefNo].OnPlay {
+		if ability.TargetFlags == 0 {
+			continue // unused ability slot, or an ability that doesn't target anything
+		}
+		if !rules.IsValidTarget(gs, ability.TargetFlags, cardIndex, gs.Cards[cardIndex].OnPlay[i].Target, teamIndex) {
+			return false
 		}
 	}
 

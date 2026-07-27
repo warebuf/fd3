@@ -16,23 +16,23 @@ const (
 	TargetOppCont              // opponent continuous zone
 )
 
-// which zone(s) the owning card must be in for an OnTrigger ability to fire
+// which zone(s) the owning card must be in for OnTrigger
 const (
-	TriggerZoneField      = 1 << iota // card is on the field
-	TriggerZoneContinuous             // card is in the continuous zone
-	TriggerZoneGraveyard              // card is in the graveyard
-	TriggerZoneHand                   // card is in hand
+	TriggerZoneField = 1 << iota
+	TriggerZoneContinuous
+	TriggerZoneGraveyard
+	TriggerZoneHand
 )
 
 type Ability struct {
 	Effects      [3]state.Effect
 	Cons         [3]state.ConditionType
 	Cost         int
-	Unlimited    bool  // if true, this ability ignores Charges/Pending entirely and is always available
-	Milliseconds int64 // only used by OnTick
-	TargetFlags  int
-	Trigger      state.TriggerType // only used by OnTrigger
-	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone* flags
+	Unlimited    bool              // if true is always available, and ignores Charges/Pending
+	Milliseconds int64             // only used by OnTick
+	TargetFlags  int               // bitmask of Target flags
+	Trigger      state.TriggerType // only used by OnTrigger, condition we do a trigger check
+	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone flags
 	CanAutoFire  bool              // only used by Active
 }
 
@@ -45,8 +45,7 @@ type CardDef struct {
 	Archetype int
 	Taunt     bool
 
-	RequiresStackTarget  bool
-	RequiresOnPlayTarget bool // if true, ScheduleDeclareCard refuses to play this card unless OnPlayTarget is currently a valid target for every OnPlay ability's TargetFlags
+	RequiresStackTarget bool
 
 	IsToken bool
 
@@ -248,14 +247,13 @@ var CardDefs = []CardDef{
 		}},
 	},
 	13: {
-		Type:                 state.CardTypeUnit,
-		Name:                 "Charge Consumer",
-		Description:          "Summon: Destroy a friendly card you choose; gain its charges as HP. Use: Deal 1 damage to an enemy, plus those charges, then this unit is destroyed.",
-		BaseHP:               1,
-		Cost:                 60,
-		Charges:              1,
-		MaxCharges:           1,
-		RequiresOnPlayTarget: true,
+		Type:        state.CardTypeUnit,
+		Name:        "Charge Consumer",
+		Description: "Summon: Destroy a friendly card you choose; gain its charges as HP. Use: Deal 1 damage to an enemy, plus those charges, then this unit is destroyed.",
+		BaseHP:      1,
+		Cost:        60,
+		Charges:     1,
+		MaxCharges:  1,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOwnCont,
 			Effects:     [3]state.Effect{{Type: state.EffectConsume, C: 0}}, // C: 0, feeds Active slot 0's Bonus
@@ -282,22 +280,20 @@ var CardDefs = []CardDef{
 		}},
 	},
 	15: {
-		Type:                 state.CardTypeSpell,
-		Name:                 "Temp Tokens",
-		Description:          "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
-		Cost:                 60,
-		RequiresOnPlayTarget: true,
+		Type:        state.CardTypeSpell,
+		Name:        "Temp Tokens",
+		Description: "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
+		Cost:        60,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOwnCont,
 			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
 	16: {
-		Type:                 state.CardTypeSpell,
-		Name:                 "Kindling",
-		Description:          "If none of your cards have 2+ charges, give a friendly card you choose 2 charges.",
-		Cost:                 50,
-		RequiresOnPlayTarget: true,
+		Type:        state.CardTypeSpell,
+		Name:        "Kindling",
+		Description: "If none of your cards have 2+ charges, give a friendly card you choose 2 charges.",
+		Cost:        50,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOwnCont,
 			Effects:     [3]state.Effect{{Type: state.EffectAddCharges, B: 2}},
