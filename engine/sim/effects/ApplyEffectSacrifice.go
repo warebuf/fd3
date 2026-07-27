@@ -27,5 +27,5 @@ func ApplyEffectSacrifice(gs *state.GameState, pq *state.SimulationPQ, logList *
 		}
 	}
 
-	HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, teamIndex, executeAtWallTime)
+	HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 }

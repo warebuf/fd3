@@ -103,8 +103,6 @@ type DestroyCardLog struct {
 	WallTimestamp   int64
 	UpdateID        int
 	Type            LogType
-	TeamIndex       int
-	CardIndex       int
 	TargetAll       bool
 	TargetTeamIndex int
 	TargetCardIndex int
@@ -131,9 +129,8 @@ type AttackLog struct {
 	UpdateID        int
 	Type            LogType
 	AttackerIndex   int
-	TargetIsUnit    bool
 	TargetTeamIndex int
-	TargetCardIndex int // -1 if targeting a structure
+	TargetCardIndex int // -1 if targeting a structure, meaning a unit was not the target
 	Damage          int
 }
 

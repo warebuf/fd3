@@ -86,7 +86,6 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			WallTimestamp:   executeAtWallTime,
 			Type:            logs.Attack,
 			AttackerIndex:   unitIndex,
-			TargetIsUnit:    true,
 			TargetTeamIndex: enemyTeam,
 			TargetCardIndex: targetIndex,
 			Damage:          damage,
@@ -94,7 +93,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 		*UpdateID += 1
 
 		if gs.Cards[targetIndex].HP <= 0 {
-			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, teamIndex, executeAtWallTime)
+			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 		}
 	} else {
 		if damage >= gs.Structures[enemyTeam].HP {
@@ -107,7 +106,6 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			WallTimestamp:   executeAtWallTime,
 			Type:            logs.Attack,
 			AttackerIndex:   unitIndex,
-			TargetIsUnit:    false,
 			TargetTeamIndex: enemyTeam,
 			TargetCardIndex: -1,
 			Damage:          damage,

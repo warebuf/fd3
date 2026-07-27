@@ -31,9 +31,6 @@ type Effect struct {
 // Pass -1 when the calling site has neither (e.g. OnTick, OnTrigger).
 func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex int, abilityIndex int) Effect {
 	switch templ.Type {
-	case EffectDestroy:
-		templ.C = cardIndex
-		return templ
 	case EffectMana:
 		templ.A = teamIndex
 		return templ

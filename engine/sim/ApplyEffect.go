@@ -17,41 +17,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		effects.ApplyEffectDraw(gs, logList, UpdateID, eff, executeAtWallTime)
 
 	case state.EffectDestroy:
-		destroyedIndexes := map[int]bool{}
-		for a := 0; a < len(gs.Field); a++ {
-			for b := 0; b < len(gs.Field[a]); b++ {
-				cardIndex := gs.Field[a][b]
-				gs.Cards[cardIndex].Zone = state.ZoneGraveyard
-				if !gs.Cards[cardIndex].IsToken {
-					gs.Grave[a] = append(gs.Grave[a], cardIndex)
-				}
-				destroyedIndexes[cardIndex] = true
-			}
-			gs.Field[a] = []int{}
-		}
-		pq.RemoveSimItemsByCardIndexes(destroyedIndexes)
-		for cardIndexes := range destroyedIndexes {
-			gs.Cards[cardIndexes].OnTick = [3]state.TickAbility{}
-		}
-		// clear any preselected targets pointing at destroyed cards
-		for i := range gs.Cards {
-			for j := range gs.Cards[i].Actives {
-				if destroyedIndexes[gs.Cards[i].Actives[j].Target] {
-					gs.Cards[i].Actives[j].Target = -1
-				}
-			}
-		}
-		*logList = append(*logList, logs.DestroyCardLog{
-			UpdateID:        *UpdateID,
-			WallTimestamp:   executeAtWallTime,
-			Type:            logs.DestroyCard,
-			TeamIndex:       gs.Cards[eff.C].Team,
-			CardIndex:       eff.C,
-			TargetAll:       eff.A == 0,
-			TargetTeamIndex: -1,
-			TargetCardIndex: -1,
-		})
-		*UpdateID += 1
+		effects.ApplyEffectDestroyAll(gs, pq, logList, UpdateID, eff, executeAtWallTime)
 
 	case state.EffectMana:
 		gs.Mana[eff.A] += eff.B

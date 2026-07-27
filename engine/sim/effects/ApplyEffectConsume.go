@@ -55,7 +55,7 @@ func ApplyEffectConsume(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 	*UpdateID++
 
 	if gs.Cards[targetIndex].Type == state.CardTypeUnit {
-		HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, teamIndex, executeAtWallTime)
+		HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	} else if gs.Cards[targetIndex].Type == state.CardTypeContinuous {
 		HandleContinuousDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	}
