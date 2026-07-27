@@ -97,6 +97,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 					TargetFlags: ability.TargetFlags,
 					Cons:        ability.Cons,
 					Cost:        ability.Cost,
+					CanAutoFire: ability.CanAutoFire,
 					AutoAbility: false,
 				}
 			}

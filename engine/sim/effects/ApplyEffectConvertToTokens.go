@@ -75,6 +75,7 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 			TargetFlags: ability.TargetFlags,
 			Cons:        ability.Cons,
 			Cost:        ability.Cost,
+			CanAutoFire: ability.CanAutoFire,
 			AutoAbility: false,
 		}
 	}

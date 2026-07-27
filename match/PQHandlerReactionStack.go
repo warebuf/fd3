@@ -1,8 +1,6 @@
 package match
 
 import (
-	"fmt"
-
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
@@ -13,8 +11,6 @@ import (
 )
 
 func (match *Match) handleReactionStackResolution() {
-
-	fmt.Println("handleReactionStackResolution")
 
 	if match.GameState.Phase == state.PhaseGameOver {
 		return

@@ -29,6 +29,10 @@ func (match *Match) handleToggleAutoAbility(ie *eventpq.InputEvent) {
 	// (no current card has more than one Active ability)
 	const activeIndex = 0
 
+	if !card.Actives[activeIndex].CanAutoFire {
+		return
+	}
+
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 

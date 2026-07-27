@@ -65,6 +65,7 @@ type ActiveAbility struct {
 	Unlimited bool // this ability ignores Charges
 
 	// autoability stuff
+	CanAutoFire bool // whether this ability may be toggled to auto-fire at all
 	AutoAbility bool // autofires if true, player-toggleable
 
 	// effect stuff

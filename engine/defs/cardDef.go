@@ -33,6 +33,7 @@ type Ability struct {
 	TargetFlags  int
 	Trigger      state.TriggerType // only used by OnTrigger
 	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone* flags
+	CanAutoFire  bool              // only used by Active
 }
 
 // change from dynamic arrs to fixed size
@@ -99,7 +100,7 @@ var CardDefs = []CardDef{
 		Archetype:   state.ArchetypeTree,
 		Name:        "Money Tree",
 		Description: "Gain 10 mana every 10 ticks",
-		BaseHP:      2,
+		BaseHP:      1,
 		Cost:        60,
 		OnTick: [3]Ability{{
 			Milliseconds: 10000,
@@ -187,9 +188,10 @@ var CardDefs = []CardDef{
 		Charges:     3,
 		MaxCharges:  math.MaxInt,
 		Active: [3]Ability{{
-			Cost:    50,
-			Cons:    [3]state.ConditionType{state.ConditionManaAtLeast},
-			Effects: [3]state.Effect{{Type: state.EffectDraw, B: 1}},
+			Cost:        50,
+			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			CanAutoFire: true,
+			Effects:     [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
 	10: {
@@ -208,6 +210,7 @@ var CardDefs = []CardDef{
 		Active: [3]Ability{{
 			TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
+			CanAutoFire: true,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,
@@ -260,6 +263,7 @@ var CardDefs = []CardDef{
 		Active: [3]Ability{{
 			TargetFlags: TargetOppField,
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
+			CanAutoFire: true,
 			Effects: [3]state.Effect{
 				{Type: state.EffectAttack, A: 1, B: 1}, // A: 1, user-targeted; base 1 damage, plus Bonus
 				{Type: state.EffectSelfDestruct},
