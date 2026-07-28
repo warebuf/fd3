@@ -6,6 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -42,6 +43,10 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	}
 
 	if gs.Mana[teamIndex] < def.Cost {
+		return
+	}
+
+	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
 		return
 	}
 
@@ -132,6 +137,10 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 
 	if gs.Mana[teamIndex] < activeDef.Cost {
+		return
+	}
+
+	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
 		return
 	}
 
