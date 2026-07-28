@@ -9,6 +9,7 @@ func CheckActiveAbilityConditions(gs *state.GameState, cardIndex int, activeInde
 	card := gs.Cards[cardIndex]
 	active := card.Actives[activeIndex]
 
+	// each ability has 3 slots for conditions
 	for i := 0; i < len(active.Cons); i++ {
 		c := active.Cons[i]
 		if c == 0 {

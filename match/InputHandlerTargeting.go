@@ -4,7 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/rules"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -37,7 +37,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		if activeIndex < 0 || activeIndex >= len(card.Actives) {
 			return
 		}
-		if !rules.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+		if !conditions.IsValidTarget(gs, card.Actives[activeIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
 
@@ -59,7 +59,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 		if onPlayIndex < 0 || onPlayIndex >= len(card.OnPlay) {
 			return
 		}
-		if !rules.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
+		if !conditions.IsValidTarget(gs, defs.CardDefs[card.DefNo].OnPlay[onPlayIndex].TargetFlags, cardIndex, targetCardIndex, teamIndex) {
 			return
 		}
 

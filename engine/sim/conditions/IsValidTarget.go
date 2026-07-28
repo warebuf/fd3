@@ -1,4 +1,4 @@
-package rules
+package conditions
 
 import (
 	"github.com/warebuf/fd3/engine/defs"
