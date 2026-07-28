@@ -9,49 +9,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, startAtSimTime int64) {
-
-	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
-	if structDef.ManaRegen == 0 || structDef.ManaRegenInterval == 0 {
-		return
-	}
-	scheduledTime := startAtSimTime + structDef.ManaRegenInterval/constants.SIM_SPEED - constants.LEAD
-	heap.Push(pq, &state.SimulationItem{
-		StartAtSimTime:   startAtSimTime,
-		PopAtSimTime:     scheduledTime,
-		ExecuteAtSimTime: scheduledTime + constants.LEAD,
-		AbilityIndex:     -1,
-		CardIndex:        -1,
-		TeamIndex:        teamIndex,
-		Type:             state.SimItemStructureRegen,
-		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
-	})
-
-}
-
-func ScheduleSystemDraw(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
-	executeAtSimTime := executeAtWallTime - gs.SimPauseOffset
-
-	item := &state.SimulationItem{
-		StartAtSimTime:   executeAtSimTime,
-		PopAtSimTime:     executeAtSimTime - constants.LEAD,
-		ExecuteAtSimTime: executeAtSimTime,
-		AbilityIndex:     -1,
-		CardIndex:        -1,
-		TeamIndex:        teamIndex,
-		Type:             state.SimItemSystemDraw,
-		Effects:          []state.Effect{{Type: state.EffectDraw, A: teamIndex, B: 1}},
-	}
-	heap.Push(pq, item)
-}
-
-func ScheduleAllOnTicks(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, startAtSimTime int64, wallTimestamp int64) {
-	onTick := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTick
-	for a := 0; a < len(onTick); a++ {
-		ScheduleOnTickAbility(gs, pq, logList, UpdateID, cardIndex, a, startAtSimTime, wallTimestamp)
-	}
-}
-
 func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, abilityIndex int, startAtSimTime int64, wallTimestamp int64) {
 	card := gs.Cards[cardIndex]
 	if card.Zone == state.ZoneGraveyard {

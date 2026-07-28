@@ -54,10 +54,10 @@ func (match *Match) handleEnterDrawPhase(newPhase *eventpq.NewPhaseEvent) {
 
 	// schedule draws: 5 cards per team, staggered 250ms apart
 	for i := 0; i < 5; i++ {
-		schedule.ScheduleSystemDraw(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 0, phaseChangeWallTime+500+int64(i)*250)
+		schedule.ScheduleSystemDraw(match.GameState, &match.SimulationPQ, 0, phaseChangeWallTime+500+int64(i)*250)
 	}
 	for i := 0; i < 5; i++ {
-		schedule.ScheduleSystemDraw(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, 1, phaseChangeWallTime+2000+int64(i)*250)
+		schedule.ScheduleSystemDraw(match.GameState, &match.SimulationPQ, 1, phaseChangeWallTime+2000+int64(i)*250)
 	}
 
 	// schedule board setup phase after draws complete
@@ -182,7 +182,7 @@ func (match *Match) handleEnterPlayPhase(newPhase *eventpq.NewPhaseEvent) {
 	// begin mana regen for structures
 	startSimTime := phaseChangeWallTime - match.GameState.SimPauseOffset
 	for i := range match.GameState.Structures {
-		schedule.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, i, startSimTime)
+		schedule.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, i, startSimTime)
 	}
 
 	// apply any available auto plays
