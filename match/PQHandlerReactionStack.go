@@ -120,7 +120,7 @@ func (match *Match) handleReactionStackResolution() {
 					startAtSimTime := wallTime - gs.SimPauseOffset
 					for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
 						for _, eff := range r.Effects {
-							if eff.Type == state.EffectGainCharge {
+							if eff.Type == state.EffectChargeSelf {
 								schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, reactionTop.CardIndex, tickIndex, startAtSimTime, wallTime)
 								break
 							}

@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectGainCharge(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
+func ApplyEffectChargeSelf(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
 	card := &gs.Cards[sourceCardIndex]
 	if card.Charges < card.MaxCharges {
 		card.Charges++

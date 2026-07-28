@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectAddCharges(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
+func ApplyEffectChargeTarget(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
 	teamIndex := gs.Cards[sourceCardIndex].Team
 	targetIndex := eff.A
 

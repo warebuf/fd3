@@ -67,7 +67,7 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 	// a gain-charge ability stops rescheduling once the card's Charges maxes out
 	condition := state.TickIndefinite
 	for _, eff := range entry.Effects {
-		if eff.Type == state.EffectGainCharge {
+		if eff.Type == state.EffectChargeSelf {
 			condition = state.TickUntilChargeMax
 			if card.MaxCharges > 0 && card.Charges >= card.MaxCharges {
 				return

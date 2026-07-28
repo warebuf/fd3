@@ -28,8 +28,8 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectCounter:
 		effects.ApplyEffectCounterAndDestroy(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 
-	case state.EffectGainCharge:
-		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+	case state.EffectChargeSelf:
+		effects.ApplyEffectChargeSelf(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	case state.EffectSacrifice:
 		effects.ApplyEffectSacrifice(gs, pq, logList, UpdateID, eff, allEffects, sourceCardIndex, executeAtWallTime)
@@ -43,8 +43,8 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectConvertToTokens:
 		effects.ApplyEffectConvertToTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
-	case state.EffectAddCharges:
-		effects.ApplyEffectAddCharges(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+	case state.EffectChargeTarget:
+		effects.ApplyEffectChargeTarget(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)

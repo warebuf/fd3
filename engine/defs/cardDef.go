@@ -202,7 +202,7 @@ var CardDefs = []CardDef{
 		OnTick: [3]Ability{{
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
-				{Type: state.EffectGainCharge},
+				{Type: state.EffectChargeSelf},
 			},
 		}},
 		Active: [3]Ability{{
@@ -242,7 +242,7 @@ var CardDefs = []CardDef{
 		OnTrigger: [3]Ability{{
 			Trigger:      state.TriggerAllySpellResolve,
 			TriggerZones: TriggerZoneContinuous,
-			Effects:      [3]state.Effect{{Type: state.EffectGainCharge}},
+			Effects:      [3]state.Effect{{Type: state.EffectChargeSelf}},
 		}},
 	},
 	13: {
@@ -295,7 +295,7 @@ var CardDefs = []CardDef{
 		Cost:        50,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOwnCont,
-			Effects:     [3]state.Effect{{Type: state.EffectAddCharges, B: 2}},
+			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
 		}},
 	},
 	17: {

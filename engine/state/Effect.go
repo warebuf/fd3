@@ -11,12 +11,12 @@ const (
 	EffectGrantAbility
 	EffectDestroy    // A: Destroy Type (0: All, 1: team specific, 2: card specific), B: target (if team specific, team index, if card specific, card index)
 	EffectCounter    // cancel the top chain item
-	EffectGainCharge // A: active ability slot
+	EffectChargeSelf // +1 charge on the source card itself, capped at its MaxCharges; no fields used
 	EffectSacrifice  // A: card index
 	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
 	EffectConvertToTokens // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
-	EffectAddCharges      // A: card index (from Card.OnPlay[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
+	EffectChargeTarget    // A: card index (from Card.OnPlay[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 )
 
 type Effect struct {
@@ -54,7 +54,7 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 	case EffectConvertToTokens:
 		templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
 		return templ
-	case EffectAddCharges:
+	case EffectChargeTarget:
 		templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
 		templ.C = gs.Cards[cardIndex].DefNo
 		return templ
