@@ -1,4 +1,4 @@
-package conditions
+package trigger
 
 import (
 	"github.com/warebuf/fd3/engine/defs"

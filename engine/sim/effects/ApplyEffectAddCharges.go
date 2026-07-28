@@ -2,7 +2,7 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/conditions"
+	"github.com/warebuf/fd3/engine/sim/conditions/autoability"
 	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -14,7 +14,7 @@ func ApplyEffectAddCharges(gs *state.GameState, logList *[]any, UpdateID *int, e
 	// Charges is shared across the card, so any Active slot on the target could now be auto-fireable
 	defer func() {
 		for activeIndex := range gs.Cards[targetIndex].Actives {
-			if conditions.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {
+			if autoability.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {
 				reaction.PushAbilityOnStack(gs, logList, UpdateID, targetIndex, activeIndex, executeAtWallTime)
 			}
 		}

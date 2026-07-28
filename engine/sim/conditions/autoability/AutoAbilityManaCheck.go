@@ -1,7 +1,8 @@
-package conditions
+package autoability
 
 import (
 	"github.com/warebuf/fd3/engine/defs"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -39,7 +40,7 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			if CheckAbilityConditions(gs, cardIndex, activeIndex) {
+			if conditions.CheckAbilityConditions(gs, cardIndex, activeIndex) {
 				cardIndexes = append(cardIndexes, cardIndex)
 				activeIndexes = append(activeIndexes, activeIndex)
 			}

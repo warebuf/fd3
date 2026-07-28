@@ -5,7 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
-	"github.com/warebuf/fd3/engine/sim/reaction"
+	"github.com/warebuf/fd3/engine/sim/conditions/trigger"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -63,7 +63,7 @@ func (match *Match) handleReactionStackResolution() {
 			} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)
-				reaction.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
+				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
 			} else {
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], reactionTop.CardIndex)

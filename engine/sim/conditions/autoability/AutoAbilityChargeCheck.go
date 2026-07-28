@@ -1,7 +1,8 @@
-package conditions
+package autoability
 
 import (
 	"github.com/warebuf/fd3/engine/defs"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -30,5 +31,5 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int)
 		return false
 	}
 
-	return CheckAbilityConditions(gs, cardIndex, activeIndex) // check if the ability mets it's conditions
+	return conditions.CheckAbilityConditions(gs, cardIndex, activeIndex) // check if the ability mets it's conditions
 }

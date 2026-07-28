@@ -1,13 +1,13 @@
-package reaction
+package trigger
 
 import (
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/sim/conditions"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
 func FireAllyTrigger(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, trigger state.TriggerType, executeAtWallTime int64) {
-	cardIndexes, triggerIndexes := conditions.CheckAllyTriggers(gs, teamIndex, trigger)
+	cardIndexes, triggerIndexes := CheckAllyTriggers(gs, teamIndex, trigger)
 
 	for i := range cardIndexes {
 		cardIndex := cardIndexes[i]
@@ -20,6 +20,6 @@ func FireAllyTrigger(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 			}
 			effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1))
 		}
-		PushEffectsOnStack(gs, logList, UpdateID, cardIndex, effs, executeAtWallTime)
+		reaction.PushEffectsOnStack(gs, logList, UpdateID, cardIndex, effs, executeAtWallTime)
 	}
 }
