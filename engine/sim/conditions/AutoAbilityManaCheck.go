@@ -5,7 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// checks a team, returns eligible cardIndexes, abilityIndexes
+// when mana is added, check if any field/continuous cards can autoability
 func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 	var cardIndexes []int
 	var activeIndexes []int

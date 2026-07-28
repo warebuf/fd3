@@ -5,6 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// converts the zone int into bitmask version
 func triggerZoneFlag(zone int) int {
 	switch zone {
 	case state.ZoneField:

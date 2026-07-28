@@ -5,8 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// IsValidTarget checks whether targetIndex is a legal target for a source card
-// with the given TargetFlags bitmask, from the perspective of teamIndex.
+// checks if targetIndex is legal given the targetFlags, from the perspective of teamIndex
 func IsValidTarget(gs *state.GameState, targetFlags int, sourceIndex int, targetIndex int, teamIndex int) bool {
 	if targetFlags == 0 {
 		return false

@@ -5,6 +5,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// when a charge is added to a card, use this function to check if an autoability should/can fire
 func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int) bool {
 	card := gs.Cards[cardIndex]
 	if card.Zone != state.ZoneField {
@@ -29,5 +30,5 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int)
 		return false
 	}
 
-	return CheckAbilityConditions(gs, cardIndex, activeIndex)
+	return CheckAbilityConditions(gs, cardIndex, activeIndex) // check if the ability mets it's conditions
 }
