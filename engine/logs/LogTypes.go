@@ -35,6 +35,7 @@ const (
 	ToggleAutoAbility
 	Consume
 	SpawnToken
+	ToggleStructureAutoAbility
 )
 
 type PhaseLog struct {
@@ -277,6 +278,14 @@ type ToggleAutoAbilityLog struct {
 	TeamIndex     int
 	CardIndex     int
 	AbilityIndex  int
+	On            bool
+}
+
+type ToggleStructureAutoAbilityLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
 	On            bool
 }
 

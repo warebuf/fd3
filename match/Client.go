@@ -169,6 +169,9 @@ func (c *Client) Read() {
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleAutoAbility", c.ID, msg.CardIndex, -1, -1)
 
+		case "toggleStructureAutoAbility":
+			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleStructureAutoAbility", c.ID, -1, -1, -1)
+
 		case "fullPause":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, -1, -1, -1)
 

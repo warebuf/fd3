@@ -22,4 +22,8 @@ func ApplyEffectMana(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 	for i := 0; i < len(cardIndexes); i++ {
 		reaction.PushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
 	}
+
+	if autoability.AutoAbilityStructureDrawCheck(gs, eff.A) {
+		reaction.PushStructureDrawOnStack(gs, logList, UpdateID, eff.A, executeAtWallTime)
+	}
 }

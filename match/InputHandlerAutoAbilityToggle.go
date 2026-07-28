@@ -51,3 +51,29 @@ func (match *Match) handleToggleAutoAbility(ie *eventpq.InputEvent) {
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }
+
+func (match *Match) handleToggleStructureAutoAbility(ie *eventpq.InputEvent) {
+
+	gs := match.GameState
+	teamIndex := ie.TeamIndex
+
+	if teamIndex < 0 || teamIndex >= len(gs.Structures) {
+		return
+	}
+
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	on := !gs.Structures[teamIndex].AutoAbility
+	gs.Structures[teamIndex].AutoAbility = on
+	match.EventLog = append(match.EventLog, logs.ToggleStructureAutoAbilityLog{
+		UpdateID:      match.NextUpdateID,
+		WallTimestamp: executeAtWallTime,
+		Type:          logs.ToggleStructureAutoAbility,
+		TeamIndex:     teamIndex,
+		On:            on,
+	})
+	match.NextUpdateID++
+	match.publish(executeAtWallTime, oldLogsSize)
+
+}
