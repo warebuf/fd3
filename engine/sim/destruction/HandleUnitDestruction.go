@@ -8,6 +8,9 @@ import (
 // removes a unit from the field, clears ability timers, clears preselects pointing at it
 func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, executeAtWallTime int64) {
 	card := &gs.Cards[cardIndex]
+	if card.Zone != state.ZoneField {
+		return
+	}
 	cardTeam := card.Team
 
 	// remove from field

@@ -6,6 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// only destroys on field cards
 func ApplyEffectDestroyAll(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, executeAtWallTime int64) {
 	destroyedIndexes := map[int]bool{}
 	for team := 0; team < len(gs.Field); team++ {

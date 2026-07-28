@@ -11,7 +11,7 @@ func ApplyEffectAddCharges(gs *state.GameState, logList *[]any, UpdateID *int, e
 	teamIndex := gs.Cards[sourceCardIndex].Team
 	targetIndex := eff.A
 
-	// Charges is shared across the card, so any Active slot on the target could now be auto-fireable
+	// at the end of the function, play the card's autoability if possible
 	defer func() {
 		for activeIndex := range gs.Cards[targetIndex].Actives {
 			if autoability.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {

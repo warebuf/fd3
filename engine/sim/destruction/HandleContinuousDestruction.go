@@ -8,6 +8,9 @@ import (
 // removes a continuous card, cancels any scheduled items, clears preselects pointing at it
 func HandleContinuousDestruction(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, executeAtWallTime int64) {
 	card := &gs.Cards[cardIndex]
+	if card.Zone != state.ZoneContinuous {
+		return
+	}
 	cardTeam := card.Team
 
 	for i, ci := range gs.Continuous[cardTeam] {

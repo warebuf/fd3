@@ -26,7 +26,7 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 		effects.ApplyEffectHeal(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	case state.EffectCounter:
-		effects.ApplyEffectCounter(gs, logList, UpdateID, sourceCardIndex, executeAtWallTime)
+		effects.ApplyEffectCounterAndDestroy(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 
 	case state.EffectGainCharge:
 		effects.ApplyEffectGainCharge(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)

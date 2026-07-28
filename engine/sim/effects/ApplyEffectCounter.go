@@ -2,10 +2,11 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sourceCardIndex int, executeAtWallTime int64) {
+func ApplyEffectCounter(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, sourceCardIndex int, executeAtWallTime int64) {
 	if len(gs.ReactionStack) == 0 {
 		return
 	}
@@ -20,18 +21,9 @@ func ApplyEffectCounter(gs *state.GameState, logList *[]any, UpdateID *int, sour
 			card.Zone = state.ZoneGraveyard
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 		case state.ReactionContinuousAbility:
-			for i, id := range gs.Continuous[card.Team] {
-				if id == target.CardIndex {
-					gs.Continuous[card.Team] = append(gs.Continuous[card.Team][:i], gs.Continuous[card.Team][i+1:]...)
-					break
-				}
-			}
-			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
+			destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, target.CardIndex, executeAtWallTime)
 		case state.ReactionUnitAbility:
-			if target.ActiveIndex >= 0 {
-				card.PendingCharges--
-			}
+			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, target.CardIndex, executeAtWallTime)
 		}
 	}
 

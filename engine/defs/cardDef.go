@@ -169,7 +169,7 @@ var CardDefs = []CardDef{
 	8: {
 		Type:                state.CardTypeSpell,
 		Name:                "Counterspell",
-		Description:         "Counters a spell",
+		Description:         "Negate a summon or ability and destroy the source card.",
 		Cost:                30,
 		RequiresStackTarget: true,
 		OnPlay: [3]Ability{{
