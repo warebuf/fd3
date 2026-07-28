@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -93,7 +94,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 		*UpdateID += 1
 
 		if gs.Cards[targetIndex].HP <= 0 {
-			HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
+			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 		}
 	} else {
 		if damage >= gs.Structures[enemyTeam].HP {

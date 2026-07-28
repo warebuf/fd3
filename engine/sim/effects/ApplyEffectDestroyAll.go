@@ -2,6 +2,7 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -22,14 +23,7 @@ func ApplyEffectDestroyAll(gs *state.GameState, pq *state.SimulationPQ, logList 
 		gs.Cards[cardIndex].OnTick = [3]state.TickAbility{}
 	}
 
-	// clear any preselected targets pointing at destroyed cards
-	for i := range gs.Cards {
-		for j := range gs.Cards[i].Actives {
-			if destroyedIndexes[gs.Cards[i].Actives[j].Target] {
-				gs.Cards[i].Actives[j].Target = -1
-			}
-		}
-	}
+	destruction.ClearPreselectsTargetingByIndexes(gs, destroyedIndexes)
 
 	*logList = append(*logList, logs.DestroyCardLog{
 		UpdateID:        *UpdateID,

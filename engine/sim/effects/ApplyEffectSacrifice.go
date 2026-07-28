@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -27,5 +28,5 @@ func ApplyEffectSacrifice(gs *state.GameState, pq *state.SimulationPQ, logList *
 		}
 	}
 
-	HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
+	destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 }

@@ -2,6 +2,7 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -9,22 +10,7 @@ func ApplyEffectConsume(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 	teamIndex := gs.Cards[sourceCardIndex].Team
 
 	targetIndex := eff.A
-	valid := false
-	for _, ci := range gs.Field[teamIndex] {
-		if ci == targetIndex {
-			valid = true
-			break
-		}
-	}
-	if !valid {
-		for _, ci := range gs.Continuous[teamIndex] {
-			if ci == targetIndex {
-				valid = true
-				break
-			}
-		}
-	}
-	if !valid {
+	if !isValidPersistentTarget(gs, teamIndex, targetIndex) {
 		return // preselected target is gone or was never set, ability fizzles
 	}
 
@@ -55,8 +41,8 @@ func ApplyEffectConsume(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 	*UpdateID++
 
 	if gs.Cards[targetIndex].Type == state.CardTypeUnit {
-		HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
+		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	} else if gs.Cards[targetIndex].Type == state.CardTypeContinuous {
-		HandleContinuousDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
+		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	}
 }

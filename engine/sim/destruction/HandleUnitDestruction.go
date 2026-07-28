@@ -1,12 +1,11 @@
-package effects
+package destruction
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// HandleUnitDestruction removes a unit from the field, clears its ability timers,
-// clears any preselected targets pointing at it, and logs the destruction.
+// removes a unit from the field, clears ability timers, clears preselects pointing at it
 func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, cardIndex int, executeAtWallTime int64) {
 	card := &gs.Cards[cardIndex]
 	cardTeam := card.Team
@@ -27,14 +26,7 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	pq.RemoveSimItemByCardIndex(cardIndex)
 	card.OnTick = [3]state.TickAbility{}
 
-	// clear any preselected targets pointing at this card
-	for i := range gs.Cards {
-		for j := range gs.Cards[i].Actives {
-			if gs.Cards[i].Actives[j].Target == cardIndex {
-				gs.Cards[i].Actives[j].Target = -1
-			}
-		}
-	}
+	ClearPreselectsTargeting(gs, cardIndex)
 
 	*logList = append(*logList, logs.DestroyCardLog{
 		UpdateID:        *UpdateID,

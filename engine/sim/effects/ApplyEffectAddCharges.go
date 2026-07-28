@@ -20,22 +20,7 @@ func ApplyEffectAddCharges(gs *state.GameState, logList *[]any, UpdateID *int, e
 		}
 	}()
 
-	valid := false
-	for _, ci := range gs.Field[teamIndex] {
-		if ci == targetIndex {
-			valid = true
-			break
-		}
-	}
-	if !valid {
-		for _, ci := range gs.Continuous[teamIndex] {
-			if ci == targetIndex {
-				valid = true
-				break
-			}
-		}
-	}
-	if !valid {
+	if !isValidPersistentTarget(gs, teamIndex, targetIndex) {
 		return // preselected target is gone or was never set, ability fizzles
 	}
 
