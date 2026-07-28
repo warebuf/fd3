@@ -40,7 +40,7 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			if conditions.CheckAbilityConditions(gs, cardIndex, activeIndex) {
+			if conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
 				cardIndexes = append(cardIndexes, cardIndex)
 				activeIndexes = append(activeIndexes, activeIndex)
 			}

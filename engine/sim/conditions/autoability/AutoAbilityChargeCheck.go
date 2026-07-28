@@ -31,5 +31,5 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int)
 		return false
 	}
 
-	return conditions.CheckAbilityConditions(gs, cardIndex, activeIndex) // check if the ability mets it's conditions
+	return conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) // check if the ability mets it's conditions
 }

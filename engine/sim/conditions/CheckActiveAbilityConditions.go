@@ -4,8 +4,8 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// checks whether an ability can be played in the current state
-func CheckAbilityConditions(gs *state.GameState, cardIndex int, activeIndex int) bool {
+// checks whether an active ability can be played in the current state
+func CheckActiveAbilityConditions(gs *state.GameState, cardIndex int, activeIndex int) bool {
 	card := gs.Cards[cardIndex]
 	active := card.Actives[activeIndex]
 
