@@ -16,3 +16,13 @@ func isValidPersistentTarget(gs *state.GameState, teamIndex int, targetIndex int
 	}
 	return false
 }
+
+// same check, but for effects that may target either team's cards
+func isValidPersistentTargetAnyTeam(gs *state.GameState, targetIndex int) bool {
+	for teamIndex := range gs.Field {
+		if isValidPersistentTarget(gs, teamIndex, targetIndex) {
+			return true
+		}
+	}
+	return false
+}

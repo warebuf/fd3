@@ -20,7 +20,7 @@ func ApplyEffectChargeTarget(gs *state.GameState, logList *[]any, UpdateID *int,
 		}
 	}()
 
-	if !isValidPersistentTarget(gs, teamIndex, targetIndex) {
+	if !isValidPersistentTargetAnyTeam(gs, targetIndex) {
 		return // preselected target is gone or was never set, ability fizzles
 	}
 
@@ -53,7 +53,7 @@ func ApplyEffectChargeTarget(gs *state.GameState, logList *[]any, UpdateID *int,
 		UpdateID:      *UpdateID,
 		WallTimestamp: executeAtWallTime,
 		Type:          logs.AddCharge,
-		TeamIndex:     teamIndex,
+		TeamIndex:     card.Team, // the target's owner, since the target may be an enemy card
 		CardIndex:     targetIndex,
 		Charges:       card.Charges,
 	})

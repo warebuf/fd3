@@ -291,10 +291,10 @@ var CardDefs = []CardDef{
 	16: {
 		Type:        state.CardTypeSpell,
 		Name:        "Kindling",
-		Description: "If none of your cards have 2+ charges, give a friendly card you choose 2 charges.",
+		Description: "If none of your cards have 2+ charges, give a card 2 charges.",
 		Cost:        50,
 		OnPlay: [3]Ability{{
-			TargetFlags: TargetOwnField | TargetOwnCont,
+			TargetFlags: TargetOwnField | TargetOppField | TargetOwnCont | TargetOppCont,
 			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
 		}},
 	},
