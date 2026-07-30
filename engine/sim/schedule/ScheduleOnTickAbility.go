@@ -35,14 +35,6 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 
 	teamIndex := card.Team
 
-	var effs []state.Effect
-	for _, e := range entry.Effects {
-		if e.Type == 0 {
-			continue // unused Effect slot
-		}
-		effs = append(effs, state.FulfillEffectTemplate(gs, e, teamIndex, cardIndex, -1))
-	}
-
 	scheduledTime := startAtSimTime + entry.Milliseconds/constants.SIM_SPEED - constants.LEAD
 	item := &state.SimulationItem{
 		StartAtSimTime:   startAtSimTime,
@@ -53,7 +45,6 @@ func ScheduleOnTickAbility(gs *state.GameState, pq *state.SimulationPQ, logList 
 		CardIndex:    cardIndex,
 		TeamIndex:    teamIndex,
 		Type:         state.SimItemOnTick,
-		Effects:      effs,
 	}
 	heap.Push(pq, item)
 

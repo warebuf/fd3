@@ -2,14 +2,23 @@ package reaction
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// ActiveIndex is -1: neither OnTick nor OnTrigger abilities are Active-slot-sourced.
-func PushEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, effects []state.Effect, executeAtWallTime int64) bool {
-	if len(effects) == 0 {
-		return false
+func PushTriggerEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, triggerIndex int, executeAtWallTime int64) {
+	ability := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTrigger[triggerIndex]
+
+	effs := []state.Effect{}
+	for _, eff := range ability.Effects {
+		if eff.Type == 0 {
+			continue // unused Effect slot
+		}
+		effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1))
+	}
+	if len(effs) == 0 {
+		return
 	}
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
@@ -18,10 +27,10 @@ func PushEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
 		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
 		CardIndex:           cardIndex,
-		ActiveIndex:         -1,
-		TeamIndex:           gs.Cards[cardIndex].Team,
+		ActiveIndex:         -1, // OnTrigger abilities aren't Active-slot-sourced
+		TeamIndex:           teamIndex,
 		Type:                state.ReactionUnitAbility,
-		Effects:             effects,
+		Effects:             effs,
 	}
 	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
 
@@ -38,5 +47,4 @@ func PushEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *int, card
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++
-	return true
 }

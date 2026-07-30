@@ -42,7 +42,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 	pushed := false
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
-		pushed = reaction.PushEffectsOnStack(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.Effects, executeAtWallTime)
+		pushed = reaction.PushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
