@@ -31,7 +31,7 @@ func (pq *SimulationPQ) RemoveSimItemByCardIndex(cardIndex int) {
 type SimItemType int
 
 const (
-	SimItemOnTick SimItemType = iota
+	SimItemOnTick SimItemType = iota + 1
 	SimItemSystemDraw
 	SimItemStructureRegen
 )

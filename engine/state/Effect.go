@@ -6,9 +6,7 @@ const (
 	EffectAttack EffectType = iota + 1
 	EffectHeal
 	EffectDraw
-	EffectMana // A: team, B: amount
-	EffectSilence
-	EffectGrantAbility
+	EffectMana       // A: team, B: amount
 	EffectDestroy    // A: Destroy Type (0: All, 1: team specific, 2: card specific), B: target (if team specific, team index, if card specific, card index)
 	EffectCounter    // cancel the top chain item
 	EffectChargeSelf // +1 charge on the source card itself, capped at its MaxCharges; no fields used
@@ -52,10 +50,14 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		}
 		return templ
 	case EffectConvertToTokens:
-		templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+		if abilityIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+		}
 		return templ
 	case EffectChargeTarget:
-		templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+		if abilityIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+		}
 		templ.C = gs.Cards[cardIndex].DefNo
 		return templ
 	}
