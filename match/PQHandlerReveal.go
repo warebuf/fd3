@@ -25,7 +25,7 @@ func (match *Match) handleRevealEvent(ev *eventpq.RevealEvent) {
 	match.RevealQueue = match.RevealQueue[1:]
 
 	oldLogsSize := len(match.EventLog)
-	success := reaction.ScheduleDeclareCard(
+	success := reaction.PushCardOnStack(
 		match.GameState,
 		&match.EventLog,
 		&match.NextUpdateID,

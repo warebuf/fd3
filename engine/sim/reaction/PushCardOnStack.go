@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
+func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
 	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
 		return false
@@ -78,12 +78,8 @@ func ScheduleDeclareCard(gs *state.GameState, logList *[]any, UpdateID *int, tea
 
 	gs.Cards[cardIndex].Zone = state.ZoneStack
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
-	addCardToStack(gs, logList, UpdateID, teamIndex, cardIndex, wallTimeAtPop+constants.LEAD)
-	return true
 
-}
-
-func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, declarationTime int64) {
+	declarationTime := wallTimeAtPop + constants.LEAD
 	card := gs.Cards[cardIndex]
 
 	reactionType := state.ReactionSpell
@@ -129,4 +125,6 @@ func addCardToStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInde
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID += 1
+
+	return true
 }

@@ -37,7 +37,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		oldLogsSize := len(match.EventLog)
-		success := reaction.ScheduleDeclareCard(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
+		success := reaction.PushCardOnStack(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		if success {
 			scheduleReactionStackResolution(match)
 			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
@@ -47,7 +47,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	// simulating: try to play immediately, no queue fallback
 	oldLogsSize := len(match.EventLog)
-	success := reaction.ScheduleDeclareCard(
+	success := reaction.PushCardOnStack(
 		gs,
 		&match.EventLog,
 		&match.NextUpdateID,

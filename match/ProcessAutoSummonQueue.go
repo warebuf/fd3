@@ -42,7 +42,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				break
 			}
 
-			success := reaction.ScheduleDeclareCard(
+			success := reaction.PushCardOnStack(
 				gs,
 				&match.EventLog,
 				&match.NextUpdateID,
