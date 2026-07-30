@@ -1,12 +1,10 @@
 package match
 
 import (
-	"fmt"
-
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/conditions"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -50,56 +48,12 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
-	effs := []state.Effect{}
-	for _, eff := range def.Effects {
-		if eff.Type == 0 {
-			continue // unused Effect slot
-		}
-		effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, activeIndex))
-	}
-	if len(effs) == 0 {
-		return // no real Use ability on this slot — don't spend mana or touch Charges
-	}
-
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	gs.Mana[teamIndex] -= def.Cost
-	match.EventLog = append(match.EventLog, logs.SpendManaLog{
-		UpdateID:      match.NextUpdateID,
-		WallTimestamp: executeAtWallTime,
-		Type:          logs.SpendMana,
-		TeamIndex:     teamIndex,
-		Amount:        def.Cost,
-	})
-	match.NextUpdateID++
-
-	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	reactionItem := state.ReactionItem{
-		StartAtActiveTime:   startAtActiveTime,
-		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardIndex:           cardIndex,
-		ActiveIndex:         activeIndex,
-		TeamIndex:           teamIndex,
-		Type:                state.ReactionContinuousAbility,
-		Effects:             effs,
+	if !reaction.PushAbilityOnStack(gs, &match.EventLog, &match.NextUpdateID, cardIndex, activeIndex, executeAtWallTime) {
+		return
 	}
-	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	gs.Cards[cardIndex].PendingCharges++
-	match.EventLog = append(match.EventLog, logs.AddStackLog{
-		UpdateID:            match.NextUpdateID,
-		WallTimestamp:       executeAtWallTime,
-		Type:                logs.AddStack,
-		StackType:           int(reactionItem.Type),
-		StartAtActiveTime:   reactionItem.StartAtActiveTime,
-		PopAtActiveTime:     reactionItem.PopAtActiveTime,
-		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
-		CardIndex:           reactionItem.CardIndex,
-		ActiveIndex:         reactionItem.ActiveIndex,
-		Effects:             reactionItem.Effects,
-	})
-	match.NextUpdateID++
 
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleReactionStackResolution(match)
@@ -144,77 +98,12 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// dynamically populate the effect objects
-	effs := []state.Effect{}
-	for _, eff := range activeDef.Effects {
-		if eff.Type == 0 {
-			continue // unused Effect slot
-		}
-		effs = append(effs, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, activeIndex))
-	}
-	if len(effs) == 0 {
-		return
-	}
-
-	// validating the effects
-	for i := 0; i < len(effs); i++ {
-		if effs[i].Type != state.EffectSacrifice {
-			continue
-		}
-		fmt.Println("target index", effs[i].A)
-		validTarget := false
-		for j := 0; j < len(gs.Field[teamIndex]); j++ {
-			if gs.Field[teamIndex][j] == effs[i].A {
-				validTarget = true
-				break
-			}
-		}
-		if !validTarget {
-			return
-		}
-	}
-
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	if activeDef.Cost > 0 {
-		gs.Mana[teamIndex] -= activeDef.Cost
-		match.EventLog = append(match.EventLog, logs.SpendManaLog{
-			UpdateID:      match.NextUpdateID,
-			WallTimestamp: executeAtWallTime,
-			Type:          logs.SpendMana,
-			TeamIndex:     teamIndex,
-			Amount:        activeDef.Cost,
-		})
-		match.NextUpdateID++
+	if !reaction.PushAbilityOnStack(gs, &match.EventLog, &match.NextUpdateID, cardIndex, activeIndex, executeAtWallTime) {
+		return
 	}
-
-	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	reactionItem := state.ReactionItem{
-		StartAtActiveTime:   startAtActiveTime,
-		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
-		CardIndex:           cardIndex,
-		ActiveIndex:         activeIndex,
-		TeamIndex:           teamIndex,
-		Type:                state.ReactionUnitAbility,
-		Effects:             effs,
-	}
-	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	gs.Cards[cardIndex].PendingCharges++
-	match.EventLog = append(match.EventLog, logs.AddStackLog{
-		UpdateID:            match.NextUpdateID,
-		WallTimestamp:       executeAtWallTime,
-		Type:                logs.AddStack,
-		StackType:           int(reactionItem.Type),
-		StartAtActiveTime:   reactionItem.StartAtActiveTime,
-		PopAtActiveTime:     reactionItem.PopAtActiveTime,
-		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
-		CardIndex:           reactionItem.CardIndex,
-		ActiveIndex:         reactionItem.ActiveIndex,
-		Effects:             reactionItem.Effects,
-	})
-	match.NextUpdateID++
 
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleReactionStackResolution(match)
