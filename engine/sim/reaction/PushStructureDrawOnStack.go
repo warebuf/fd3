@@ -45,6 +45,7 @@ func PushStructureDrawOnStack(gs *state.GameState, logList *[]any, UpdateID *int
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
 		ActiveIndex:         reactionItem.ActiveIndex,
+		TeamIndex:           reactionItem.TeamIndex,
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++

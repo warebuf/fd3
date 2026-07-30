@@ -44,6 +44,7 @@ func PushTriggerEffectsOnStack(gs *state.GameState, logList *[]any, UpdateID *in
 		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
 		CardIndex:           reactionItem.CardIndex,
 		ActiveIndex:         reactionItem.ActiveIndex,
+		TeamIndex:           reactionItem.TeamIndex,
 		Effects:             reactionItem.Effects,
 	})
 	*UpdateID++

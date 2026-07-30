@@ -127,6 +127,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			Type:                item.Type,
 			CardIndex:           item.CardIndex,
 			ActiveIndex:         item.ActiveIndex,
+			TeamIndex:           item.TeamIndex,
 			StartAtActiveTime:   item.StartAtActiveTime,
 			PopAtActiveTime:     item.PopAtActiveTime,
 			ExecuteAtActiveTime: item.ExecuteAtActiveTime,
