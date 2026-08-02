@@ -194,7 +194,7 @@ var CardDefs = []CardDef{
 	},
 	10: {
 		Type:        state.CardTypeUnit,
-		Name:        "Fallen Soldier 2",
+		Name:        "Archangel",
 		Description: "Maximum Charges: 3. Gain 1 charge every 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        70,
