@@ -36,11 +36,11 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		oldLogsSize := len(match.EventLog)
-		success := reaction.PushCardOnStack(gs, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, ie.WallTime.UnixMilli())
-		if success {
-			scheduleReactionStackResolution(match)
-			match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
+		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
+		gs.PendingReactions[teamIndex] = state.PendingReaction{
+			Type:        state.PendingReactionCard,
+			CardIndex:   cardIndex,
+			ActiveIndex: -1,
 		}
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/sim/conditions/trigger"
+	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -22,11 +23,48 @@ func (match *Match) handleReactionStackResolution() {
 		return
 	}
 
+	top := gs.ReactionStack[len(gs.ReactionStack)-1]
+	wallTime := top.ExecuteAtActiveTime + gs.FullPauseOffset
+
+	// the window's timer just fired: reveal a contested reaction if either team submitted one,
+	// instead of resolving the current top of the stack. the priority holder's submission always
+	// wins if they made one; otherwise the other team's submission wins by default.
+	winnerTeam := -1
+	if gs.PendingReactions[gs.Priority].Type != 0 {
+		winnerTeam = gs.Priority
+	} else if gs.PendingReactions[1-gs.Priority].Type != 0 {
+		winnerTeam = 1 - gs.Priority
+	}
+
+	if winnerTeam >= 0 {
+		p := gs.PendingReactions[winnerTeam]
+		gs.PendingReactions = make([]state.PendingReaction, len(gs.PendingReactions)) // clear both slots; the loser (if any) simply fails
+
+		oldLogsSize := len(match.EventLog)
+		ok := false
+		switch p.Type {
+		case state.PendingReactionCard:
+			ok = reaction.PushCardOnStack(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, p.CardIndex, wallTime-constants.LEAD)
+		case state.PendingReactionAbility:
+			ok = reaction.PushAbilityOnStack(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
+		case state.PendingReactionStructureDraw:
+			reaction.PushStructureDrawOnStack(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, wallTime)
+			ok = true
+		}
+
+		// state is frozen during an open window, so this should never fail; fall through to
+		// resolving the top of the stack as if nobody had submitted if it somehow does.
+		if ok {
+			scheduleReactionStackResolution(match)
+			match.publish(wallTime, oldLogsSize)
+			return
+		}
+	}
+
 	// pop the top of the reaction stack
 	reactionTop := gs.ReactionStack[len(gs.ReactionStack)-1]
 	gs.ReactionStack = gs.ReactionStack[:len(gs.ReactionStack)-1]
 
-	wallTime := reactionTop.ExecuteAtActiveTime + gs.FullPauseOffset
 	oldLogsSize := len(match.EventLog)
 
 	// apply effects

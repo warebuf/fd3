@@ -29,6 +29,16 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if gs.PausePhase == state.PausePhaseSimPause {
+		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
+		gs.PendingReactions[teamIndex] = state.PendingReaction{
+			Type:        state.PendingReactionStructureDraw,
+			CardIndex:   -1,
+			ActiveIndex: -1,
+		}
+		return
+	}
+
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 

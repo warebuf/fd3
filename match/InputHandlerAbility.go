@@ -48,6 +48,16 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if gs.PausePhase == state.PausePhaseSimPause {
+		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
+		gs.PendingReactions[teamIndex] = state.PendingReaction{
+			Type:        state.PendingReactionAbility,
+			CardIndex:   cardIndex,
+			ActiveIndex: activeIndex,
+		}
+		return
+	}
+
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
@@ -95,6 +105,16 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 
 	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
+		return
+	}
+
+	if gs.PausePhase == state.PausePhaseSimPause {
+		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
+		gs.PendingReactions[teamIndex] = state.PendingReaction{
+			Type:        state.PendingReactionAbility,
+			CardIndex:   cardIndex,
+			ActiveIndex: activeIndex,
+		}
 		return
 	}
 

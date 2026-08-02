@@ -40,6 +40,9 @@ type GameState struct {
 
 	ReactionStack []ReactionItem // LIFO, sim paused while non-empty
 
+	Priority         int               // team index with priority to react during an open window; persists across windows
+	PendingReactions []PendingReaction // one slot per team; zero value (Type == 0) means no submission this window
+
 	// other states
 	Mana       []int       // per team
 	Structures []Structure // per team
@@ -61,6 +64,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		SimPauseOffset:       prevState.SimPauseOffset,
 		TeamPaused:           prevState.TeamPaused,
 		Winner:               prevState.Winner,
+		Priority:             prevState.Priority,
 	}
 
 	// Cards
@@ -117,6 +121,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// TimeBank
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
+
+	// PendingReactions
+	newState.PendingReactions = make([]PendingReaction, len(prevState.PendingReactions))
+	copy(newState.PendingReactions, prevState.PendingReactions)
 
 	// Stack
 	newState.ReactionStack = make([]ReactionItem, len(prevState.ReactionStack))
