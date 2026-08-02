@@ -12,7 +12,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	gs := match.GameState
 
-	if gs.Phase != state.PhasePlay && gs.Phase != state.PhaseReveal {
+	if gs.Phase != state.PhasePlay {
 		return
 	}
 
@@ -29,18 +29,9 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 	if card.AutoSummon != 0 {
 		return
 	}
-	if card.StageOrder != 0 {
-		return
-	}
 
 	// reject if card requires a stack target and there is nothing to target
 	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
-		return
-	}
-
-	// during reveal, always queue — chaining during reveal requires a different input type
-	if gs.Phase == state.PhaseReveal {
-		match.queueAutoSummon(teamIndex, cardIndex, ie.WallTime.UnixMilli())
 		return
 	}
 
@@ -63,7 +54,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
-	if match.GameState.Phase != state.PhasePlay && match.GameState.Phase != state.PhaseReveal {
+	if match.GameState.Phase != state.PhasePlay {
 		return
 	}
 

@@ -31,7 +31,7 @@ func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		return false
 	}
 
-	if gs.Phase != state.PhaseReveal && gs.Phase != state.PhasePlay {
+	if gs.Phase != state.PhasePlay {
 		return false
 	}
 
@@ -73,7 +73,6 @@ func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 	})
 	*UpdateID += 1
 
-	gs.Cards[cardIndex].StageOrder = 0
 	gs.Cards[cardIndex].AutoSummon = 0
 
 	gs.Cards[cardIndex].Zone = state.ZoneStack

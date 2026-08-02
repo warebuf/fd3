@@ -93,7 +93,6 @@ type Card struct {
 	PendingCharges int // activations currently in flight on the stack across all Active slots, not yet resolved
 
 	// autoplay related
-	StageOrder int // 0: not staged; 1+: reveal order during board setup phase
 	AutoSummon int // 0: not queued; 1+: priority order in play phase autosummon queue
 
 	// ability related

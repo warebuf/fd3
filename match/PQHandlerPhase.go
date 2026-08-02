@@ -1,8 +1,6 @@
 package match
 
 import (
-	"sort"
-
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/schedule"
@@ -12,7 +10,7 @@ import (
 
 func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 
-	// skip stale phase events (e.g. board setup timer after early ready-up)
+	// skip stale phase events (e.g. draw phase timer after early ready-up)
 	if match.GameState.Phase >= newPhase.Phase {
 		return
 	}
@@ -23,10 +21,6 @@ func (match *Match) handleNewPhaseEvent(newPhase *eventpq.NewPhaseEvent) {
 	switch newPhase.Phase {
 	case state.PhaseDraw:
 		match.handleEnterDrawPhase(newPhase)
-	case state.PhaseBoardSetup:
-		match.handleEnterBoardSetupPhase(newPhase)
-	case state.PhaseReveal:
-		match.handleEnterRevealPhase(newPhase)
 	case state.PhasePlay:
 		match.handleEnterPlayPhase(newPhase)
 	case state.PhaseGameOver:
@@ -42,15 +36,21 @@ func (match *Match) handleEnterDrawPhase(newPhase *eventpq.NewPhaseEvent) {
 
 	// change the phase
 	phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
+	drawEndActiveTime := phaseChangeWallTime - match.GameState.FullPauseOffset + 3500
 	match.GameState.Phase = state.PhaseDraw
-	match.GameState.PhaseEndInActiveTime = 0
+	match.GameState.PhaseEndInActiveTime = drawEndActiveTime
 	match.EventLog = append(match.EventLog, logs.PhaseLog{
-		UpdateID:      match.NextUpdateID,
-		WallTimestamp: phaseChangeWallTime,
-		Type:          logs.Phase,
-		Phase:         state.PhaseDraw,
+		UpdateID:             match.NextUpdateID,
+		WallTimestamp:        phaseChangeWallTime,
+		Type:                 logs.Phase,
+		Phase:                state.PhaseDraw,
+		PhaseEndInActiveTime: drawEndActiveTime,
 	})
 	match.NextUpdateID += 1
+
+	// initialize ready flags; both teams readying up skips straight to play
+	numTeams := len(match.GameState.Hand)
+	match.GameState.Ready = make([]bool, numTeams)
 
 	// schedule draws: 5 cards per team, staggered 250ms apart
 	for i := 0; i < 5; i++ {
@@ -60,101 +60,13 @@ func (match *Match) handleEnterDrawPhase(newPhase *eventpq.NewPhaseEvent) {
 		schedule.ScheduleSystemDraw(match.GameState, &match.SimulationPQ, 1, phaseChangeWallTime+2000+int64(i)*250)
 	}
 
-	// schedule board setup phase after draws complete
-	SchedulePhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+3500, state.PhaseBoardSetup)
+	// schedule play phase after draws complete
+	SchedulePhaseEvent(match, drawEndActiveTime, state.PhasePlay)
 
 	match.publish(phaseChangeWallTime, oldLogsSize)
 
 	// schedule draw cards
 	scheduleEarliestSimItem(match)
-}
-
-// entering board set up phase, enter pause phase 1 (sim pause)
-func (match *Match) handleEnterBoardSetupPhase(newPhase *eventpq.NewPhaseEvent) {
-
-	oldLogsSize := len(match.EventLog)
-
-	phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-	boardSetupEndActiveTime := phaseChangeWallTime - match.GameState.FullPauseOffset + constants.BOARD_SETUP_DURATION
-	match.GameState.Phase = state.PhaseBoardSetup
-	match.GameState.PhaseEndInActiveTime = boardSetupEndActiveTime
-	match.EventLog = append(match.EventLog, logs.PhaseLog{
-		UpdateID:             match.NextUpdateID,
-		WallTimestamp:        phaseChangeWallTime,
-		Type:                 logs.Phase,
-		Phase:                state.PhaseBoardSetup,
-		PhaseEndInActiveTime: boardSetupEndActiveTime,
-	})
-	match.NextUpdateID += 1
-
-	match.TransitionPauseState(state.PausePhaseSimPause, phaseChangeWallTime, -1)
-
-	// initialize ready flags
-	numTeams := len(match.GameState.Hand)
-	match.GameState.Ready = make([]bool, numTeams)
-
-	// schedule reveal in 90 seconds; can be triggered early by both players readying up
-	SchedulePhaseEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+constants.BOARD_SETUP_DURATION, state.PhaseReveal)
-
-	match.publish(phaseChangeWallTime, oldLogsSize)
-}
-
-// entering reveal, remain in pause phase 1 (sim pause)
-func (match *Match) handleEnterRevealPhase(newPhase *eventpq.NewPhaseEvent) {
-
-	oldLogsSize := len(match.EventLog)
-
-	phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-	match.GameState.Phase = state.PhaseReveal
-	match.GameState.PhaseEndInActiveTime = 0
-	match.EventLog = append(match.EventLog, logs.PhaseLog{
-		UpdateID:      match.NextUpdateID,
-		WallTimestamp: phaseChangeWallTime,
-		Type:          logs.Phase,
-		Phase:         state.PhaseReveal,
-	})
-	match.NextUpdateID += 1
-
-	// collect staged cards into stagedByTeam
-	numTeams := len(match.GameState.Hand)
-	stagedByTeam := make([][]int, numTeams)
-	for i := 0; i < len(match.GameState.Cards); i++ {
-		if match.GameState.Cards[i].StageOrder > 0 {
-			stagedByTeam[match.GameState.Cards[i].Team] = append(stagedByTeam[match.GameState.Cards[i].Team], i)
-		}
-	}
-	for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
-		sort.Slice(stagedByTeam[teamIndex], func(a, b int) bool { // sort by ascending
-			return match.GameState.Cards[stagedByTeam[teamIndex][a]].StageOrder < match.GameState.Cards[stagedByTeam[teamIndex][b]].StageOrder
-		})
-	}
-
-	// get the max size
-	maxStaged := 0
-	for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
-		if len(stagedByTeam[teamIndex]) > maxStaged {
-			maxStaged = len(stagedByTeam[teamIndex])
-		}
-	}
-
-	// interweave the reveals
-	match.RevealQueue = match.RevealQueue[:0] // set RevealQueue to empty
-	for i := 0; i < maxStaged; i++ {
-		for teamIndex := 0; teamIndex < len(stagedByTeam); teamIndex++ {
-			if i >= len(stagedByTeam[teamIndex]) {
-				continue
-			}
-			cardIndex := stagedByTeam[teamIndex][i]
-			match.RevealQueue = append(match.RevealQueue, RevealEntry{TeamIndex: teamIndex, CardIndex: cardIndex})
-		}
-	}
-
-	// set all ready flags back to false
-	match.GameState.Ready = make([]bool, len(match.GameState.Ready))
-
-	pushRevealEvent(match, phaseChangeWallTime-match.GameState.FullPauseOffset+500)
-
-	match.publish(phaseChangeWallTime, oldLogsSize)
 }
 
 // entering play
@@ -172,10 +84,6 @@ func (match *Match) handleEnterPlayPhase(newPhase *eventpq.NewPhaseEvent) {
 		Phase:         state.PhasePlay,
 	})
 	match.NextUpdateID += 1
-
-	for i := range match.GameState.Cards {
-		match.GameState.Cards[i].StageOrder = 0
-	}
 
 	match.TransitionPauseState(state.PauseTransitionUnpause, phaseChangeWallTime, -1)
 
@@ -231,10 +139,6 @@ func (match *Match) handleEnterGameOverPhase(newPhase *eventpq.NewPhaseEvent) {
 	if match.PhaseItem != nil {
 		match.EventPQueue.Remove(match.PhaseItem)
 		match.PhaseItem = nil
-	}
-	if match.RevealItem != nil {
-		match.EventPQueue.Remove(match.RevealItem)
-		match.RevealItem = nil
 	}
 	if match.PauseEndItem != nil {
 		match.EventPQueue.Remove(match.PauseEndItem)

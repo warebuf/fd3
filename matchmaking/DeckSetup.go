@@ -81,7 +81,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Charges:        def.Charges,
 				MaxCharges:     def.MaxCharges,
 				PendingCharges: 0,
-				StageOrder:     0,
 				AutoSummon:     0,
 			}
 			for i, ability := range def.OnPlay {

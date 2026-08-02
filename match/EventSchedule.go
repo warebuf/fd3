@@ -33,12 +33,6 @@ func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
 	match.EventPQueue.CreateAndPushEventItem(ev, "Input")
 }
 
-func pushRevealEvent(match *Match, activeTime int64) {
-	match.PendingRevealTime = activeTime
-	ev := &eventpq.RevealEvent{WallTime: time.UnixMilli(activeTime + match.GameState.FullPauseOffset - constants.LEAD)}
-	match.RevealItem = match.EventPQueue.CreateAndPushEventItem(ev, "Reveal")
-}
-
 func scheduleEarliestSimItem(match *Match) {
 
 	if match.GameState.PausePhase != state.PausePhaseSimulating {

@@ -63,9 +63,6 @@ func (match *Match) handleDuePQEvents() {
 		case "PauseEndEvent":
 			match.PauseEndItem = nil
 			match.handlePauseEndEvent(next.Event.(*eventpq.PauseEndEvent))
-		case "Reveal":
-			match.RevealItem = nil
-			match.handleRevealEvent(next.Event.(*eventpq.RevealEvent))
 		}
 
 	}

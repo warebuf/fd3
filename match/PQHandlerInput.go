@@ -14,10 +14,6 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 	switch ie.Type {
 	case "fullPause":
 		match.handleInputPause(ie)
-	case "stage":
-		match.handleStage(ie)
-	case "unstage":
-		match.handleUnstage(ie)
 	case "autosummon":
 		match.handleAutoSummon(ie)
 	case "unautosummon":

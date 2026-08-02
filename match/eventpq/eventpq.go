@@ -45,12 +45,6 @@ type PauseEndEvent struct {
 
 func (e *PauseEndEvent) GetWallTime() time.Time { return e.WallTime }
 
-type RevealEvent struct {
-	WallTime time.Time
-}
-
-func (e *RevealEvent) GetWallTime() time.Time { return e.WallTime }
-
 type EventItem struct {
 	Event Event
 	Type  string

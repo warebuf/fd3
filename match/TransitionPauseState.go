@@ -72,9 +72,6 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 				}
-				if match.PendingRevealTime > 0 {
-					pushRevealEvent(match, match.PendingRevealTime)
-				}
 
 			} else { // unpause to sim
 				gameState.PausePhase = state.PausePhaseSimulating
@@ -87,9 +84,6 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				scheduleEarliestSimItem(match)
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
-				}
-				if match.PendingRevealTime > 0 {
-					pushRevealEvent(match, match.PendingRevealTime)
 				}
 			}
 
@@ -133,10 +127,6 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 		if match.PhaseItem != nil {
 			match.EventPQueue.Remove(match.PhaseItem)
 			match.PhaseItem = nil
-		}
-		if match.RevealItem != nil {
-			match.EventPQueue.Remove(match.RevealItem)
-			match.RevealItem = nil
 		}
 
 	case state.PausePhaseSimPause: // entering sim pause

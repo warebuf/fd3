@@ -92,20 +92,6 @@ func (c *Client) Read() {
 			default:
 			}
 
-		case "stage":
-			var msg handMessage
-			if err := strictUnmarshal(data, &msg); err != nil {
-				continue
-			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "stage", c.ID, msg.CardIndex, -1, -1)
-
-		case "unstage":
-			var msg handMessage
-			if err := strictUnmarshal(data, &msg); err != nil {
-				continue
-			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unstage", c.ID, msg.CardIndex, -1, -1)
-
 		case "autosummon":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {

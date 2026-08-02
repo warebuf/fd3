@@ -18,7 +18,6 @@ const (
 	Heal
 	Ready
 	Unready
-	StageIndex
 	AutoSummonIndex
 	Pause
 	Unpause
@@ -157,15 +156,6 @@ type UnreadyLog struct {
 	UpdateID      int
 	Type          LogType
 	TeamIndex     int
-}
-
-type StageLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	CardIndex     int
-	StageOrder    int // 0 when cleared, assigned order when set
 }
 
 type AutoSummonLog struct {

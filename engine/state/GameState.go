@@ -1,12 +1,10 @@
 package state
 
 const (
-	PhasePreMatch   = 0
-	PhaseDraw       = 1
-	PhaseBoardSetup = 2
-	PhaseReveal     = 3
-	PhasePlay       = 4
-	PhaseGameOver   = 5
+	PhasePreMatch = 0
+	PhaseDraw     = 1
+	PhasePlay     = 2
+	PhaseGameOver = 3
 )
 
 const PauseTransitionUnpause = -1
@@ -20,7 +18,7 @@ type GameState struct {
 	UpdateID      int
 	WallTimestamp int64 // wall clock time when this state was last updated
 
-	Phase                int   // 0: pre-match, 1: draw, 2: board setup, 3: reveal, 4: play, 5: game over
+	Phase                int   // 0: pre-match, 1: draw, 2: play, 3: game over
 	PhaseEndInActiveTime int64 // active time (ms) when the current phase ends; 0 if no fixed end
 
 	// pause related
