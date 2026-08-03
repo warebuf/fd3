@@ -109,8 +109,6 @@ func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int6
 	})
 	match.NextUpdateID++
 
-	match.trySkipStaging(executeAtWallTime)
-
 	match.publish(executeAtWallTime, oldLogsSize)
 
 	return order

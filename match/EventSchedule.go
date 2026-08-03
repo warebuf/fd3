@@ -37,18 +37,8 @@ func (match *Match) trySkipStaging(executeAtWallTime int64) {
 		return
 	}
 
-	for t := range gs.Hand {
-		if gs.Ready[t] {
-			continue
-		}
-		staged := false
-		for _, cardIndex := range gs.Hand[t] {
-			if gs.Cards[cardIndex].AutoSummon > 0 {
-				staged = true
-				break
-			}
-		}
-		if !staged {
+	for _, ready := range gs.Ready {
+		if !ready {
 			return
 		}
 	}
