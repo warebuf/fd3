@@ -28,6 +28,35 @@ func SchedulePhaseEvent(match *Match, activeTime int64, phase int) {
 	match.PhaseItem = match.EventPQueue.CreateAndPushEventItem(newPhase, "NewPhase")
 }
 
+func (match *Match) trySkipStaging(executeAtWallTime int64) {
+	gs := match.GameState
+	if gs.Phase != state.PhaseDraw {
+		return
+	}
+	if gs.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
+	for t := range gs.Hand {
+		if gs.Ready[t] {
+			continue
+		}
+		staged := false
+		for _, cardIndex := range gs.Hand[t] {
+			if gs.Cards[cardIndex].AutoSummon > 0 {
+				staged = true
+				break
+			}
+		}
+		if !staged {
+			return
+		}
+	}
+
+	activeTime := executeAtWallTime - gs.FullPauseOffset
+	SchedulePhaseEvent(match, activeTime, state.PhasePlay)
+}
+
 func pushInputEvent(match *Match, ev *eventpq.InputEvent) {
 	ev.WallTime = time.Now() // relabel the timestamp when putting it into PQ
 	match.EventPQueue.CreateAndPushEventItem(ev, "Input")

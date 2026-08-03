@@ -71,6 +71,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				scheduleReactionStackResolution(match)
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
+					match.trySkipStaging(transitionAtWallTime)
 				}
 
 			} else { // unpause to sim
@@ -84,6 +85,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				scheduleEarliestSimItem(match)
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
+					match.trySkipStaging(transitionAtWallTime)
 				}
 			}
 

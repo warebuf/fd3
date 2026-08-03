@@ -36,7 +36,7 @@ func (match *Match) handleEnterDrawPhase(newPhase *eventpq.NewPhaseEvent) {
 
 	// change the phase
 	phaseChangeWallTime := newPhase.WallTime.UnixMilli() + constants.LEAD
-	drawEndActiveTime := phaseChangeWallTime - match.GameState.FullPauseOffset + 3500
+	drawEndActiveTime := phaseChangeWallTime - match.GameState.FullPauseOffset + constants.DRAWS_COMPLETE_AT + constants.STAGING_WINDOW
 	match.GameState.Phase = state.PhaseDraw
 	match.GameState.PhaseEndInActiveTime = drawEndActiveTime
 	match.EventLog = append(match.EventLog, logs.PhaseLog{

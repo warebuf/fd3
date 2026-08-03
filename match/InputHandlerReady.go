@@ -28,6 +28,9 @@ func (match *Match) handleInputReady(ie *eventpq.InputEvent) {
 		TeamIndex:     teamIndex,
 	})
 	match.NextUpdateID++
+
+	match.trySkipStaging(executeAtWallTime)
+
 	match.publish(executeAtWallTime, oldLogsSize)
 
 }

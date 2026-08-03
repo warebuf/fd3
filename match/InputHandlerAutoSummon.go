@@ -12,7 +12,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 	gs := match.GameState
 
-	if gs.Phase != state.PhasePlay {
+	if gs.Phase != state.PhaseDraw && gs.Phase != state.PhasePlay {
 		return
 	}
 
@@ -54,7 +54,7 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 
 func (match *Match) handleUnAutoSummon(ie *eventpq.InputEvent) {
 
-	if match.GameState.Phase != state.PhasePlay {
+	if match.GameState.Phase != state.PhaseDraw && match.GameState.Phase != state.PhasePlay {
 		return
 	}
 
@@ -108,6 +108,9 @@ func (match *Match) queueAutoSummon(teamIndex, cardIndex int, popAtWallTime int6
 		AutoSummonPriority: order,
 	})
 	match.NextUpdateID++
+
+	match.trySkipStaging(executeAtWallTime)
+
 	match.publish(executeAtWallTime, oldLogsSize)
 
 	return order
