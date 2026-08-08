@@ -46,6 +46,18 @@ func (match *Match) handleInputUnready(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// once every team is ready, the skip-to-play has already been committed; too late to unready
+	allReady := true
+	for _, ready := range match.GameState.Ready {
+		if !ready {
+			allReady = false
+			break
+		}
+	}
+	if allReady {
+		return
+	}
+
 	match.GameState.Ready[teamIndex] = false
 
 	oldLogsSize := len(match.EventLog)
