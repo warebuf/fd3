@@ -27,7 +27,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if defs.CardDefs[card.DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
+	if !defs.CardDefs[card.DefNo].ChainEntry.CanEnter(gs) {
 		return
 	}
 

@@ -34,6 +34,7 @@ type Ability struct {
 	Trigger      state.TriggerType // only used by OnTrigger, condition we do a trigger check
 	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone flags
 	CanAutoFire  bool              // only used by Active
+	ChainEntry   state.ChainEntry  // used by Active, OnTick and OnTrigger, the slots that push chain items
 }
 
 // change from dynamic arrs to fixed size
@@ -45,8 +46,8 @@ type CardDef struct {
 	Archetype int
 	Taunt     bool
 
-	RequiresChainTarget bool
-	IsToken             bool // if set true, does not go to grave
+	ChainEntry state.ChainEntry
+	IsToken    bool // if set true, does not go to grave
 
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
@@ -68,7 +69,9 @@ var CardDefs = []CardDef{
 		Description: "Deal 1 random damage every 30 ticks to an enemy",
 		BaseHP:      2,
 		Cost:        60,
+		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{
@@ -84,6 +87,7 @@ var CardDefs = []CardDef{
 		Name:        "Year Zero",
 		Description: "Destroy all units on the field",
 		Cost:        300,
+		ChainEntry:  state.ChainDual,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
 				{
@@ -100,7 +104,9 @@ var CardDefs = []CardDef{
 		Description: "Gain 10 mana every 10 ticks",
 		BaseHP:      1,
 		Cost:        60,
+		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 10000,
 			Effects: [3]state.Effect{
 				{
@@ -115,6 +121,7 @@ var CardDefs = []CardDef{
 		Name:        "Downforce",
 		Description: "Gain 30 mana",
 		Cost:        0,
+		ChainEntry:  state.ChainDual,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
 				{
@@ -130,7 +137,9 @@ var CardDefs = []CardDef{
 		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage every 20 ticks to a random",
 		BaseHP:      2,
 		Cost:        100,
+		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 20000,
 			Effects: [3]state.Effect{
 				{
@@ -148,6 +157,7 @@ var CardDefs = []CardDef{
 		Description: "Taunt",
 		BaseHP:      6,
 		Cost:        80,
+		ChainEntry:  state.ChainAction,
 		Taunt:       true,
 	},
 	7: {
@@ -156,7 +166,9 @@ var CardDefs = []CardDef{
 		Description: "Heal 1 HP every 30 ticks to a random friendly unit",
 		BaseHP:      2,
 		Cost:        60,
+		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{
@@ -167,11 +179,11 @@ var CardDefs = []CardDef{
 		}},
 	},
 	8: {
-		Type:                state.CardTypeSpell,
-		Name:                "Counterspell",
-		Description:         "Negate a summon or ability and destroy the source card.",
-		Cost:                30,
-		RequiresChainTarget: true,
+		Type:        state.CardTypeSpell,
+		Name:        "Counterspell",
+		Description: "Negate a summon or ability and destroy the source card.",
+		Cost:        30,
+		ChainEntry:  state.ChainReaction,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
 				{Type: state.EffectCounter},
@@ -183,12 +195,14 @@ var CardDefs = []CardDef{
 		Name:        "Rolling in the Deep",
 		Description: "Use (50): Draw a card. 3 uses.",
 		Cost:        80,
+		ChainEntry:  state.ChainDual,
 		Charges:     3,
 		MaxCharges:  math.MaxInt,
 		Active: [3]Ability{{
 			Cost:        50,
 			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
 			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
 			Effects:     [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
@@ -198,8 +212,10 @@ var CardDefs = []CardDef{
 		Description: "Maximum Charges: 3. Gain 1 charge every 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
 		Cost:        70,
+		ChainEntry:  state.ChainAction,
 		MaxCharges:  3,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{Type: state.EffectChargeSelf},
@@ -209,6 +225,7 @@ var CardDefs = []CardDef{
 			TargetFlags: TargetSelf | TargetOwnField | TargetOppField,
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectAttack,
@@ -224,9 +241,11 @@ var CardDefs = []CardDef{
 		Description: "Use: Sacrifice a friendly unit you choose. Deal damage directly to the enemy structure equal to 1/10th its mana cost.",
 		BaseHP:      3,
 		Cost:        60,
+		ChainEntry:  state.ChainAction,
 		Active: [3]Ability{{
 			Unlimited:   true,
 			TargetFlags: TargetSelf | TargetOwnField,
+			ChainEntry:  state.ChainDual,
 			Effects: [3]state.Effect{
 				{Type: state.EffectSacrifice},
 				{Type: state.EffectAttack, A: 3}, // A: 3, always hits enemy structure; B is filled in by the sacrifice at runtime
@@ -238,10 +257,12 @@ var CardDefs = []CardDef{
 		Name:        "Charge Reservoir",
 		Description: "Gain 1 charge whenever you cast a spell.",
 		Cost:        60,
+		ChainEntry:  state.ChainDual,
 		MaxCharges:  math.MaxInt,
 		OnTrigger: [3]Ability{{
 			Trigger:      state.TriggerAllySpellResolve,
 			TriggerZones: TriggerZoneContinuous,
+			ChainEntry:   state.ChainDual,
 			Effects:      [3]state.Effect{{Type: state.EffectChargeSelf}},
 		}},
 	},
@@ -251,6 +272,7 @@ var CardDefs = []CardDef{
 		Description: "Summon: Destroy a friendly card you choose; gain its charges as HP. Use: Deal 1 damage to an enemy, plus those charges, then this unit is destroyed.",
 		BaseHP:      1,
 		Cost:        60,
+		ChainEntry:  state.ChainAction,
 		Charges:     1,
 		MaxCharges:  1,
 		OnPlay: [3]Ability{{
@@ -261,6 +283,7 @@ var CardDefs = []CardDef{
 			TargetFlags: TargetOppField,
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
 			Effects: [3]state.Effect{
 				{Type: state.EffectAttack, A: 1, B: 1}, // A: 1, user-targeted; base 1 damage, plus Bonus
 				{Type: state.EffectSelfDestruct},
@@ -273,7 +296,9 @@ var CardDefs = []CardDef{
 		Description: "Destroyed after 10 ticks.",
 		BaseHP:      1,
 		IsToken:     true,
+		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
 			Milliseconds: 10000,
 			Effects:      [3]state.Effect{{Type: state.EffectSelfDestruct}},
 		}},
@@ -283,6 +308,7 @@ var CardDefs = []CardDef{
 		Name:        "Temp Tokens",
 		Description: "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
 		Cost:        60,
+		ChainEntry:  state.ChainDual,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOwnCont,
 			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
@@ -293,6 +319,7 @@ var CardDefs = []CardDef{
 		Name:        "Kindling",
 		Description: "If none of your cards have 2+ charges, give a card 2 charges.",
 		Cost:        50,
+		ChainEntry:  state.ChainDual,
 		OnPlay: [3]Ability{{
 			TargetFlags: TargetOwnField | TargetOppField | TargetOwnCont | TargetOppCont,
 			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
@@ -303,6 +330,7 @@ var CardDefs = []CardDef{
 		Name:        "Rummage",
 		Description: "Draw a card.",
 		Cost:        40,
+		ChainEntry:  state.ChainDual,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},

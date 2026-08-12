@@ -12,6 +12,10 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 	teamIndex := card.Team
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
 
+	if !activeDef.ChainEntry.CanEnter(gs) {
+		return false
+	}
+
 	effs := []state.Effect{}
 	for i := 0; i < len(activeDef.Effects); i++ {
 		eff := activeDef.Effects[i]

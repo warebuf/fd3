@@ -48,6 +48,10 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if !def.ChainEntry.CanEnter(gs) {
+		return
+	}
+
 	if gs.PausePhase == state.PausePhaseSimPause {
 		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
 		match.PendingChains[teamIndex] = PendingChain{
@@ -105,6 +109,10 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 
 	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
+		return
+	}
+
+	if !activeDef.ChainEntry.CanEnter(gs) {
 		return
 	}
 

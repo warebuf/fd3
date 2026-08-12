@@ -12,6 +12,10 @@ func PushOnTickAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 	teamIndex := card.Team
 	ability := defs.CardDefs[card.DefNo].OnTick[abilityIndex]
 
+	if !ability.ChainEntry.CanEnter(gs) {
+		return false
+	}
+
 	effs := []state.Effect{}
 	for _, eff := range ability.Effects {
 		if eff.Type == 0 {

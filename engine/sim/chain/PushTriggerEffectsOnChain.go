@@ -10,6 +10,10 @@ import (
 func PushTriggerEffectsOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, triggerIndex int, executeAtWallTime int64) {
 	ability := defs.CardDefs[gs.Cards[cardIndex].DefNo].OnTrigger[triggerIndex]
 
+	if !ability.ChainEntry.CanEnter(gs) {
+		return
+	}
+
 	effs := []state.Effect{}
 	for _, eff := range ability.Effects {
 		if eff.Type == 0 {

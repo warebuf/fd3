@@ -79,6 +79,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Type:           def.Type,
 				Zone:           state.ZoneDeck,
 				IsToken:        def.IsToken,
+				ChainEntry:     def.ChainEntry,
 				Charges:        def.Charges,
 				MaxCharges:     def.MaxCharges,
 				PendingCharges: 0,
@@ -91,6 +92,9 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				}
 			}
 			for i, ability := range def.Active {
+				if ability.Effects[0].Type == 0 {
+					continue // unused ability slot, leave it zero-valued so the client can tell
+				}
 				card.Actives[i] = state.ActiveAbility{
 					Unlimited:   ability.Unlimited,
 					Target:      -1,
@@ -99,6 +103,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 					Cost:        ability.Cost,
 					CanAutoFire: ability.CanAutoFire,
 					AutoAbility: false,
+					ChainEntry:  ability.ChainEntry,
 				}
 			}
 

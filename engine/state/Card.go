@@ -68,6 +68,8 @@ type ActiveAbility struct {
 	CanAutoFire bool // whether this ability may be toggled to auto-fire at all
 	AutoAbility bool // autofires if true, player-toggleable
 
+	ChainEntry ChainEntry // how using this ability may enter the chain
+
 	// effect stuff
 	Bonus int // added to this ability's EffectAttack B when built; accumulated by earlier EffectConsume(s)
 }
@@ -86,6 +88,8 @@ type Card struct {
 	Type      int  // structure, unit, trap, spell, continuous
 	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain, 5: continuous
 	IsToken   bool // tokens skip the graveyard on destruction
+
+	ChainEntry ChainEntry // how playing this card may enter the chain
 
 	// charge related
 	Charges        int // shared charge pool for this card; any ability slot may gain or spend from it

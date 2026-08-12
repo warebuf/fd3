@@ -45,6 +45,7 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 		Type:        def.Type,
 		Zone:        state.ZoneField,
 		IsToken:     def.IsToken,
+		ChainEntry:  def.ChainEntry,
 		Charges:     def.Charges,
 		MaxCharges:  def.MaxCharges,
 	}
@@ -55,6 +56,9 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 		}
 	}
 	for i, ability := range def.Active {
+		if ability.Effects[0].Type == 0 {
+			continue // unused ability slot, leave it zero-valued so the client can tell
+		}
 		card.Actives[i] = state.ActiveAbility{
 			Unlimited:   ability.Unlimited,
 			Target:      -1,
@@ -63,6 +67,7 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 			Cost:        ability.Cost,
 			CanAutoFire: ability.CanAutoFire,
 			AutoAbility: false,
+			ChainEntry:  ability.ChainEntry,
 		}
 	}
 
@@ -84,6 +89,7 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 		Archetype:     def.Archetype,
 		CardType:      def.Type,
 		IsToken:       def.IsToken,
+		ChainEntry:    def.ChainEntry,
 	})
 	*UpdateID++
 

@@ -30,8 +30,8 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// reject if card requires a chain target and there is nothing to target
-	if defs.CardDefs[card.DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
+	// reactions can never autosummon, they always need something to react to
+	if defs.CardDefs[card.DefNo].ChainEntry == state.ChainReaction {
 		return
 	}
 

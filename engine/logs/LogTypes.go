@@ -304,4 +304,5 @@ type SpawnTokenLog struct {
 	Archetype     int
 	CardType      int
 	IsToken       bool
+	ChainEntry    state.ChainEntry
 }

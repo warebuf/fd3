@@ -35,7 +35,7 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		return false
 	}
 
-	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
+	if !defs.CardDefs[gs.Cards[cardIndex].DefNo].ChainEntry.CanEnter(gs) {
 		return false
 	}
 
