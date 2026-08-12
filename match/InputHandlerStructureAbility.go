@@ -3,7 +3,7 @@ package match
 import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/sim/reaction"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -30,9 +30,9 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
-		gs.PendingReactions[teamIndex] = state.PendingReaction{
-			Type:        state.PendingReactionStructureDraw,
+		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
+		gs.PendingChains[teamIndex] = state.PendingChain{
+			Type:        state.PendingChainStructureDraw,
 			CardIndex:   -1,
 			ActiveIndex: -1,
 		}
@@ -42,9 +42,9 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	reaction.PushStructureDrawOnStack(gs, &match.EventLog, &match.NextUpdateID, teamIndex, executeAtWallTime)
+	chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, executeAtWallTime)
 
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
-	scheduleReactionStackResolution(match)
+	scheduleChainResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
 }

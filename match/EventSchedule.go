@@ -87,32 +87,32 @@ func scheduleEarliestSimItem(match *Match) {
 
 }
 
-func scheduleReactionStackResolution(match *Match) {
+func scheduleChainResolution(match *Match) {
 
-	// if no stack items, clean the pointer
-	if len(match.GameState.ReactionStack) == 0 {
-		if match.LatestReactionItem != nil {
-			match.EventPQueue.Remove(match.LatestReactionItem)
-			match.LatestReactionItem = nil
+	// if no chain items, clean the pointer
+	if len(match.GameState.Chain) == 0 {
+		if match.LatestChainItem != nil {
+			match.EventPQueue.Remove(match.LatestChainItem)
+			match.LatestChainItem = nil
 		}
 		return
 	}
 
-	// get the top reaction stack item
-	topReactionItem := match.GameState.ReactionStack[len(match.GameState.ReactionStack)-1]
+	// get the top chain item
+	topChainItem := match.GameState.Chain[len(match.GameState.Chain)-1]
 
 	// pop time is denominated in active time
-	earliest := time.UnixMilli(topReactionItem.PopAtActiveTime + match.GameState.FullPauseOffset)
+	earliest := time.UnixMilli(topChainItem.PopAtActiveTime + match.GameState.FullPauseOffset)
 
-	// if the stack item exists and is in the EventPQ, update and reheapify
-	if match.LatestReactionItem != nil {
-		effEv, _ := match.LatestReactionItem.Event.(*eventpq.StackResolutionEvent)
+	// if the chain item exists and is in the EventPQ, update and reheapify
+	if match.LatestChainItem != nil {
+		effEv, _ := match.LatestChainItem.Event.(*eventpq.ChainResolutionEvent)
 		effEv.WallTime = earliest
-		match.EventPQueue.Fix(match.LatestReactionItem)
+		match.EventPQueue.Fix(match.LatestChainItem)
 		return
 	}
 
 	// otherwise add it to EventPQ
-	ev := &eventpq.StackResolutionEvent{WallTime: earliest}
-	match.LatestReactionItem = match.EventPQueue.CreateAndPushEventItem(ev, "StackResolution")
+	ev := &eventpq.ChainResolutionEvent{WallTime: earliest}
+	match.LatestChainItem = match.EventPQueue.CreateAndPushEventItem(ev, "ChainResolution")
 }

@@ -17,10 +17,10 @@ func (match *Match) handleSimPQEvent(simPQEvent *eventpq.SimPQEvent) {
 	if (match.GameState.Winner >= 0 || match.GameState.Winner == -2) && match.GameState.Phase != state.PhaseGameOver {
 		SchedulePhaseEvent(match, wallTime-match.GameState.FullPauseOffset, state.PhaseGameOver)
 	} else {
-		if len(match.GameState.ReactionStack) > 0 {
+		if len(match.GameState.Chain) > 0 {
 			match.TransitionPauseState(state.PausePhaseSimPause, wallTime, -1)
 		}
-		scheduleReactionStackResolution(match)
+		scheduleChainResolution(match)
 		match.processAutoSummonQueue(wallTime, -1)
 		scheduleEarliestSimItem(match)
 	}

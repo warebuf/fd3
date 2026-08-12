@@ -38,10 +38,10 @@ type GameState struct {
 	Grave      [][]int
 	Continuous [][]int // per team
 
-	ReactionStack []ReactionItem // LIFO, sim paused while non-empty
+	Chain []ChainItem // LIFO, sim paused while non-empty
 
-	Priority         int               // team index with priority to react during an open window; persists across windows
-	PendingReactions []PendingReaction // one slot per team; zero value (Type == 0) means no submission this window
+	Priority      int            // team index with priority to react during an open window; persists across windows
+	PendingChains []PendingChain // one slot per team; zero value (Type == 0) means no submission this window
 
 	// other states
 	Mana       []int       // per team
@@ -122,14 +122,14 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
 
-	// PendingReactions
-	newState.PendingReactions = make([]PendingReaction, len(prevState.PendingReactions))
-	copy(newState.PendingReactions, prevState.PendingReactions)
+	// PendingChains
+	newState.PendingChains = make([]PendingChain, len(prevState.PendingChains))
+	copy(newState.PendingChains, prevState.PendingChains)
 
-	// Stack
-	newState.ReactionStack = make([]ReactionItem, len(prevState.ReactionStack))
-	for i, item := range prevState.ReactionStack {
-		newItem := ReactionItem{
+	// Chain
+	newState.Chain = make([]ChainItem, len(prevState.Chain))
+	for i, item := range prevState.Chain {
+		newItem := ChainItem{
 			Type:                item.Type,
 			CardIndex:           item.CardIndex,
 			ActiveIndex:         item.ActiveIndex,
@@ -140,7 +140,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			Effects:             make([]Effect, len(item.Effects)),
 		}
 		copy(newItem.Effects, item.Effects)
-		newState.ReactionStack[i] = newItem
+		newState.Chain[i] = newItem
 	}
 
 	return newState

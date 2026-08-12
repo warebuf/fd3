@@ -30,8 +30,8 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// reject if card requires a stack target and there is nothing to target
-	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
+	// reject if card requires a chain target and there is nothing to target
+	if defs.CardDefs[card.DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
 		return
 	}
 

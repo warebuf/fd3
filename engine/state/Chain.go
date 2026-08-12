@@ -1,18 +1,18 @@
 package state
 
-type ReactionType int
+type ChainType int
 
 const (
-	ReactionUnitAbility ReactionType = iota + 1
-	ReactionSpell
-	ReactionContinuousAbility
-	ReactionSummon
-	ReactionContinuousResolution
-	ReactionStructureAbility
+	ChainUnitAbility ChainType = iota + 1
+	ChainSpell
+	ChainContinuousAbility
+	ChainSummon
+	ChainContinuousResolution
+	ChainStructureAbility
 )
 
-type ReactionItem struct {
-	Type                ReactionType
+type ChainItem struct {
+	Type                ChainType
 	CardIndex           int
 	ActiveIndex         int // which Actives[] slot this activation came from, -1 if not an Active ability
 	TeamIndex           int

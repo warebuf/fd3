@@ -18,7 +18,7 @@ const (
 	ZoneHand
 	ZoneField
 	ZoneGraveyard
-	ZoneStack
+	ZoneChain
 	ZoneContinuous
 )
 
@@ -84,13 +84,13 @@ type Card struct {
 	Archetype int
 	Team      int
 	Type      int  // structure, unit, trap, spell, continuous
-	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: stack, 5: continuous
+	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain, 5: continuous
 	IsToken   bool // tokens skip the graveyard on destruction
 
 	// charge related
 	Charges        int // shared charge pool for this card; any ability slot may gain or spend from it
 	MaxCharges     int
-	PendingCharges int // activations currently in flight on the stack across all Active slots, not yet resolved
+	PendingCharges int // activations currently in flight on the chain across all Active slots, not yet resolved
 
 	// autoplay related
 	AutoSummon int // 0: not queued; 1+: priority order in play phase autosummon queue

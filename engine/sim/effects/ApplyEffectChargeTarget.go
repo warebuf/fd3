@@ -2,8 +2,8 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/conditions/autoability"
-	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -15,7 +15,7 @@ func ApplyEffectChargeTarget(gs *state.GameState, logList *[]any, UpdateID *int,
 	defer func() {
 		for activeIndex := range gs.Cards[targetIndex].Actives {
 			if autoability.AutoAbilityChargeCheck(gs, targetIndex, activeIndex) {
-				reaction.PushAbilityOnStack(gs, logList, UpdateID, targetIndex, activeIndex, executeAtWallTime)
+				chain.PushAbilityOnChain(gs, logList, UpdateID, targetIndex, activeIndex, executeAtWallTime)
 			}
 		}
 	}()

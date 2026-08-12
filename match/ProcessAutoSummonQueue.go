@@ -3,7 +3,7 @@ package match
 import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/reaction"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -42,7 +42,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				break
 			}
 
-			success := reaction.PushCardOnStack(
+			success := chain.PushCardOnChain(
 				gs,
 				&match.EventLog,
 				&match.NextUpdateID,
@@ -67,7 +67,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 			match.NextUpdateID++
 
 			match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
-			scheduleReactionStackResolution(match)
+			scheduleChainResolution(match)
 
 		}
 	}

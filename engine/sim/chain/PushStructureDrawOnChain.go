@@ -1,4 +1,4 @@
-package reaction
+package chain
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
@@ -8,7 +8,7 @@ import (
 )
 
 // caller is responsible for checking the team can afford the structure's DrawCost before calling
-func PushStructureDrawOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
+func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
 	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
 
 	gs.Mana[teamIndex] -= structDef.DrawCost
@@ -24,29 +24,29 @@ func PushStructureDrawOnStack(gs *state.GameState, logList *[]any, UpdateID *int
 	eff := state.FulfillEffectTemplate(gs, state.Effect{Type: state.EffectDraw, B: 1}, teamIndex, -1, -1)
 
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
-	reactionItem := state.ReactionItem{
+	chainItem := state.ChainItem{
 		StartAtActiveTime:   startAtActiveTime,
-		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		PopAtActiveTime:     startAtActiveTime + constants.CHAIN_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.CHAIN_WINDOW,
 		CardIndex:           -1,
 		ActiveIndex:         -1,
 		TeamIndex:           teamIndex,
-		Type:                state.ReactionStructureAbility,
+		Type:                state.ChainStructureAbility,
 		Effects:             []state.Effect{eff},
 	}
-	gs.ReactionStack = append(gs.ReactionStack, reactionItem)
-	*logList = append(*logList, logs.AddStackLog{
+	gs.Chain = append(gs.Chain, chainItem)
+	*logList = append(*logList, logs.AddChainLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       executeAtWallTime,
-		Type:                logs.AddStack,
-		StackType:           int(reactionItem.Type),
-		StartAtActiveTime:   reactionItem.StartAtActiveTime,
-		PopAtActiveTime:     reactionItem.PopAtActiveTime,
-		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
-		CardIndex:           reactionItem.CardIndex,
-		ActiveIndex:         reactionItem.ActiveIndex,
-		TeamIndex:           reactionItem.TeamIndex,
-		Effects:             reactionItem.Effects,
+		Type:                logs.AddChain,
+		ChainType:           int(chainItem.Type),
+		StartAtActiveTime:   chainItem.StartAtActiveTime,
+		PopAtActiveTime:     chainItem.PopAtActiveTime,
+		ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
+		CardIndex:           chainItem.CardIndex,
+		ActiveIndex:         chainItem.ActiveIndex,
+		TeamIndex:           chainItem.TeamIndex,
+		Effects:             chainItem.Effects,
 	})
 	*UpdateID++
 

@@ -45,7 +45,7 @@ type CardDef struct {
 	Archetype int
 	Taunt     bool
 
-	RequiresStackTarget bool
+	RequiresChainTarget bool
 	IsToken             bool // if set true, does not go to grave
 
 	OnPlay    [3]Ability
@@ -171,7 +171,7 @@ var CardDefs = []CardDef{
 		Name:                "Counterspell",
 		Description:         "Negate a summon or ability and destroy the source card.",
 		Cost:                30,
-		RequiresStackTarget: true,
+		RequiresChainTarget: true,
 		OnPlay: [3]Ability{{
 			Effects: [3]state.Effect{
 				{Type: state.EffectCounter},

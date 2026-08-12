@@ -6,7 +6,7 @@ import (
 
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/reaction"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
@@ -28,7 +28,7 @@ func ManageSimulationPQ(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 			return
 		}
 		if handleLatestSimulationItem(gs, pq, logList, UpdateID) {
-			return // a reaction was pushed onto the stack; let it resolve before draining more
+			return // a chain item was pushed onto the chain; let it resolve before draining more
 		}
 	}
 }
@@ -42,7 +42,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 	pushed := false
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
-		pushed = reaction.PushOnTickAbilityOnStack(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
+		pushed = chain.PushOnTickAbilityOnChain(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 

@@ -68,7 +68,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				gameState.FullPauseStartedAt = 0
 				gameState.TeamPaused = -1
 
-				scheduleReactionStackResolution(match)
+				scheduleChainResolution(match)
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
 					match.trySkipStaging(transitionAtWallTime)
@@ -81,7 +81,7 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 				gameState.FullPauseStartedAt = 0
 				gameState.TeamPaused = -1
 
-				scheduleReactionStackResolution(match)
+				scheduleChainResolution(match)
 				scheduleEarliestSimItem(match)
 				if match.PendingPhase > 0 {
 					SchedulePhaseEvent(match, match.PendingPhaseTime, match.PendingPhase)
@@ -122,9 +122,9 @@ func (match *Match) TransitionPauseState(newPauseState int, transitionAtWallTime
 			match.EventPQueue.Remove(match.EarliestSimItem)
 			match.EarliestSimItem = nil
 		}
-		if match.LatestReactionItem != nil {
-			match.EventPQueue.Remove(match.LatestReactionItem)
-			match.LatestReactionItem = nil
+		if match.LatestChainItem != nil {
+			match.EventPQueue.Remove(match.LatestChainItem)
+			match.LatestChainItem = nil
 		}
 		if match.PhaseItem != nil {
 			match.EventPQueue.Remove(match.PhaseItem)

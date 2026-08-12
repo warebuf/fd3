@@ -33,11 +33,11 @@ type SimPQEvent struct {
 
 func (e *SimPQEvent) GetWallTime() time.Time { return e.WallTime }
 
-type StackResolutionEvent struct {
+type ChainResolutionEvent struct {
 	WallTime time.Time
 }
 
-func (e *StackResolutionEvent) GetWallTime() time.Time { return e.WallTime }
+func (e *ChainResolutionEvent) GetWallTime() time.Time { return e.WallTime }
 
 type PauseEndEvent struct {
 	WallTime time.Time

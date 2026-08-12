@@ -52,9 +52,9 @@ func (match *Match) handleDuePQEvents() {
 		case "SimPQ":
 			match.EarliestSimItem = nil
 			match.handleSimPQEvent(next.Event.(*eventpq.SimPQEvent))
-		case "StackResolution":
-			match.LatestReactionItem = nil
-			match.handleReactionStackResolution()
+		case "ChainResolution":
+			match.LatestChainItem = nil
+			match.handleChainResolution()
 		case "Input":
 			match.handleInputEvent(next.Event.(*eventpq.InputEvent))
 		case "NewPhase":

@@ -1,4 +1,4 @@
-package reaction
+package chain
 
 import (
 	"github.com/warebuf/fd3/engine/constants"
@@ -8,7 +8,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
+func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, wallTimeAtPop int64) bool {
 
 	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
 		return false
@@ -35,7 +35,7 @@ func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		return false
 	}
 
-	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
+	if defs.CardDefs[gs.Cards[cardIndex].DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
 		return false
 	}
 
@@ -75,17 +75,17 @@ func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 
 	gs.Cards[cardIndex].AutoSummon = 0
 
-	gs.Cards[cardIndex].Zone = state.ZoneStack
+	gs.Cards[cardIndex].Zone = state.ZoneChain
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
 	declarationTime := wallTimeAtPop + constants.LEAD
 	card := gs.Cards[cardIndex]
 
-	reactionType := state.ReactionSpell
+	chainType := state.ChainSpell
 	if card.Type == state.CardTypeUnit {
-		reactionType = state.ReactionSummon
+		chainType = state.ChainSummon
 	} else if card.Type == state.CardTypeContinuous {
-		reactionType = state.ReactionContinuousResolution
+		chainType = state.ChainContinuousResolution
 	}
 
 	effs := []state.Effect{}
@@ -99,30 +99,30 @@ func PushCardOnStack(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 	}
 
 	startAtActiveTime := declarationTime - gs.FullPauseOffset
-	reactionItem := &state.ReactionItem{
+	chainItem := &state.ChainItem{
 		StartAtActiveTime:   startAtActiveTime,
-		PopAtActiveTime:     startAtActiveTime + constants.REACTION_WINDOW - constants.LEAD,
-		ExecuteAtActiveTime: startAtActiveTime + constants.REACTION_WINDOW,
+		PopAtActiveTime:     startAtActiveTime + constants.CHAIN_WINDOW - constants.LEAD,
+		ExecuteAtActiveTime: startAtActiveTime + constants.CHAIN_WINDOW,
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
 		TeamIndex:           teamIndex,
-		Type:                reactionType,
+		Type:                chainType,
 		Effects:             effs,
 	}
-	gs.ReactionStack = append(gs.ReactionStack, *reactionItem)
+	gs.Chain = append(gs.Chain, *chainItem)
 
-	*logList = append(*logList, logs.AddStackLog{
+	*logList = append(*logList, logs.AddChainLog{
 		UpdateID:            *UpdateID,
 		WallTimestamp:       declarationTime,
-		Type:                logs.AddStack,
-		StackType:           int(reactionItem.Type),
-		StartAtActiveTime:   reactionItem.StartAtActiveTime,
-		PopAtActiveTime:     reactionItem.PopAtActiveTime,
-		ExecuteAtActiveTime: reactionItem.ExecuteAtActiveTime,
-		CardIndex:           reactionItem.CardIndex,
-		ActiveIndex:         reactionItem.ActiveIndex,
-		TeamIndex:           reactionItem.TeamIndex,
-		Effects:             reactionItem.Effects,
+		Type:                logs.AddChain,
+		ChainType:           int(chainItem.Type),
+		StartAtActiveTime:   chainItem.StartAtActiveTime,
+		PopAtActiveTime:     chainItem.PopAtActiveTime,
+		ExecuteAtActiveTime: chainItem.ExecuteAtActiveTime,
+		CardIndex:           chainItem.CardIndex,
+		ActiveIndex:         chainItem.ActiveIndex,
+		TeamIndex:           chainItem.TeamIndex,
+		Effects:             chainItem.Effects,
 	})
 	*UpdateID += 1
 

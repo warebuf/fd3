@@ -2,8 +2,8 @@ package effects
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/conditions/autoability"
-	"github.com/warebuf/fd3/engine/sim/reaction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -20,10 +20,10 @@ func ApplyEffectMana(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 
 	cardIndexes, activeIndexes := autoability.AutoAbilityManaCheck(gs, eff.A)
 	for i := 0; i < len(cardIndexes); i++ {
-		reaction.PushAbilityOnStack(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
+		chain.PushAbilityOnChain(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
 	}
 
 	if autoability.AutoAbilityStructureDrawCheck(gs, eff.A) {
-		reaction.PushStructureDrawOnStack(gs, logList, UpdateID, eff.A, executeAtWallTime)
+		chain.PushStructureDrawOnChain(gs, logList, UpdateID, eff.A, executeAtWallTime)
 	}
 }

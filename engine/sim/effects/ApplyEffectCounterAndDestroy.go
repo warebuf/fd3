@@ -7,30 +7,30 @@ import (
 )
 
 func ApplyEffectCounterAndDestroy(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, sourceCardIndex int, executeAtWallTime int64) {
-	if len(gs.ReactionStack) == 0 {
+	if len(gs.Chain) == 0 {
 		return
 	}
 
-	target := gs.ReactionStack[len(gs.ReactionStack)-1]
-	gs.ReactionStack = gs.ReactionStack[:len(gs.ReactionStack)-1]
+	target := gs.Chain[len(gs.Chain)-1]
+	gs.Chain = gs.Chain[:len(gs.Chain)-1]
 
 	switch target.Type {
-	case state.ReactionSpell, state.ReactionSummon, state.ReactionContinuousResolution:
+	case state.ChainSpell, state.ChainSummon, state.ChainContinuousResolution:
 		card := &gs.Cards[target.CardIndex]
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
-	case state.ReactionContinuousAbility:
+	case state.ChainContinuousAbility:
 		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, target.CardIndex, executeAtWallTime)
-	case state.ReactionUnitAbility:
+	case state.ChainUnitAbility:
 		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, target.CardIndex, executeAtWallTime)
-	case state.ReactionStructureAbility:
+	case state.ChainStructureAbility:
 		// no source card, CardIndex is -1
 	}
 
-	*logList = append(*logList, logs.CounterStackLog{
+	*logList = append(*logList, logs.CounterChainLog{
 		UpdateID:        *UpdateID,
 		WallTimestamp:   executeAtWallTime,
-		Type:            logs.CounterStack,
+		Type:            logs.CounterChain,
 		SourceCardIndex: sourceCardIndex,
 		TargetCardIndex: target.CardIndex,
 	})

@@ -132,9 +132,9 @@ func (match *Match) handleEnterGameOverPhase(newPhase *eventpq.NewPhaseEvent) {
 		match.EventPQueue.Remove(match.EarliestSimItem)
 		match.EarliestSimItem = nil
 	}
-	if match.LatestReactionItem != nil {
-		match.EventPQueue.Remove(match.LatestReactionItem)
-		match.LatestReactionItem = nil
+	if match.LatestChainItem != nil {
+		match.EventPQueue.Remove(match.LatestChainItem)
+		match.LatestChainItem = nil
 	}
 	if match.PhaseItem != nil {
 		match.EventPQueue.Remove(match.PhaseItem)

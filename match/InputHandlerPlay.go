@@ -3,7 +3,7 @@ package match
 import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
-	"github.com/warebuf/fd3/engine/sim/reaction"
+	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -27,7 +27,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if defs.CardDefs[card.DefNo].RequiresStackTarget && len(gs.ReactionStack) == 0 {
+	if defs.CardDefs[card.DefNo].RequiresChainTarget && len(gs.Chain) == 0 {
 		return
 	}
 
@@ -36,9 +36,9 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the reaction hidden until the window's timer reveals it (see handleReactionStackResolution)
-		gs.PendingReactions[teamIndex] = state.PendingReaction{
-			Type:        state.PendingReactionCard,
+		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
+		gs.PendingChains[teamIndex] = state.PendingChain{
+			Type:        state.PendingChainCard,
 			CardIndex:   cardIndex,
 			ActiveIndex: -1,
 		}
@@ -47,7 +47,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	// simulating: try to play immediately, no queue fallback
 	oldLogsSize := len(match.EventLog)
-	success := reaction.PushCardOnStack(
+	success := chain.PushCardOnChain(
 		gs,
 		&match.EventLog,
 		&match.NextUpdateID,
@@ -58,7 +58,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if success {
 		match.TransitionPauseState(state.PausePhaseSimPause, ie.WallTime.UnixMilli()+constants.LEAD, -1)
-		scheduleReactionStackResolution(match)
+		scheduleChainResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 	}
 
