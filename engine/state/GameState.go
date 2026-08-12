@@ -40,8 +40,7 @@ type GameState struct {
 
 	Chain []ChainItem // LIFO, sim paused while non-empty
 
-	Priority      int            // team index with priority to react during an open window; persists across windows
-	PendingChains []PendingChain // one slot per team; zero value (Type == 0) means no submission this window
+	Priority int // team index with priority to react during an open window; persists across windows
 
 	// other states
 	Mana       []int       // per team
@@ -121,10 +120,6 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// TimeBank
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
-
-	// PendingChains
-	newState.PendingChains = make([]PendingChain, len(prevState.PendingChains))
-	copy(newState.PendingChains, prevState.PendingChains)
 
 	// Chain
 	newState.Chain = make([]ChainItem, len(prevState.Chain))

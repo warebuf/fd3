@@ -31,8 +31,8 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
-		gs.PendingChains[teamIndex] = state.PendingChain{
-			Type:        state.PendingChainStructureDraw,
+		match.PendingChains[teamIndex] = PendingChain{
+			Type:        PendingChainStructureDraw,
 			CardIndex:   -1,
 			ActiveIndex: -1,
 		}

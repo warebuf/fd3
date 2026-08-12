@@ -35,15 +35,14 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Winner:          -1,
 		TimeBank:        timeBank,
 
-		Cards:         []state.Card{},
-		Deck:          make([][]int, numTeams),
-		Hand:          make([][]int, numTeams),
-		Field:         make([][]int, numTeams),
-		Grave:         make([][]int, numTeams),
-		Continuous:    make([][]int, numTeams),
-		Chain:         []state.ChainItem{},
-		Priority:      0,
-		PendingChains: make([]state.PendingChain, numTeams),
+		Cards:      []state.Card{},
+		Deck:       make([][]int, numTeams),
+		Hand:       make([][]int, numTeams),
+		Field:      make([][]int, numTeams),
+		Grave:      make([][]int, numTeams),
+		Continuous: make([][]int, numTeams),
+		Chain:      []state.ChainItem{},
+		Priority:   0,
 		Mana: func() []int {
 			m := make([]int, numTeams)
 			for i := range m {

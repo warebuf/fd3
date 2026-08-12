@@ -30,24 +30,24 @@ func (match *Match) handleChainResolution() {
 	// instead of resolving the current top of the chain. the priority holder's submission always
 	// wins if they made one; otherwise the other team's submission wins by default.
 	winnerTeam := -1
-	if gs.PendingChains[gs.Priority].Type != 0 {
+	if match.PendingChains[gs.Priority].Type != 0 {
 		winnerTeam = gs.Priority
-	} else if gs.PendingChains[1-gs.Priority].Type != 0 {
+	} else if match.PendingChains[1-gs.Priority].Type != 0 {
 		winnerTeam = 1 - gs.Priority
 	}
 
 	if winnerTeam >= 0 {
-		p := gs.PendingChains[winnerTeam]
-		gs.PendingChains = make([]state.PendingChain, len(gs.PendingChains)) // clear both slots; the loser (if any) simply fails
+		p := match.PendingChains[winnerTeam]
+		match.PendingChains = make([]PendingChain, len(match.PendingChains)) // clear both slots; the loser (if any) simply fails
 
 		oldLogsSize := len(match.EventLog)
 		ok := false
 		switch p.Type {
-		case state.PendingChainCard:
+		case PendingChainCard:
 			ok = chain.PushCardOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, p.CardIndex, wallTime-constants.LEAD)
-		case state.PendingChainAbility:
+		case PendingChainAbility:
 			ok = chain.PushAbilityOnChain(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
-		case state.PendingChainStructureDraw:
+		case PendingChainStructureDraw:
 			chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, wallTime)
 			ok = true
 		}

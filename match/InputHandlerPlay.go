@@ -37,8 +37,8 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	if gs.PausePhase == state.PausePhaseSimPause {
 		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
-		gs.PendingChains[teamIndex] = state.PendingChain{
-			Type:        state.PendingChainCard,
+		match.PendingChains[teamIndex] = PendingChain{
+			Type:        PendingChainCard,
 			CardIndex:   cardIndex,
 			ActiveIndex: -1,
 		}
