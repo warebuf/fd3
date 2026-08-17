@@ -17,7 +17,7 @@ func ApplyEffectCounter(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 	if target.Type != state.ChainStructureAbility {
 		card := &gs.Cards[target.CardIndex]
 		switch target.Type {
-		case state.ChainSpell, state.ChainSummon, state.ChainContinuousResolution:
+		case state.ChainTrap, state.ChainSummon, state.ChainContinuousResolution:
 			card.Zone = state.ZoneGraveyard
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
 		case state.ChainContinuousAbility:

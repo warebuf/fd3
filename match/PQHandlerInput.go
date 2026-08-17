@@ -30,6 +30,8 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handlePreselect(ie)
 	case "unitAbility":
 		match.handleUnitAbility(ie)
+	case "trapAbility":
+		match.handleTrapAbility(ie)
 	case "toggleAutoAbility":
 		match.handleToggleAutoAbility(ie)
 	case "toggleStructureAutoAbility":

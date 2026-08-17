@@ -14,6 +14,11 @@ func isValidPersistentTarget(gs *state.GameState, teamIndex int, targetIndex int
 			return true
 		}
 	}
+	for _, ci := range gs.Traps[teamIndex] {
+		if ci == targetIndex {
+			return true
+		}
+	}
 	return false
 }
 

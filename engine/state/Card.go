@@ -4,7 +4,6 @@ const (
 	CardTypeStructure = iota
 	CardTypeUnit
 	CardTypeTrap
-	CardTypeSpell
 	CardTypeContinuous
 )
 
@@ -20,6 +19,7 @@ const (
 	ZoneGraveyard
 	ZoneChain
 	ZoneContinuous
+	ZoneTrap
 )
 
 type TickCondition int
@@ -39,7 +39,7 @@ const (
 type TriggerType int
 
 const (
-	TriggerAllySpellResolve TriggerType = iota + 1 // fires when this card's owner has a spell resolve
+	TriggerAllyTrapResolve TriggerType = iota + 1 // fires when this card's owner has a trap resolve
 )
 
 type TickAbility struct {
@@ -85,8 +85,8 @@ type Card struct {
 	Cost      int
 	Archetype int
 	Team      int
-	Type      int  // structure, unit, trap, spell, continuous
-	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain, 5: continuous
+	Type      int  // structure, unit, trap, continuous
+	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain, 5: continuous, 6: trap
 	IsToken   bool // tokens skip the graveyard on destruction
 
 	ChainEntry ChainEntry // how playing this card may enter the chain
@@ -95,6 +95,11 @@ type Card struct {
 	Charges        int // shared charge pool for this card; any ability slot may gain or spend from it
 	MaxCharges     int
 	PendingCharges int // activations currently in flight on the chain across all Active slots, not yet resolved
+
+	// trap related, only meaningful while this card sits in ZoneTrap
+	SetStartAtSimTime int64 // sim time this trap was set, so the client can draw the countdown
+	ReadyAtSimTime    int64 // sim time it finishes setting
+	Ready             bool  // whether it has finished setting and may be activated
 
 	// autoplay related
 	AutoSummon int // 0: not queued; 1+: priority order in play phase autosummon queue

@@ -4,7 +4,7 @@ type ChainType int
 
 const (
 	ChainUnitAbility ChainType = iota + 1
-	ChainSpell
+	ChainTrap
 	ChainContinuousAbility
 	ChainSummon
 	ChainContinuousResolution

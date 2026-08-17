@@ -56,8 +56,28 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		for i := 0; i < len(currSimItem.Effects); i++ {
 			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.Effects, currSimItem.CardIndex, -1, executeAtWallTime)
 		}
+
+	case state.SimItemTrapReady:
+		readyTrap(gs, logList, UpdateID, currSimItem.CardIndex, executeAtWallTime)
 	}
 	return pushed
+}
+
+func readyTrap(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, wallTime int64) {
+	card := &gs.Cards[cardIndex]
+	if card.Zone != state.ZoneTrap || card.Ready {
+		return
+	}
+	card.Ready = true
+
+	*logList = append(*logList, logs.TrapReadyLog{
+		UpdateID:      *UpdateID,
+		WallTimestamp: wallTime,
+		Type:          logs.TrapReady,
+		TeamIndex:     card.Team,
+		CardIndex:     cardIndex,
+	})
+	*UpdateID++
 }
 
 // we require management of ontick abilities on the gameState because its the best way to display in the UI

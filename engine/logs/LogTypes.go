@@ -35,6 +35,8 @@ const (
 	Consume
 	SpawnToken
 	ToggleStructureAutoAbility
+	SetTrap
+	TrapReady
 )
 
 type PhaseLog struct {
@@ -214,8 +216,28 @@ type CounterChainLog struct {
 	WallTimestamp   int64
 	UpdateID        int
 	Type            LogType
-	SourceCardIndex int // the counterspell card
-	TargetCardIndex int // the spell being countered
+	SourceCardIndex int // the countering card
+	TargetCardIndex int // the chain item's source card being countered
+}
+
+// a trap leaving the hand for the trap zone, where it sets until it's ready
+type SetTrapLog struct {
+	WallTimestamp     int64
+	UpdateID          int
+	Type              LogType
+	TeamIndex         int
+	CardIndex         int
+	SetStartAtSimTime int64
+	ReadyAtSimTime    int64
+}
+
+// a set trap finishing its setting time, so it may now be activated
+type TrapReadyLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
 }
 
 type PlayContinuousLog struct {

@@ -13,8 +13,8 @@ const (
 	EffectSacrifice  // A: card index
 	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
-	EffectConvertToTokens // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
-	EffectChargeTarget    // A: card index (from Card.OnPlay[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
+	EffectConvertToTokens // A: card index (from Card.Actives[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
+	EffectChargeTarget    // A: card index (from Card.Actives[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 )
 
 type Effect struct {
@@ -24,9 +24,9 @@ type Effect struct {
 	C    int
 }
 
-// abilityIndex indexes Card.Actives for EffectSacrifice or Card.OnPlay for EffectConsume — the two
-// never overlap, since one is only ever built from an Active ability and the other only from OnPlay.
-// Pass -1 when the calling site has neither (e.g. OnTick, OnTrigger).
+// abilityIndex indexes Card.Actives for the effects built from an Active slot, or Card.OnPlay for
+// EffectConsume, which is the only one still built from an OnPlay ability. Pass -1 when the calling
+// site has neither (e.g. OnTick, OnTrigger).
 func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex int, abilityIndex int) Effect {
 	switch templ.Type {
 	case EffectMana:
@@ -51,12 +51,12 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		return templ
 	case EffectConvertToTokens:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
 		}
 		return templ
 	case EffectChargeTarget:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
 		}
 		templ.C = gs.Cards[cardIndex].DefNo
 		return templ

@@ -75,6 +75,73 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 
 }
 
+func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
+
+	gs := match.GameState
+
+	if gs.Phase != state.PhasePlay {
+		return
+	}
+	if gs.PausePhase == state.PausePhaseFullPause {
+		return
+	}
+
+	cardIndex := ie.CardIndex
+	teamIndex := ie.TeamIndex
+	if cardIndex < 0 || cardIndex >= len(gs.Cards) {
+		return
+	}
+
+	card := gs.Cards[cardIndex]
+	if card.Zone != state.ZoneTrap || card.Team != teamIndex {
+		return
+	}
+	if !card.Ready {
+		return
+	}
+
+	activeIndex := defs.GetActiveSlot(card.DefNo, ie.AbilityIndex)
+	if activeIndex < 0 {
+		return
+	}
+	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
+
+	// the trap's cost sits on the card, since setting it was free
+	if gs.Mana[teamIndex] < card.Cost {
+		return
+	}
+
+	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
+		return
+	}
+
+	if !activeDef.ChainEntry.CanEnter(gs) {
+		return
+	}
+
+	if gs.PausePhase == state.PausePhaseSimPause {
+		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
+		match.PendingChains[teamIndex] = PendingChain{
+			Type:        PendingChainTrap,
+			CardIndex:   cardIndex,
+			ActiveIndex: activeIndex,
+		}
+		return
+	}
+
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	if !chain.PushTrapOnChain(gs, &match.EventLog, &match.NextUpdateID, cardIndex, activeIndex, executeAtWallTime) {
+		return
+	}
+
+	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
+	scheduleChainResolution(match)
+	match.publish(executeAtWallTime, oldLogsSize)
+
+}
+
 func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 
 	gs := match.GameState

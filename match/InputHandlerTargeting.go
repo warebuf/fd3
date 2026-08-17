@@ -31,7 +31,7 @@ func (match *Match) handlePreselect(ie *eventpq.InputEvent) {
 	oldLogsSize := len(match.EventLog)
 
 	switch card.Zone {
-	case state.ZoneField:
+	case state.ZoneField, state.ZoneTrap:
 
 		activeIndex := ie.AbilityIndex
 		if activeIndex < 0 || activeIndex >= len(card.Actives) {

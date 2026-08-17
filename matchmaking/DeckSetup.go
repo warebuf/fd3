@@ -41,6 +41,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Field:      make([][]int, numTeams),
 		Grave:      make([][]int, numTeams),
 		Continuous: make([][]int, numTeams),
+		Traps:      make([][]int, numTeams),
 		Chain:      []state.ChainItem{},
 		Priority:   0,
 		Mana: func() []int {
@@ -62,6 +63,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		gs.Field[team] = []int{}
 		gs.Grave[team] = []int{}
 		gs.Continuous[team] = []int{}
+		gs.Traps[team] = []int{}
 
 		for _, defNo := range defNos {
 			def := defs.CardDefs[defNo]

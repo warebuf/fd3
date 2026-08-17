@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/chain"
+	"github.com/warebuf/fd3/engine/sim/trap"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -42,14 +43,21 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 				break
 			}
 
-			success := chain.PushCardOnChain(
-				gs,
-				&match.EventLog,
-				&match.NextUpdateID,
-				t,
-				bestCard,
-				executeAtWallTime-constants.LEAD,
-			)
+			isTrap := gs.Cards[bestCard].Type == state.CardTypeTrap
+
+			success := false
+			if isTrap {
+				success = trap.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, t, bestCard, executeAtWallTime)
+			} else {
+				success = chain.PushCardOnChain(
+					gs,
+					&match.EventLog,
+					&match.NextUpdateID,
+					t,
+					bestCard,
+					executeAtWallTime-constants.LEAD,
+				)
+			}
 
 			if success == false {
 				break
@@ -66,8 +74,11 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 			})
 			match.NextUpdateID++
 
-			match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
-			scheduleChainResolution(match)
+			// a set never reaches the chain, so it leaves the game simulating and the queue rolls on
+			if !isTrap {
+				match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
+				scheduleChainResolution(match)
+			}
 
 		}
 	}

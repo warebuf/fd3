@@ -7,3 +7,4 @@ const PAUSE_BANK = 300000 // milliseconds, how much pause time per player
 const START_MANA = 300
 const DRAWS_COMPLETE_AT = 3000 // ms after draw phase starts; matches the last staggered ScheduleSystemDraw call
 const STAGING_WINDOW = 120000  // ms after draws finish during which players may stage cards before Play begins
+const TRAP_SET_TIME = 20000    // ms a trap spends setting before it's ready; scaled by SIM_SPEED like OnTick durations

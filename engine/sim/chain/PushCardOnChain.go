@@ -48,6 +48,17 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		}
 	}
 
+	// traps are set rather than played, and nothing else reaches the chain out of hand
+	var chainType state.ChainType
+	switch gs.Cards[cardIndex].Type {
+	case state.CardTypeUnit:
+		chainType = state.ChainSummon
+	case state.CardTypeContinuous:
+		chainType = state.ChainContinuousResolution
+	default:
+		return false
+	}
+
 	// mana check last
 	cost := gs.Cards[cardIndex].Cost
 	if gs.Mana[teamIndex] < cost {
@@ -80,13 +91,6 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 
 	declarationTime := wallTimeAtPop + constants.LEAD
 	card := gs.Cards[cardIndex]
-
-	chainType := state.ChainSpell
-	if card.Type == state.CardTypeUnit {
-		chainType = state.ChainSummon
-	} else if card.Type == state.CardTypeContinuous {
-		chainType = state.ChainContinuousResolution
-	}
 
 	effs := []state.Effect{}
 	for i, ability := range defs.CardDefs[card.DefNo].OnPlay {

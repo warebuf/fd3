@@ -30,6 +30,10 @@ func IsValidTarget(gs *state.GameState, targetFlags int, sourceIndex int, target
 		return targetFlags&defs.TargetOwnCont != 0
 	case target.Team != teamIndex && target.Zone == state.ZoneContinuous:
 		return targetFlags&defs.TargetOppCont != 0
+	case target.Team == teamIndex && target.Zone == state.ZoneTrap:
+		return targetFlags&defs.TargetOwnTrap != 0
+	case target.Team != teamIndex && target.Zone == state.ZoneTrap:
+		return targetFlags&defs.TargetOppTrap != 0
 	}
 	return false
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/sim/chain"
+	"github.com/warebuf/fd3/engine/sim/trap"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -24,6 +25,12 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 
 	card := gs.Cards[cardIndex]
 	if card.Zone != state.ZoneHand || card.Team != teamIndex {
+		return
+	}
+
+	// traps are set rather than played, so CardDef.ChainEntry never applies to them
+	if card.Type == state.CardTypeTrap {
+		match.handleSetTrap(ie, cardIndex, teamIndex)
 		return
 	}
 
@@ -61,5 +68,26 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		scheduleChainResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
 	}
+
+}
+
+// setting bypasses the chain, so there's no window to park it in - refused unless simulating
+func (match *Match) handleSetTrap(ie *eventpq.InputEvent, cardIndex int, teamIndex int) {
+
+	gs := match.GameState
+
+	if gs.PausePhase != state.PausePhaseSimulating {
+		return
+	}
+
+	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
+	oldLogsSize := len(match.EventLog)
+
+	if !trap.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, executeAtWallTime) {
+		return
+	}
+
+	scheduleEarliestSimItem(match)
+	match.publish(executeAtWallTime, oldLogsSize)
 
 }

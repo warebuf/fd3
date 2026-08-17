@@ -47,6 +47,8 @@ func (match *Match) handleChainResolution() {
 			ok = chain.PushCardOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, p.CardIndex, wallTime-constants.LEAD)
 		case PendingChainAbility:
 			ok = chain.PushAbilityOnChain(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
+		case PendingChainTrap:
+			ok = chain.PushTrapOnChain(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
 		case PendingChainStructureDraw:
 			chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, wallTime)
 			ok = true
@@ -98,10 +100,10 @@ func (match *Match) handleChainResolution() {
 					CardIndex:     chainTop.CardIndex,
 				})
 				match.NextUpdateID++
-			} else if card.Type == state.CardTypeSpell { // if a spell is successfully summoned, check for triggers
+			} else if card.Type == state.CardTypeTrap { // if a trap successfully resolves, check for triggers
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
-				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllySpellResolve, wallTime)
+				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
 			} else {
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)

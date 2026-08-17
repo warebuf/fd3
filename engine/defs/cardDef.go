@@ -14,6 +14,8 @@ const (
 	TargetOppHand              // opponent hand cards
 	TargetOwnCont              // friendly continuous zone
 	TargetOppCont              // opponent continuous zone
+	TargetOwnTrap              // friendly set traps
+	TargetOppTrap              // opponent set traps
 )
 
 // which zone(s) the owning card must be in for OnTrigger
@@ -83,12 +85,12 @@ var CardDefs = []CardDef{
 		}},
 	},
 	2: {
-		Type:        state.CardTypeSpell,
+		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
 		Description: "Destroy all units on the field",
 		Cost:        300,
-		ChainEntry:  state.ChainDual,
-		OnPlay: [3]Ability{{
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectDestroy,
@@ -117,12 +119,12 @@ var CardDefs = []CardDef{
 		}},
 	},
 	4: {
-		Type:        state.CardTypeSpell,
+		Type:        state.CardTypeTrap,
 		Name:        "Downforce",
 		Description: "Gain 30 mana",
 		Cost:        0,
-		ChainEntry:  state.ChainDual,
-		OnPlay: [3]Ability{{
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
 			Effects: [3]state.Effect{
 				{
 					Type: state.EffectMana, // fill A, which is team
@@ -179,12 +181,12 @@ var CardDefs = []CardDef{
 		}},
 	},
 	8: {
-		Type:        state.CardTypeSpell,
-		Name:        "Counterspell",
+		Type:        state.CardTypeTrap,
+		Name:        "Countertrap",
 		Description: "Negate a summon or ability and destroy the source card.",
 		Cost:        30,
-		ChainEntry:  state.ChainReaction,
-		OnPlay: [3]Ability{{
+		Active: [3]Ability{{
+			ChainEntry: state.ChainReaction,
 			Effects: [3]state.Effect{
 				{Type: state.EffectCounter},
 			},
@@ -255,12 +257,12 @@ var CardDefs = []CardDef{
 	12: {
 		Type:        state.CardTypeContinuous,
 		Name:        "Charge Reservoir",
-		Description: "Gain 1 charge whenever you cast a spell.",
+		Description: "Gain 1 charge whenever one of your traps resolves.",
 		Cost:        60,
 		ChainEntry:  state.ChainDual,
 		MaxCharges:  math.MaxInt,
 		OnTrigger: [3]Ability{{
-			Trigger:      state.TriggerAllySpellResolve,
+			Trigger:      state.TriggerAllyTrapResolve,
 			TriggerZones: TriggerZoneContinuous,
 			ChainEntry:   state.ChainDual,
 			Effects:      [3]state.Effect{{Type: state.EffectChargeSelf}},
@@ -304,35 +306,35 @@ var CardDefs = []CardDef{
 		}},
 	},
 	15: {
-		Type:        state.CardTypeSpell,
+		Type:        state.CardTypeTrap,
 		Name:        "Temp Tokens",
 		Description: "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
 		Cost:        60,
-		ChainEntry:  state.ChainDual,
-		OnPlay: [3]Ability{{
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
 			TargetFlags: TargetOwnField | TargetOwnCont,
 			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
 	16: {
-		Type:        state.CardTypeSpell,
+		Type:        state.CardTypeTrap,
 		Name:        "Kindling",
 		Description: "If none of your cards have 2+ charges, give a card 2 charges.",
 		Cost:        50,
-		ChainEntry:  state.ChainDual,
-		OnPlay: [3]Ability{{
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
 			TargetFlags: TargetOwnField | TargetOppField | TargetOwnCont | TargetOppCont,
 			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
 		}},
 	},
 	17: {
-		Type:        state.CardTypeSpell,
+		Type:        state.CardTypeTrap,
 		Name:        "Rummage",
 		Description: "Draw a card.",
 		Cost:        40,
-		ChainEntry:  state.ChainDual,
-		OnPlay: [3]Ability{{
-			Effects: [3]state.Effect{{Type: state.EffectDraw, B: 1}},
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
+			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
 	},
 }

@@ -30,8 +30,8 @@ func (match *Match) handleAutoSummon(ie *eventpq.InputEvent) {
 		return
 	}
 
-	// reactions can never autosummon, they always need something to react to
-	if defs.CardDefs[card.DefNo].ChainEntry == state.ChainReaction {
+	// reactions can never autosummon, they always need something to react to. setting a trap isn't one
+	if card.Type != state.CardTypeTrap && defs.CardDefs[card.DefNo].ChainEntry == state.ChainReaction {
 		return
 	}
 

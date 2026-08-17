@@ -6,6 +6,7 @@ const (
 	PendingChainCard PendingChainType = iota + 1
 	PendingChainAbility
 	PendingChainStructureDraw
+	PendingChainTrap
 )
 
 type PendingChain struct {

@@ -34,6 +34,7 @@ const (
 	SimItemOnTick SimItemType = iota + 1
 	SimItemSystemDraw
 	SimItemStructureRegen
+	SimItemTrapReady
 )
 
 type SimulationItem struct {
