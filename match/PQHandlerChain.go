@@ -41,6 +41,14 @@ func (match *Match) handleChainResolution() {
 		match.PendingChains = make([]PendingChain, len(match.PendingChains)) // clear both slots; the loser (if any) simply fails
 
 		oldLogsSize := len(match.EventLog)
+
+		match.EventLog = append(match.EventLog, logs.ClearPendingChainsLog{
+			UpdateID:      match.NextUpdateID,
+			WallTimestamp: wallTime,
+			Type:          logs.ClearPendingChains,
+		})
+		match.NextUpdateID++
+
 		ok := false
 		switch p.Type {
 		case PendingChainCard:

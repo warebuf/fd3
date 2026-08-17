@@ -53,12 +53,12 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
-		match.PendingChains[teamIndex] = PendingChain{
+		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
+		match.submitPendingChain(teamIndex, PendingChain{
 			Type:        PendingChainAbility,
 			CardIndex:   cardIndex,
 			ActiveIndex: activeIndex,
-		}
+		}, ie.WallTime.UnixMilli()+constants.LEAD)
 		return
 	}
 
@@ -125,12 +125,12 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
-		match.PendingChains[teamIndex] = PendingChain{
+		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
+		match.submitPendingChain(teamIndex, PendingChain{
 			Type:        PendingChainTrap,
 			CardIndex:   cardIndex,
 			ActiveIndex: activeIndex,
-		}
+		}, ie.WallTime.UnixMilli()+constants.LEAD)
 		return
 	}
 
@@ -189,12 +189,12 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 
 	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item hidden until the window's timer reveals it (see handleChainResolution)
-		match.PendingChains[teamIndex] = PendingChain{
+		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
+		match.submitPendingChain(teamIndex, PendingChain{
 			Type:        PendingChainAbility,
 			CardIndex:   cardIndex,
 			ActiveIndex: activeIndex,
-		}
+		}, ie.WallTime.UnixMilli()+constants.LEAD)
 		return
 	}
 
