@@ -115,6 +115,11 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	// checked here too, so a submission that PushTrapOnChain would refuse can't burn the window
+	if activeDef.TargetFlags != 0 && !conditions.IsValidTarget(gs, activeDef.TargetFlags, cardIndex, card.Actives[activeIndex].Target, teamIndex) {
+		return
+	}
+
 	if !activeDef.ChainEntry.CanEnter(gs) {
 		return
 	}

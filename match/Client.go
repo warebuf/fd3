@@ -23,6 +23,12 @@ type preselectMessage struct {
 	AbilityIndex    int    `json:"AbilityIndex"` // client doesn't set this yet; pre-seeded to -1 below so we can tell it apart from a real 0
 }
 
+type abilityMessage struct {
+	Type         string `json:"Type"`
+	CardIndex    int    `json:"CardIndex"`
+	AbilityIndex int    `json:"AbilityIndex"` // -1 when the client named no slot; only a card with one real Active slot resolves without it
+}
+
 type readyMessage struct {
 	Type string `json:"type"`
 }
@@ -136,6 +142,13 @@ func (c *Client) Read() {
 				continue
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "unitAbility", c.ID, msg.CardIndex, -1, -1)
+
+		case "trapAbility":
+			msg := abilityMessage{AbilityIndex: -1}
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "trapAbility", c.ID, msg.CardIndex, -1, msg.AbilityIndex)
 
 		case "preselect":
 			msg := preselectMessage{AbilityIndex: -1}
