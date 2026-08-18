@@ -26,9 +26,7 @@ func (match *Match) handleChainResolution() {
 	top := gs.Chain[len(gs.Chain)-1]
 	wallTime := top.ExecuteAtActiveTime + gs.FullPauseOffset
 
-	// the window's timer just fired: reveal a contested chain if either team submitted one,
-	// instead of resolving the current top of the chain. the priority holder's submission always
-	// wins if they made one; otherwise the other team's submission wins by default.
+	// get prio team
 	winnerTeam := -1
 	if match.PendingChains[gs.Priority].Type != 0 {
 		winnerTeam = gs.Priority
@@ -84,39 +82,38 @@ func (match *Match) handleChainResolution() {
 
 	if chainTop.Type != state.ChainStructureAbility {
 		card := &gs.Cards[chainTop.CardIndex]
-		if card.Zone == state.ZoneChain {
-			if card.Type == state.CardTypeUnit {
-				card.Zone = state.ZoneField
-				gs.Field[card.Team] = append(gs.Field[card.Team], chainTop.CardIndex)
-				match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
-					UpdateID:      match.NextUpdateID,
-					WallTimestamp: wallTime,
-					Type:          logs.SummonResolution,
-					TeamIndex:     card.Team,
-					CardIndex:     chainTop.CardIndex,
-				})
-				match.NextUpdateID++
-				schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
-			} else if card.Type == state.CardTypeContinuous {
-				card.Zone = state.ZoneContinuous
-				gs.Continuous[card.Team] = append(gs.Continuous[card.Team], chainTop.CardIndex)
-				match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
-					UpdateID:      match.NextUpdateID,
-					WallTimestamp: wallTime,
-					Type:          logs.PlayContinuous,
-					TeamIndex:     card.Team,
-					CardIndex:     chainTop.CardIndex,
-				})
-				match.NextUpdateID++
-			} else if card.Type == state.CardTypeTrap { // if a trap successfully resolves, check for triggers
-				card.Zone = state.ZoneGraveyard
-				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
-				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
-			} else {
-				card.Zone = state.ZoneGraveyard
-				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
-			}
-		} else if chainTop.Type == state.ChainContinuousAbility {
+		switch chainTop.Type {
+		case state.ChainSummon:
+			card.Zone = state.ZoneField
+			gs.Field[card.Team] = append(gs.Field[card.Team], chainTop.CardIndex)
+			match.EventLog = append(match.EventLog, logs.SummonResolutionLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.SummonResolution,
+				TeamIndex:     card.Team,
+				CardIndex:     chainTop.CardIndex,
+			})
+			match.NextUpdateID++
+			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+
+		case state.ChainContinuousResolution:
+			card.Zone = state.ZoneContinuous
+			gs.Continuous[card.Team] = append(gs.Continuous[card.Team], chainTop.CardIndex)
+			match.EventLog = append(match.EventLog, logs.PlayContinuousLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.PlayContinuous,
+				TeamIndex:     card.Team,
+				CardIndex:     chainTop.CardIndex,
+			})
+			match.NextUpdateID++
+
+		case state.ChainTrap: // if a trap successfully resolves, check for triggers
+			card.Zone = state.ZoneGraveyard
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+			trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
+
+		case state.ChainContinuousAbility:
 			card.PendingCharges--
 			card.Charges--
 			match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
@@ -146,31 +143,34 @@ func (match *Match) handleChainResolution() {
 				})
 				match.NextUpdateID++
 			}
-		} else if chainTop.Type == state.ChainUnitAbility && chainTop.ActiveIndex >= 0 { // only for Active abilities
-			activeDef := defs.CardDefs[card.DefNo].Active[chainTop.ActiveIndex]
-			card.PendingCharges--
 
-			if !activeDef.Unlimited {
-				wasAtMax := card.Charges == card.MaxCharges
-				card.Charges--
-				match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
-					UpdateID:         match.NextUpdateID,
-					WallTimestamp:    wallTime,
-					Type:             logs.RemoveCharge,
-					TeamIndex:        card.Team,
-					CardIndex:        chainTop.CardIndex,
-					ChargesRemaining: card.Charges,
-				})
-				match.NextUpdateID++
+		case state.ChainUnitAbility:
+			if chainTop.ActiveIndex >= 0 { // only for Active abilities
+				activeDef := defs.CardDefs[card.DefNo].Active[chainTop.ActiveIndex]
+				card.PendingCharges--
 
-				// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
-				if wasAtMax {
-					startAtSimTime := wallTime - gs.SimPauseOffset
-					for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
-						for _, eff := range r.Effects {
-							if eff.Type == state.EffectChargeSelf {
-								schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, tickIndex, startAtSimTime, wallTime)
-								break
+				if !activeDef.Unlimited {
+					wasAtMax := card.Charges == card.MaxCharges
+					card.Charges--
+					match.EventLog = append(match.EventLog, logs.RemoveChargeLog{
+						UpdateID:         match.NextUpdateID,
+						WallTimestamp:    wallTime,
+						Type:             logs.RemoveCharge,
+						TeamIndex:        card.Team,
+						CardIndex:        chainTop.CardIndex,
+						ChargesRemaining: card.Charges,
+					})
+					match.NextUpdateID++
+
+					// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
+					if wasAtMax {
+						startAtSimTime := wallTime - gs.SimPauseOffset
+						for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
+							for _, eff := range r.Effects {
+								if eff.Type == state.EffectChargeSelf {
+									schedule.ScheduleOnTickAbility(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, tickIndex, startAtSimTime, wallTime)
+									break
+								}
 							}
 						}
 					}

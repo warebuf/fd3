@@ -85,7 +85,6 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 			break
 		}
 	}
-	gs.Cards[cardIndex].Zone = state.ZoneChain
 	gs.Cards[cardIndex].Ready = false
 	gs.Cards[cardIndex].SetStartAtSimTime = 0
 	gs.Cards[cardIndex].ReadyAtSimTime = 0
