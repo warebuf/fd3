@@ -156,7 +156,6 @@ func (c *Client) Read() {
 				continue
 			}
 			if msg.AbilityIndex == -1 {
-				fmt.Println("⚠️ client", c.ID, "didn't set AbilityIndex on preselect, defaulting to 0")
 				msg.AbilityIndex = 0
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "preselect", c.ID, msg.CardIndex, msg.TargetCardIndex, msg.AbilityIndex)

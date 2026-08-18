@@ -48,13 +48,14 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		}
 	}
 
-	// traps are set rather than played, and nothing else reaches the chain out of hand
 	var chainType state.ChainType
 	switch gs.Cards[cardIndex].Type {
 	case state.CardTypeUnit:
 		chainType = state.ChainSummon
 	case state.CardTypeContinuous:
 		chainType = state.ChainContinuousResolution
+	case state.CardTypeTrap:
+		return false
 	default:
 		return false
 	}
