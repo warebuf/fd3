@@ -1,12 +1,14 @@
-package defs
+package abilityslot
+
+import "github.com/warebuf/fd3/engine/defs"
 
 func GetActiveSlot(defNo int, requestedSlot int) int {
-	actives := CardDefs[defNo].Active
+	actives := defs.CardDefs[defNo].Active
 
 	onlySlot := -1
 	realSlots := 0
-	for i, ability := range actives {
-		if ability.Effects[0].Type == 0 {
+	for i, ab := range actives {
+		if ab.Effects[0].Type == 0 {
 			continue // unused ability slot
 		}
 		realSlots++

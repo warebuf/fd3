@@ -1,4 +1,4 @@
-package trap
+package direct
 
 import (
 	"github.com/warebuf/fd3/engine/logs"
@@ -6,8 +6,6 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// setting never touches the chain, so there's no window to open and no mana to spend yet;
-// the trap's cost is paid when it's activated
 func SetTrap(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, teamIndex int, cardIndex int, executeAtWallTime int64) bool {
 
 	if cardIndex < 0 || cardIndex >= len(gs.Cards) {

@@ -3,6 +3,7 @@ package match
 import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
+	"github.com/warebuf/fd3/engine/sim/abilityslot"
 	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/state"
@@ -100,7 +101,7 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
-	activeIndex := defs.GetActiveSlot(card.DefNo, ie.AbilityIndex)
+	activeIndex := abilityslot.GetActiveSlot(card.DefNo, ie.AbilityIndex)
 	if activeIndex < 0 {
 		return
 	}

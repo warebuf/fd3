@@ -4,7 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/chain"
-	"github.com/warebuf/fd3/engine/sim/trap"
+	"github.com/warebuf/fd3/engine/sim/direct"
 	"github.com/warebuf/fd3/engine/state"
 )
 
@@ -47,7 +47,7 @@ func (match *Match) processAutoSummonQueue(executeAtWallTime int64, targetTeam i
 
 			success := false
 			if isTrap {
-				success = trap.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, t, bestCard, executeAtWallTime)
+				success = direct.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, t, bestCard, executeAtWallTime)
 			} else {
 				success = chain.PushCardOnChain(
 					gs,

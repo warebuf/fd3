@@ -4,7 +4,7 @@ import (
 	"github.com/warebuf/fd3/engine/constants"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/sim/chain"
-	"github.com/warebuf/fd3/engine/sim/trap"
+	"github.com/warebuf/fd3/engine/sim/direct"
 	"github.com/warebuf/fd3/engine/state"
 	"github.com/warebuf/fd3/match/eventpq"
 )
@@ -83,7 +83,7 @@ func (match *Match) handleSetTrap(ie *eventpq.InputEvent, cardIndex int, teamInd
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	if !trap.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, executeAtWallTime) {
+	if !direct.SetTrap(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, teamIndex, cardIndex, executeAtWallTime) {
 		return
 	}
 
