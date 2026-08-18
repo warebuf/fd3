@@ -15,7 +15,19 @@ func ApplyEffectCounterAndDestroy(gs *state.GameState, pq *state.SimulationPQ, l
 	gs.Chain = gs.Chain[:len(gs.Chain)-1]
 
 	switch target.Type {
-	case state.ChainTrap, state.ChainSummon, state.ChainContinuousResolution:
+	case state.ChainTrap:
+		card := &gs.Cards[target.CardIndex]
+		if card.Zone == state.ZoneTrap {
+			for i, ci := range gs.Traps[card.Team] {
+				if ci == target.CardIndex {
+					gs.Traps[card.Team] = append(gs.Traps[card.Team][:i], gs.Traps[card.Team][i+1:]...)
+					break
+				}
+			}
+			card.Zone = state.ZoneGraveyard
+			gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
+		}
+	case state.ChainSummon, state.ChainContinuousResolution:
 		card := &gs.Cards[target.CardIndex]
 		card.Zone = state.ZoneGraveyard
 		gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)

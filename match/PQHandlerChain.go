@@ -109,8 +109,16 @@ func (match *Match) handleChainResolution() {
 			match.NextUpdateID++
 
 		case state.ChainTrap: // if a trap successfully resolves, check for triggers
-			card.Zone = state.ZoneGraveyard
-			gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+			if card.Zone == state.ZoneTrap {
+				for i, ci := range gs.Traps[card.Team] {
+					if ci == chainTop.CardIndex {
+						gs.Traps[card.Team] = append(gs.Traps[card.Team][:i], gs.Traps[card.Team][i+1:]...)
+						break
+					}
+				}
+				card.Zone = state.ZoneGraveyard
+				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+			}
 			trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
 
 		case state.ChainContinuousAbility:

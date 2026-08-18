@@ -79,12 +79,6 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 	})
 	*UpdateID++
 
-	for i, ci := range gs.Traps[teamIndex] {
-		if ci == cardIndex {
-			gs.Traps[teamIndex] = append(gs.Traps[teamIndex][:i], gs.Traps[teamIndex][i+1:]...)
-			break
-		}
-	}
 	gs.Cards[cardIndex].Ready = false
 	gs.Cards[cardIndex].SetStartAtSimTime = 0
 	gs.Cards[cardIndex].ReadyAtSimTime = 0
