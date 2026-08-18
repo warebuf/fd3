@@ -94,8 +94,9 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				}
 			}
 			for i, ability := range def.Active {
+				card.Actives[i].Target = -1 // no target selected, even on an unused slot
 				if ability.Effects[0].Type == 0 {
-					continue // unused ability slot, leave it zero-valued so the client can tell
+					continue // unused ability slot, leave the rest zero-valued so the client can tell
 				}
 				card.Actives[i] = state.ActiveAbility{
 					Unlimited:   ability.Unlimited,
