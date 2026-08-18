@@ -76,8 +76,10 @@ func (match *Match) handleChainResolution() {
 	oldLogsSize := len(match.EventLog)
 
 	// apply effects
-	for _, eff := range chainTop.Effects {
-		sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.Effects, chainTop.CardIndex, chainTop.ActiveIndex, wallTime)
+	if chainSourceStillValid(gs, chainTop) {
+		for _, eff := range chainTop.Effects {
+			sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.Effects, chainTop.CardIndex, chainTop.ActiveIndex, wallTime)
+		}
 	}
 
 	if chainTop.Type != state.ChainStructureAbility {
@@ -118,8 +120,8 @@ func (match *Match) handleChainResolution() {
 				}
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
 			}
-			trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
 
 		case state.ChainContinuousAbility:
 			card.PendingCharges--
@@ -221,4 +223,24 @@ func (match *Match) handleChainResolution() {
 
 	match.publish(wallTime, oldLogsSize)
 
+}
+
+// whether chainTop's source card is still where its ability expects it to be; false means it fizzles
+func chainSourceStillValid(gs *state.GameState, chainTop state.ChainItem) bool {
+	if chainTop.CardIndex < 0 {
+		return true // no source card, e.g. a structure ability
+	}
+	if chainTop.Type == state.ChainSummon || chainTop.Type == state.ChainContinuousResolution {
+		return true // the card hasn't reached its zone yet; that's expected, not a fizzle
+	}
+	card := gs.Cards[chainTop.CardIndex]
+	switch card.Type {
+	case state.CardTypeUnit:
+		return card.Zone == state.ZoneField
+	case state.CardTypeContinuous:
+		return card.Zone == state.ZoneContinuous
+	case state.CardTypeTrap:
+		return card.Zone == state.ZoneTrap
+	}
+	return true
 }
