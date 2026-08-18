@@ -230,10 +230,10 @@ func chainSourceStillValid(gs *state.GameState, chainTop state.ChainItem) bool {
 	if chainTop.CardIndex < 0 {
 		return true // no source card, e.g. a structure ability
 	}
-	if chainTop.Type == state.ChainSummon || chainTop.Type == state.ChainContinuousResolution {
-		return true // the card hasn't reached its zone yet; that's expected, not a fizzle
-	}
 	card := gs.Cards[chainTop.CardIndex]
+	if chainTop.Type == state.ChainSummon || chainTop.Type == state.ChainContinuousResolution {
+		return card.Zone == state.ZonePending // hasn't reached its zone yet; that's expected, not a fizzle
+	}
 	switch card.Type {
 	case state.CardTypeUnit:
 		return card.Zone == state.ZoneField
