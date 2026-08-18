@@ -107,20 +107,21 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 	}
 	activeDef := defs.CardDefs[card.DefNo].Active[activeIndex]
 
-	// the trap's cost sits on the card, since setting it was free
 	if gs.Mana[teamIndex] < card.Cost {
 		return
 	}
 
+	// check state conditions
 	if !conditions.CheckActiveAbilityConditions(gs, cardIndex, activeIndex) {
 		return
 	}
 
-	// checked here too, so a submission that PushTrapOnChain would refuse can't burn the window
+	// check target conditions
 	if activeDef.TargetFlags != 0 && !conditions.IsValidTarget(gs, activeDef.TargetFlags, cardIndex, card.Actives[activeIndex].Target, teamIndex) {
 		return
 	}
 
+	// check action/reaction/dual condition
 	if !activeDef.ChainEntry.CanEnter(gs) {
 		return
 	}
