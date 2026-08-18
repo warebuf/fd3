@@ -87,7 +87,7 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 
 	gs.Cards[cardIndex].AutoSummon = 0
 
-	gs.Cards[cardIndex].Zone = state.ZoneChain
+	gs.Cards[cardIndex].Zone = state.ZonePending
 	gs.Hand[teamIndex] = append(gs.Hand[teamIndex][:handIndex], gs.Hand[teamIndex][handIndex+1:]...)
 
 	declarationTime := wallTimeAtPop + constants.LEAD

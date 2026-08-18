@@ -17,7 +17,7 @@ const (
 	ZoneHand
 	ZoneField
 	ZoneGraveyard
-	ZoneChain
+	ZonePending
 	ZoneContinuous
 	ZoneTrap
 )
@@ -86,7 +86,7 @@ type Card struct {
 	Archetype int
 	Team      int
 	Type      int  // structure, unit, trap, continuous
-	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: chain, 5: continuous, 6: trap
+	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: pending, 5: continuous, 6: trap
 	IsToken   bool // tokens skip the graveyard on destruction
 
 	ChainEntry ChainEntry // how playing this card may enter the chain
