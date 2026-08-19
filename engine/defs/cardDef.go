@@ -37,6 +37,7 @@ type Ability struct {
 	TriggerZones int               // only used by OnTrigger, bitmask of TriggerZone flags
 	CanAutoFire  bool              // only used by Active
 	ChainEntry   state.ChainEntry  // used by Active, OnTick and OnTrigger, the slots that push chain items
+	SkipChain    bool              // only used by OnTick
 }
 
 // change from dynamic arrs to fixed size
@@ -108,7 +109,7 @@ var CardDefs = []CardDef{
 		Cost:        60,
 		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
+			SkipChain:    true,
 			Milliseconds: 10000,
 			Effects: [3]state.Effect{
 				{
@@ -217,7 +218,7 @@ var CardDefs = []CardDef{
 		ChainEntry:  state.ChainAction,
 		MaxCharges:  3,
 		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
+			SkipChain:    true,
 			Milliseconds: 30000,
 			Effects: [3]state.Effect{
 				{Type: state.EffectChargeSelf},
@@ -300,7 +301,7 @@ var CardDefs = []CardDef{
 		IsToken:     true,
 		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
+			SkipChain:    true,
 			Milliseconds: 10000,
 			Effects:      [3]state.Effect{{Type: state.EffectSelfDestruct}},
 		}},

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/warebuf/fd3/engine/constants"
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/schedule"
@@ -42,7 +43,12 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 	pushed := false
 	switch currSimItem.Type {
 	case state.SimItemOnTick:
-		pushed = chain.PushOnTickAbilityOnChain(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
+		ability := defs.CardDefs[gs.Cards[currSimItem.CardIndex].DefNo].OnTick[currSimItem.AbilityIndex]
+		if ability.SkipChain {
+			applyOnTickEffects(gs, pq, logList, UpdateID, ability, currSimItem.CardIndex, executeAtWallTime)
+		} else {
+			pushed = chain.PushOnTickAbilityOnChain(gs, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
+		}
 		clearTickAbility(gs.Cards, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, executeAtWallTime)
 		schedule.ScheduleOnTickAbility(gs, pq, logList, UpdateID, currSimItem.CardIndex, currSimItem.AbilityIndex, currSimItem.PopAtSimTime+constants.LEAD, executeAtWallTime)
 
@@ -61,6 +67,16 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		readyTrap(gs, logList, UpdateID, currSimItem.CardIndex, executeAtWallTime)
 	}
 	return pushed
+}
+
+func applyOnTickEffects(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, ability defs.Ability, cardIndex int, executeAtWallTime int64) {
+	teamIndex := gs.Cards[cardIndex].Team
+	for _, eff := range ability.Effects {
+		if eff.Type == 0 {
+			continue
+		}
+		ApplyEffect(gs, pq, logList, UpdateID, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1), ability.Effects[:], cardIndex, -1, executeAtWallTime)
+	}
 }
 
 func readyTrap(gs *state.GameState, logList *[]any, UpdateID *int, cardIndex int, wallTime int64) {
