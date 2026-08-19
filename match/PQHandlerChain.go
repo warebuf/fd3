@@ -174,7 +174,7 @@ func (match *Match) handleChainResolution() {
 
 					// if the card was at max charges, the gain-charge OnTick ability was paused — restart it now
 					if wasAtMax {
-						startAtSimTime := wallTime - gs.SimPauseOffset
+						startAtSimTime := gs.SimPauseStartedAt - gs.SimPauseOffset
 						for tickIndex, r := range defs.CardDefs[card.DefNo].OnTick {
 							for _, eff := range r.Effects {
 								if eff.Type == state.EffectChargeSelf {
