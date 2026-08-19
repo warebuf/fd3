@@ -30,6 +30,7 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	card.OnTick = [3]state.TickAbility{}
 
 	ClearPreselectsTargeting(gs, cardIndex)
+	RemoveChainItemsForCard(gs, logList, UpdateID, cardIndex, executeAtWallTime)
 
 	*logList = append(*logList, logs.DestroyCardLog{
 		UpdateID:        *UpdateID,

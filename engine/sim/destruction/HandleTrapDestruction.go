@@ -30,6 +30,7 @@ func HandleTrapDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	card.Ready = false
 
 	ClearPreselectsTargeting(gs, cardIndex)
+	RemoveChainItemsForCard(gs, logList, UpdateID, cardIndex, executeAtWallTime)
 
 	*logList = append(*logList, logs.DestroyCardLog{
 		UpdateID:        *UpdateID,
