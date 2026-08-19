@@ -13,10 +13,10 @@ func RemoveChainItemsForCard(gs *state.GameState, logList *[]any, UpdateID *int,
 			filtered = append(filtered, item)
 			continue
 		}
-		*logList = append(*logList, logs.RemoveChainLog{
+		*logList = append(*logList, logs.PurgeChainLog{
 			UpdateID:      *UpdateID,
 			WallTimestamp: executeAtWallTime,
-			Type:          logs.RemoveChain,
+			Type:          logs.PurgeChain,
 			CardIndex:     cardIndex,
 		})
 		*UpdateID++

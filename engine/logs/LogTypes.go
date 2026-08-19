@@ -39,6 +39,7 @@ const (
 	TrapReady
 	SubmitChain
 	ClearPendingChains
+	PurgeChain
 )
 
 type PhaseLog struct {
@@ -346,4 +347,11 @@ type SpawnTokenLog struct {
 	CardType      int
 	IsToken       bool
 	ChainEntry    state.ChainEntry
+}
+
+type PurgeChainLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	CardIndex     int
 }
