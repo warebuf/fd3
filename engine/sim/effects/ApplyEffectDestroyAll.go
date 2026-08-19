@@ -25,6 +25,9 @@ func ApplyEffectDestroyAll(gs *state.GameState, pq *state.SimulationPQ, logList 
 	}
 
 	destruction.ClearPreselectsTargetingByIndexes(gs, destroyedIndexes)
+	for cardIndex := range destroyedIndexes {
+		destruction.RemoveChainItemsForCard(gs, logList, UpdateID, cardIndex, executeAtWallTime)
+	}
 
 	*logList = append(*logList, logs.DestroyCardLog{
 		UpdateID:        *UpdateID,

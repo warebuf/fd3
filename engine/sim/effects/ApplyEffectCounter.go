@@ -27,10 +27,12 @@ func ApplyEffectCounter(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 				}
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
+				destruction.RemoveChainItemsForCard(gs, logList, UpdateID, target.CardIndex, executeAtWallTime)
 			}
 		case state.ChainSummon, state.ChainContinuousResolution:
 			card.Zone = state.ZoneGraveyard
 			gs.Grave[card.Team] = append(gs.Grave[card.Team], target.CardIndex)
+			destruction.RemoveChainItemsForCard(gs, logList, UpdateID, target.CardIndex, executeAtWallTime)
 		case state.ChainContinuousAbility:
 			destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, target.CardIndex, executeAtWallTime)
 		case state.ChainUnitAbility:
