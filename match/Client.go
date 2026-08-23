@@ -23,6 +23,12 @@ type preselectMessage struct {
 	AbilityIndex    int    `json:"AbilityIndex"` // client doesn't set this yet; pre-seeded to -1 below so we can tell it apart from a real 0
 }
 
+type instantMessage struct {
+	Type            string `json:"Type"`
+	CardIndex       int    `json:"CardIndex"`
+	TargetCardIndex int    `json:"TargetCardIndex"` // only meaningful for equip cards; pre-seeded to -1 so an omitted field means no target
+}
+
 type abilityMessage struct {
 	Type         string `json:"Type"`
 	CardIndex    int    `json:"CardIndex"`
@@ -130,11 +136,11 @@ func (c *Client) Read() {
 			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, -1, -1, -1)
 
 		case "instant":
-			var msg handMessage
+			msg := instantMessage{TargetCardIndex: -1}
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex, msg.TargetCardIndex, -1)
 
 		case "unitAbility":
 			var msg handMessage
