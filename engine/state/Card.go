@@ -42,6 +42,7 @@ type TriggerType int
 
 const (
 	TriggerAllyTrapResolve TriggerType = iota + 1 // fires when this card's owner has a trap resolve
+	TriggerHostWouldBeDestroyed
 )
 
 type TickAbility struct {

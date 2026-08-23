@@ -347,5 +347,9 @@ var CardDefs = []CardDef{
 		Cost:             40,
 		ChainEntry:       state.ChainDual,
 		EquipTargetFlags: TargetOwnField | TargetOppField,
+		OnTrigger: [3]Ability{{
+			Trigger: state.TriggerHostWouldBeDestroyed,
+			Effects: [3]state.Effect{{Type: state.EffectAbsorbDestruction}},
+		}},
 	},
 }

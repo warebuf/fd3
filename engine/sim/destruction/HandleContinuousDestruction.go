@@ -31,6 +31,7 @@ func HandleContinuousDestruction(gs *state.GameState, pq *state.SimulationPQ, lo
 
 	ClearPreselectsTargeting(gs, cardIndex)
 	RemoveChainItemsForCard(gs, logList, UpdateID, cardIndex, executeAtWallTime)
+	DestroyEquipsForHost(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime)
 
 	*logList = append(*logList, logs.RemoveContinuousLog{
 		UpdateID:      *UpdateID,
