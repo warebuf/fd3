@@ -100,24 +100,38 @@ func (match *Match) handleChainResolution() {
 			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
 
 		case state.ChainEquip:
-			card.Zone = state.ZoneEquip
-			gs.Equip[card.Team] = append(gs.Equip[card.Team], chainTop.CardIndex)
-
 			equipTargetFlags := defs.CardDefs[card.DefNo].EquipTargetFlags
-			if !conditions.IsValidTarget(gs, equipTargetFlags, chainTop.CardIndex, card.EquipHostIndex, card.Team) {
-				card.EquipHostIndex = -1
-			}
+			if conditions.IsValidTarget(gs, equipTargetFlags, chainTop.CardIndex, card.EquipHostIndex, card.Team) {
+				card.Zone = state.ZoneEquip
+				gs.Equip[card.Team] = append(gs.Equip[card.Team], chainTop.CardIndex)
 
-			match.EventLog = append(match.EventLog, logs.EquipResolutionLog{
-				UpdateID:      match.NextUpdateID,
-				WallTimestamp: wallTime,
-				Type:          logs.EquipResolution,
-				TeamIndex:     card.Team,
-				CardIndex:     chainTop.CardIndex,
-				HostIndex:     card.EquipHostIndex,
-			})
-			match.NextUpdateID++
-			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+				match.EventLog = append(match.EventLog, logs.EquipResolutionLog{
+					UpdateID:      match.NextUpdateID,
+					WallTimestamp: wallTime,
+					Type:          logs.EquipResolution,
+					TeamIndex:     card.Team,
+					CardIndex:     chainTop.CardIndex,
+					HostIndex:     card.EquipHostIndex,
+				})
+				match.NextUpdateID++
+				schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+			} else {
+				card.EquipHostIndex = -1
+				card.Zone = state.ZoneGraveyard
+				if !card.IsToken {
+					gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+				}
+
+				match.EventLog = append(match.EventLog, logs.DestroyCardLog{
+					UpdateID:        match.NextUpdateID,
+					WallTimestamp:   wallTime,
+					Type:            logs.DestroyCard,
+					TargetAll:       false,
+					TargetTeamIndex: card.Team,
+					TargetCardIndex: chainTop.CardIndex,
+				})
+				match.NextUpdateID++
+			}
 
 		case state.ChainContinuousResolution:
 			card.Zone = state.ZoneContinuous
