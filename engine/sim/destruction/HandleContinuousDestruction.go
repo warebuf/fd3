@@ -11,6 +11,11 @@ func HandleContinuousDestruction(gs *state.GameState, pq *state.SimulationPQ, lo
 	if card.Zone != state.ZoneContinuous {
 		return
 	}
+
+	if RedirectDestructionToEquip(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime) {
+		return
+	}
+
 	cardTeam := card.Team
 
 	for i, ci := range gs.Continuous[cardTeam] {

@@ -11,6 +11,11 @@ func HandleTrapDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	if card.Zone != state.ZoneTrap {
 		return
 	}
+
+	if RedirectDestructionToEquip(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime) {
+		return
+	}
+
 	cardTeam := card.Team
 
 	for i, ci := range gs.Traps[cardTeam] {

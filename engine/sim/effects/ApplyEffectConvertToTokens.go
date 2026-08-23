@@ -36,20 +36,21 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 	def := defs.CardDefs[defNo]
 
 	card := state.Card{
-		DefNo:       defNo,
-		Name:        def.Name,
-		Description: def.Description,
-		HP:          def.BaseHP,
-		Cost:        def.Cost,
-		Archetype:   def.Archetype,
-		Taunt:       def.Taunt,
-		Team:        teamIndex,
-		Type:        def.Type,
-		Zone:        state.ZoneField,
-		IsToken:     def.IsToken,
-		ChainEntry:  def.ChainEntry,
-		Charges:     def.Charges,
-		MaxCharges:  def.MaxCharges,
+		DefNo:          defNo,
+		Name:           def.Name,
+		Description:    def.Description,
+		HP:             def.BaseHP,
+		Cost:           def.Cost,
+		Archetype:      def.Archetype,
+		Taunt:          def.Taunt,
+		Team:           teamIndex,
+		Type:           def.Type,
+		Zone:           state.ZoneField,
+		IsToken:        def.IsToken,
+		ChainEntry:     def.ChainEntry,
+		Charges:        def.Charges,
+		MaxCharges:     def.MaxCharges,
+		EquipHostIndex: -1,
 	}
 	for i, ability := range def.OnPlay {
 		card.OnPlay[i] = state.OnPlayAbility{

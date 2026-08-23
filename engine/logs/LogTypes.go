@@ -40,6 +40,7 @@ const (
 	SubmitChain
 	ClearPendingChains
 	PurgeChain
+	EquipResolution
 )
 
 type PhaseLog struct {
@@ -72,6 +73,15 @@ type SummonResolutionLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
+}
+
+type EquipResolutionLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
+	HostIndex     int // -1 if the preselected host was gone by the time this resolved
 }
 
 type RemoveChainLog struct {

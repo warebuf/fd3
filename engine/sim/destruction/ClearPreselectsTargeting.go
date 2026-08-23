@@ -12,14 +12,3 @@ func ClearPreselectsTargeting(gs *state.GameState, cardIndex int) {
 		}
 	}
 }
-
-// clears any preselected Active target pointing at one of destroyedIndexes
-func ClearPreselectsTargetingByIndexes(gs *state.GameState, destroyedIndexes map[int]bool) {
-	for i := range gs.Cards {
-		for j := range gs.Cards[i].Actives {
-			if destroyedIndexes[gs.Cards[i].Actives[j].Target] {
-				gs.Cards[i].Actives[j].Target = -1
-			}
-		}
-	}
-}

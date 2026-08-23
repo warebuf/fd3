@@ -8,25 +8,11 @@ import (
 
 // only destroys on field cards
 func ApplyEffectDestroyAll(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, executeAtWallTime int64) {
-	destroyedIndexes := map[int]bool{}
 	for team := 0; team < len(gs.Field); team++ {
-		for _, cardIndex := range gs.Field[team] {
-			gs.Cards[cardIndex].Zone = state.ZoneGraveyard
-			if !gs.Cards[cardIndex].IsToken {
-				gs.Grave[team] = append(gs.Grave[team], cardIndex)
-			}
-			destroyedIndexes[cardIndex] = true
+		fieldSnapshot := append([]int{}, gs.Field[team]...)
+		for _, cardIndex := range fieldSnapshot {
+			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime)
 		}
-		gs.Field[team] = []int{}
-	}
-	pq.RemoveSimItemsByCardIndexes(destroyedIndexes)
-	for cardIndex := range destroyedIndexes {
-		gs.Cards[cardIndex].OnTick = [3]state.TickAbility{}
-	}
-
-	destruction.ClearPreselectsTargetingByIndexes(gs, destroyedIndexes)
-	for cardIndex := range destroyedIndexes {
-		destruction.RemoveChainItemsForCard(gs, logList, UpdateID, cardIndex, executeAtWallTime)
 	}
 
 	*logList = append(*logList, logs.DestroyCardLog{

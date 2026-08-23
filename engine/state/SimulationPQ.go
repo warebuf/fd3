@@ -4,18 +4,6 @@ import (
 	"container/heap"
 )
 
-func (pq *SimulationPQ) RemoveSimItemsByCardIndexes(cardIndexes map[int]bool) {
-	var toRemove []*SimulationItem
-	for _, item := range pq.Items {
-		if cardIndexes[item.CardIndex] {
-			toRemove = append(toRemove, item)
-		}
-	}
-	for _, item := range toRemove {
-		heap.Remove(pq, item.index)
-	}
-}
-
 func (pq *SimulationPQ) RemoveSimItemByCardIndex(cardIndex int) {
 	var toRemove []*SimulationItem
 	for _, item := range pq.Items {

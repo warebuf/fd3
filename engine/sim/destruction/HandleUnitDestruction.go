@@ -11,6 +11,11 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 	if card.Zone != state.ZoneField {
 		return
 	}
+
+	if RedirectDestructionToEquip(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime) {
+		return
+	}
+
 	cardTeam := card.Team
 
 	// remove from field

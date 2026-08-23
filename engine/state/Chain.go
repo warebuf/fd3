@@ -9,6 +9,7 @@ const (
 	ChainSummon
 	ChainContinuousResolution
 	ChainStructureAbility
+	ChainEquip
 )
 
 type ChainEntry int

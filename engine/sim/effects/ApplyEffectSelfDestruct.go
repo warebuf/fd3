@@ -12,5 +12,7 @@ func ApplyEffectSelfDestruct(gs *state.GameState, pq *state.SimulationPQ, logLis
 		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 	} else if gs.Cards[sourceCardIndex].Type == state.CardTypeTrap {
 		destruction.HandleTrapDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
+	} else if gs.Cards[sourceCardIndex].Type == state.CardTypeEquip {
+		destruction.HandleEquipDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 	}
 }

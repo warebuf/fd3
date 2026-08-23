@@ -42,6 +42,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Grave:      make([][]int, numTeams),
 		Continuous: make([][]int, numTeams),
 		Traps:      make([][]int, numTeams),
+		Equip:      make([][]int, numTeams),
 		Chain:      []state.ChainItem{},
 		Priority:   0,
 		Mana: func() []int {
@@ -64,6 +65,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		gs.Grave[team] = []int{}
 		gs.Continuous[team] = []int{}
 		gs.Traps[team] = []int{}
+		gs.Equip[team] = []int{}
 
 		for _, defNo := range defNos {
 			def := defs.CardDefs[defNo]
@@ -86,6 +88,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				MaxCharges:     def.MaxCharges,
 				PendingCharges: 0,
 				AutoSummon:     0,
+				EquipHostIndex: -1,
 			}
 			for i, ability := range def.OnPlay {
 				card.OnPlay[i] = state.OnPlayAbility{

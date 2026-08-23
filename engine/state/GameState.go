@@ -38,6 +38,7 @@ type GameState struct {
 	Grave      [][]int
 	Continuous [][]int // per team
 	Traps      [][]int // per team, traps that have been set but not yet activated
+	Equip      [][]int // per team, equip cards attached to a host card
 
 	Chain []ChainItem // LIFO, sim paused while non-empty
 
@@ -111,6 +112,13 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	for i := range prevState.Traps {
 		newState.Traps[i] = make([]int, len(prevState.Traps[i]))
 		copy(newState.Traps[i], prevState.Traps[i])
+	}
+
+	// Equip
+	newState.Equip = make([][]int, len(prevState.Equip))
+	for i := range prevState.Equip {
+		newState.Equip[i] = make([]int, len(prevState.Equip[i]))
+		copy(newState.Equip[i], prevState.Equip[i])
 	}
 
 	// Mana

@@ -48,12 +48,21 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		}
 	}
 
+	if gs.Cards[cardIndex].Type == state.CardTypeEquip {
+		equipTargetFlags := defs.CardDefs[gs.Cards[cardIndex].DefNo].EquipTargetFlags
+		if !conditions.IsValidTarget(gs, equipTargetFlags, cardIndex, gs.Cards[cardIndex].EquipHostIndex, teamIndex) {
+			return false
+		}
+	}
+
 	var chainType state.ChainType
 	switch gs.Cards[cardIndex].Type {
 	case state.CardTypeUnit:
 		chainType = state.ChainSummon
 	case state.CardTypeContinuous:
 		chainType = state.ChainContinuousResolution
+	case state.CardTypeEquip:
+		chainType = state.ChainEquip
 	case state.CardTypeTrap:
 		return false
 	default:

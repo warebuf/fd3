@@ -6,6 +6,7 @@ import (
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
 	"github.com/warebuf/fd3/engine/sim/chain"
+	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/sim/conditions/trigger"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
@@ -94,6 +95,26 @@ func (match *Match) handleChainResolution() {
 				Type:          logs.SummonResolution,
 				TeamIndex:     card.Team,
 				CardIndex:     chainTop.CardIndex,
+			})
+			match.NextUpdateID++
+			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
+
+		case state.ChainEquip:
+			card.Zone = state.ZoneEquip
+			gs.Equip[card.Team] = append(gs.Equip[card.Team], chainTop.CardIndex)
+
+			equipTargetFlags := defs.CardDefs[card.DefNo].EquipTargetFlags
+			if !conditions.IsValidTarget(gs, equipTargetFlags, chainTop.CardIndex, card.EquipHostIndex, card.Team) {
+				card.EquipHostIndex = -1
+			}
+
+			match.EventLog = append(match.EventLog, logs.EquipResolutionLog{
+				UpdateID:      match.NextUpdateID,
+				WallTimestamp: wallTime,
+				Type:          logs.EquipResolution,
+				TeamIndex:     card.Team,
+				CardIndex:     chainTop.CardIndex,
+				HostIndex:     card.EquipHostIndex,
 			})
 			match.NextUpdateID++
 			schedule.ScheduleAllOnTicks(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, chainTop.CardIndex, match.GameState.SimPauseStartedAt-gs.SimPauseOffset, wallTime)
@@ -231,7 +252,7 @@ func chainSourceStillValid(gs *state.GameState, chainTop state.ChainItem) bool {
 		return true // no source card, e.g. a structure ability
 	}
 	card := gs.Cards[chainTop.CardIndex]
-	if chainTop.Type == state.ChainSummon || chainTop.Type == state.ChainContinuousResolution {
+	if chainTop.Type == state.ChainSummon || chainTop.Type == state.ChainContinuousResolution || chainTop.Type == state.ChainEquip {
 		return card.Zone == state.ZonePending // hasn't reached its zone yet; that's expected, not a fizzle
 	}
 	switch card.Type {
@@ -241,6 +262,8 @@ func chainSourceStillValid(gs *state.GameState, chainTop state.ChainItem) bool {
 		return card.Zone == state.ZoneContinuous
 	case state.CardTypeTrap:
 		return card.Zone == state.ZoneTrap
+	case state.CardTypeEquip:
+		return card.Zone == state.ZoneEquip
 	}
 	return true
 }

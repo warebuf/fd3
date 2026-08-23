@@ -57,6 +57,8 @@ type CardDef struct {
 	Active    [3]Ability
 	OnTrigger [3]Ability
 
+	EquipTargetFlags int // for equipment cards, bitmask of Target flags
+
 	Charges    int // starting charges; shared pool any ability slot on this card may gain or spend from
 	MaxCharges int
 
@@ -337,5 +339,13 @@ var CardDefs = []CardDef{
 			ChainEntry: state.ChainDual,
 			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
 		}},
+	},
+	18: {
+		Type:             state.CardTypeEquip,
+		Name:             "Deathless",
+		Description:      "If the equipped unit would be destroyed, negate the damage and destroy this instead.",
+		Cost:             40,
+		ChainEntry:       state.ChainDual,
+		EquipTargetFlags: TargetOwnField | TargetOppField,
 	},
 }

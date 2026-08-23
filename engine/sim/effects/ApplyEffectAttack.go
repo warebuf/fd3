@@ -81,6 +81,21 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 		if damage > 0 && newHP >= gs.Cards[targetIndex].HP {
 			newHP = math.MinInt
 		}
+
+		if newHP <= 0 && destruction.RedirectDestructionToEquip(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime) {
+			*logList = append(*logList, logs.AttackLog{
+				UpdateID:        *UpdateID,
+				WallTimestamp:   executeAtWallTime,
+				Type:            logs.Attack,
+				AttackerIndex:   unitIndex,
+				TargetTeamIndex: enemyTeam,
+				TargetCardIndex: targetIndex,
+				Damage:          damage,
+			})
+			*UpdateID += 1
+			return
+		}
+
 		gs.Cards[targetIndex].HP = newHP
 		*logList = append(*logList, logs.AttackLog{
 			UpdateID:        *UpdateID,

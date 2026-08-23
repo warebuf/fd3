@@ -34,6 +34,10 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if card.Type == state.CardTypeEquip {
+		gs.Cards[cardIndex].EquipHostIndex = ie.TargetCardIndex
+	}
+
 	if !defs.CardDefs[card.DefNo].ChainEntry.CanEnter(gs) {
 		return
 	}
