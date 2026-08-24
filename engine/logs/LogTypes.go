@@ -41,6 +41,7 @@ const (
 	ClearPendingChains
 	PurgeChain
 	EquipResolution
+	TrapResolution
 )
 
 type PhaseLog struct {
@@ -363,5 +364,14 @@ type PurgeChainLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType
+	CardIndex     int
+}
+
+// a set trap finishing its resolution, leaving the trap zone for the graveyard
+type TrapResolutionLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
 	CardIndex     int
 }

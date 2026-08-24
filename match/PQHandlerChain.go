@@ -155,6 +155,16 @@ func (match *Match) handleChainResolution() {
 				}
 				card.Zone = state.ZoneGraveyard
 				gs.Grave[card.Team] = append(gs.Grave[card.Team], chainTop.CardIndex)
+
+				match.EventLog = append(match.EventLog, logs.TrapResolutionLog{
+					UpdateID:      match.NextUpdateID,
+					WallTimestamp: wallTime,
+					Type:          logs.TrapResolution,
+					TeamIndex:     card.Team,
+					CardIndex:     chainTop.CardIndex,
+				})
+				match.NextUpdateID++
+
 				trigger.FireAllyTrigger(gs, &match.EventLog, &match.NextUpdateID, card.Team, state.TriggerAllyTrapResolve, wallTime)
 			}
 
