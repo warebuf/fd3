@@ -5,7 +5,6 @@ import (
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim"
-	"github.com/warebuf/fd3/engine/sim/chain"
 	"github.com/warebuf/fd3/engine/sim/conditions"
 	"github.com/warebuf/fd3/engine/sim/conditions/trigger"
 	"github.com/warebuf/fd3/engine/sim/schedule"
@@ -26,49 +25,6 @@ func (match *Match) handleChainResolution() {
 
 	top := gs.Chain[len(gs.Chain)-1]
 	wallTime := top.ExecuteAtActiveTime + gs.FullPauseOffset
-
-	// get prio team
-	winnerTeam := -1
-	if match.PendingChains[gs.Priority].Type != 0 {
-		winnerTeam = gs.Priority
-	} else if match.PendingChains[1-gs.Priority].Type != 0 {
-		winnerTeam = 1 - gs.Priority
-	}
-
-	if winnerTeam >= 0 {
-		p := match.PendingChains[winnerTeam]
-		match.PendingChains = make([]PendingChain, len(match.PendingChains)) // clear both slots; the loser (if any) simply fails
-
-		oldLogsSize := len(match.EventLog)
-
-		match.EventLog = append(match.EventLog, logs.ClearPendingChainsLog{
-			UpdateID:      match.NextUpdateID,
-			WallTimestamp: wallTime,
-			Type:          logs.ClearPendingChains,
-		})
-		match.NextUpdateID++
-
-		ok := false
-		switch p.Type {
-		case PendingChainCard:
-			ok = chain.PushCardOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, p.CardIndex, wallTime-constants.LEAD)
-		case PendingChainAbility:
-			ok = chain.PushAbilityOnChain(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
-		case PendingChainTrap:
-			ok = chain.PushTrapOnChain(gs, &match.EventLog, &match.NextUpdateID, p.CardIndex, p.ActiveIndex, wallTime)
-		case PendingChainStructureDraw:
-			chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, winnerTeam, wallTime)
-			ok = true
-		}
-
-		// state is frozen during an open window, so this should never fail; fall through to
-		// resolving the top of the chain as if nobody had submitted if it somehow does.
-		if ok {
-			scheduleChainResolution(match)
-			match.publish(wallTime, oldLogsSize)
-			return
-		}
-	}
 
 	// pop the top of the chain
 	chainTop := gs.Chain[len(gs.Chain)-1]

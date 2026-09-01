@@ -111,7 +111,5 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 	})
 	*UpdateID++
 
-	gs.Priority = 1 - teamIndex
-
 	return true
 }

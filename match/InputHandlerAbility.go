@@ -53,16 +53,6 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
-		match.submitPendingChain(teamIndex, PendingChain{
-			Type:        PendingChainAbility,
-			CardIndex:   cardIndex,
-			ActiveIndex: activeIndex,
-		}, ie.WallTime.UnixMilli()+constants.LEAD)
-		return
-	}
-
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
@@ -126,16 +116,6 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
-		match.submitPendingChain(teamIndex, PendingChain{
-			Type:        PendingChainTrap,
-			CardIndex:   cardIndex,
-			ActiveIndex: activeIndex,
-		}, ie.WallTime.UnixMilli()+constants.LEAD)
-		return
-	}
-
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
@@ -187,16 +167,6 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 	}
 
 	if !activeDef.ChainEntry.CanEnter(gs) {
-		return
-	}
-
-	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
-		match.submitPendingChain(teamIndex, PendingChain{
-			Type:        PendingChainAbility,
-			CardIndex:   cardIndex,
-			ActiveIndex: activeIndex,
-		}, ie.WallTime.UnixMilli()+constants.LEAD)
 		return
 	}
 

@@ -44,7 +44,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Traps:      make([][]int, numTeams),
 		Equip:      make([][]int, numTeams),
 		Chain:      []state.ChainItem{},
-		Priority:   0,
 		Mana: func() []int {
 			m := make([]int, numTeams)
 			for i := range m {

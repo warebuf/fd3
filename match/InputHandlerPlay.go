@@ -46,17 +46,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
-		match.submitPendingChain(teamIndex, PendingChain{
-			Type:        PendingChainCard,
-			CardIndex:   cardIndex,
-			ActiveIndex: -1,
-		}, ie.WallTime.UnixMilli()+constants.LEAD)
-		return
-	}
-
-	// simulating: try to play immediately, no queue fallback
+	// push straight onto the chain, first come first served
 	oldLogsSize := len(match.EventLog)
 	success := chain.PushCardOnChain(
 		gs,

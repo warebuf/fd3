@@ -42,8 +42,6 @@ type GameState struct {
 
 	Chain []ChainItem // LIFO, sim paused while non-empty
 
-	Priority int // team index with priority to react during an open window; persists across windows
-
 	// other states
 	Mana       []int       // per team
 	Structures []Structure // per team
@@ -65,7 +63,6 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		SimPauseOffset:       prevState.SimPauseOffset,
 		TeamPaused:           prevState.TeamPaused,
 		Winner:               prevState.Winner,
-		Priority:             prevState.Priority,
 	}
 
 	// Cards

@@ -37,8 +37,6 @@ const (
 	ToggleStructureAutoAbility
 	SetTrap
 	TrapReady
-	SubmitChain
-	ClearPendingChains
 	PurgeChain
 	EquipResolution
 	TrapResolution
@@ -252,23 +250,6 @@ type TrapReadyLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
-}
-
-// a submission parked in PendingChains, held until the window's timer reveals it
-type SubmitChainLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	CardIndex     int // -1 for a structure draw, which has no card
-	PendingType   int
-}
-
-// both teams' parked submissions cleared as the window resolved
-type ClearPendingChainsLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
 }
 
 type PlayContinuousLog struct {

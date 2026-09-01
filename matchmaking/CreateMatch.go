@@ -51,7 +51,6 @@ func CreateMatch(tickets []*Ticket, MatchMap map[string]*match.Match) *match.Mat
 
 		GameState:      gs,
 		PublishedState: state.DeepCopyGameState(gs),
-		PendingChains:  make([]match.PendingChain, len(tickets)),
 		EventLog:       []any{},
 		NextUpdateID:   1, // starts as 1 because the GameState already is UpdateID 0
 

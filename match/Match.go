@@ -24,8 +24,6 @@ type Match struct {
 	NextUpdateID int
 	DebugTrace   []debug.TraceEntry
 
-	PendingChains []PendingChain // one slot per team; zero value (Type == 0) means no submission this window
-
 	// networking related
 	InputEventChan chan *eventpq.InputEvent
 

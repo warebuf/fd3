@@ -49,6 +49,4 @@ func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++
-
-	gs.Priority = 1 - teamIndex
 }

@@ -89,7 +89,5 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 	})
 	*UpdateID++
 
-	gs.Priority = 1 - teamIndex
-
 	return true
 }

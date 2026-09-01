@@ -29,16 +29,6 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 		return
 	}
 
-	if gs.PausePhase == state.PausePhaseSimPause {
-		// hold the chain item back until the window's timer reveals it (see handleChainResolution)
-		match.submitPendingChain(teamIndex, PendingChain{
-			Type:        PendingChainStructureDraw,
-			CardIndex:   -1,
-			ActiveIndex: -1,
-		}, ie.WallTime.UnixMilli()+constants.LEAD)
-		return
-	}
-
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
