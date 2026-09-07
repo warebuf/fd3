@@ -91,7 +91,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
 		Description: "Destroy all units on the field",
-		Cost:        300,
+		Cost:        100,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
 			Effects: [3]state.Effect{
