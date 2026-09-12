@@ -22,6 +22,10 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleInputReady(ie)
 	case "unready":
 		match.handleInputUnready(ie)
+	case "skipChain":
+		match.handleInputSkipChain(ie)
+	case "unskipChain":
+		match.handleInputUnskipChain(ie)
 	case "active":
 		match.handleUseContinuous(ie)
 	case "instant":

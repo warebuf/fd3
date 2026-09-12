@@ -40,6 +40,8 @@ const (
 	PurgeChain
 	EquipResolution
 	TrapResolution
+	SkipChain
+	UnskipChain
 )
 
 type PhaseLog struct {
@@ -166,6 +168,21 @@ type ReadyLog struct {
 }
 
 type UnreadyLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+}
+
+// a team waiving its reaction to the current chain top; once every team has, the window collapses
+type SkipChainLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+}
+
+type UnskipChainLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType

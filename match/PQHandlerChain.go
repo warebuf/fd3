@@ -198,6 +198,8 @@ func (match *Match) handleChainResolution() {
 	})
 	match.NextUpdateID++
 
+	match.clearChainSkips(wallTime)
+
 	if len(gs.Chain) == 0 {
 		match.TransitionPauseState(state.PauseTransitionUnpause, wallTime, -1)
 		match.processAutoSummonQueue(wallTime, -1)

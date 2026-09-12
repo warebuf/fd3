@@ -34,6 +34,7 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 
 	chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, executeAtWallTime)
 
+	match.clearChainSkips(executeAtWallTime)
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleChainResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)

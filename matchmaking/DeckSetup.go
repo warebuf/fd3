@@ -53,6 +53,7 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		}(),
 		Structures: structures,
 		Ready:      make([]bool, numTeams),
+		SkipChain:  make([]bool, numTeams),
 	}
 	nextCardIndex := 0
 	for team := 0; team < len(deckDefs); team++ {

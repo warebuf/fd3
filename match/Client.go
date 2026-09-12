@@ -135,6 +135,12 @@ func (c *Client) Read() {
 		case "unready":
 			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, -1, -1, -1)
 
+		case "skipChain":
+			ScheduleInputEvent(receiveTime, c.MatchObj, "skipChain", c.ID, -1, -1, -1)
+
+		case "unskipChain":
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unskipChain", c.ID, -1, -1, -1)
+
 		case "instant":
 			msg := instantMessage{TargetCardIndex: -1}
 			if err := strictUnmarshal(data, &msg); err != nil {

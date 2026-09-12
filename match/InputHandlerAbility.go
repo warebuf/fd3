@@ -60,6 +60,7 @@ func (match *Match) handleUseContinuous(ie *eventpq.InputEvent) {
 		return
 	}
 
+	match.clearChainSkips(executeAtWallTime)
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleChainResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
@@ -123,6 +124,7 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	match.clearChainSkips(executeAtWallTime)
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleChainResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)
@@ -177,6 +179,7 @@ func (match *Match) handleUnitAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	match.clearChainSkips(executeAtWallTime)
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)
 	scheduleChainResolution(match)
 	match.publish(executeAtWallTime, oldLogsSize)

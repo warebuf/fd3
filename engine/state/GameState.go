@@ -46,6 +46,7 @@ type GameState struct {
 	Mana       []int       // per team
 	Structures []Structure // per team
 	Ready      []bool      // per team, whether the player has readied up
+	SkipChain  []bool      // per team, waived reacting to the current chain top; cleared whenever the chain changes
 
 	Winner int // -1: no winner yet, 0+: winning team index, -2: tie
 }
@@ -129,6 +130,10 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// Ready
 	newState.Ready = make([]bool, len(prevState.Ready))
 	copy(newState.Ready, prevState.Ready)
+
+	// SkipChain
+	newState.SkipChain = make([]bool, len(prevState.SkipChain))
+	copy(newState.SkipChain, prevState.SkipChain)
 
 	// TimeBank
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))

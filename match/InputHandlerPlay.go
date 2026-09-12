@@ -58,6 +58,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	)
 
 	if success {
+		match.clearChainSkips(ie.WallTime.UnixMilli() + constants.LEAD)
 		match.TransitionPauseState(state.PausePhaseSimPause, ie.WallTime.UnixMilli()+constants.LEAD, -1)
 		scheduleChainResolution(match)
 		match.publish(ie.WallTime.UnixMilli()+constants.LEAD, oldLogsSize)
