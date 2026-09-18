@@ -42,6 +42,8 @@ func (match *Match) handleInputEvent(ie *eventpq.InputEvent) {
 		match.handleToggleStructureAutoAbility(ie)
 	case "structureDraw":
 		match.handleStructureDraw(ie)
+	case "bid":
+		match.handleBid(ie)
 	}
 
 }

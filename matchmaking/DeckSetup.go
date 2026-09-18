@@ -66,6 +66,22 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Structures: structures,
 		Ready:      make([]bool, numTeams),
 		SkipChain:  make([]bool, numTeams),
+
+		StandoffCardIndex: -1,
+		PendingBidAmount: func() []int {
+			b := make([]int, numTeams)
+			for i := range b {
+				b[i] = -1
+			}
+			return b
+		}(),
+		PendingBidChoice: func() []int {
+			b := make([]int, numTeams)
+			for i := range b {
+				b[i] = -1
+			}
+			return b
+		}(),
 	}
 	nextCardIndex := 0
 	for team := 0; team < len(deckDefs); team++ {
@@ -90,8 +106,10 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				HP:          def.BaseHP,
 				Archetype:   def.Archetype,
 				Taunt:       def.Taunt,
+				Bodyguard:   def.Bodyguard,
 
 				Team:           team,
+				OwnerTeam:      team,
 				Type:           def.Type,
 				Zone:           state.ZoneDeck,
 				IsToken:        def.IsToken,

@@ -24,6 +24,11 @@ func CheckActiveAbilityConditions(gs *state.GameState, cardIndex int, activeInde
 			if card.Charges < 1 {
 				return false
 			}
+		case state.ConditionTargetOwnedBySelf:
+			target := active.Target
+			if target < 0 || target >= len(gs.Cards) || gs.Cards[target].OwnerTeam != card.Team {
+				return false
+			}
 		default:
 			return false // unknown/unimplemented condition type - fail closed
 		}

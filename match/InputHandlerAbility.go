@@ -92,6 +92,14 @@ func (match *Match) handleTrapAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	if defs.CardDefs[card.DefNo].IsAuction {
+		if gs.Mana[teamIndex] < card.Cost || gs.StandoffCardIndex != -1 {
+			return // can't afford it, or an auction is already open
+		}
+		match.openStandoffAuction(cardIndex, teamIndex, ie.WallTime.UnixMilli()+constants.LEAD)
+		return
+	}
+
 	activeIndex := abilityslot.GetActiveSlot(card.DefNo, ie.AbilityIndex)
 	if activeIndex < 0 {
 		return

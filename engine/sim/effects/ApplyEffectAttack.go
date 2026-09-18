@@ -9,7 +9,10 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) {
+// hitStructure reports whether this attack actually landed on an enemy structure (as opposed to a
+// unit, or fizzling with nothing to hit at all), so callers like ApplyEffectGraveyardBarrage can
+// react to siege damage specifically.
+func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) (hitStructure bool) {
 	unitIndex := sourceCardIndex
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
@@ -76,6 +79,10 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	}
 
 	if targetIndex >= 0 {
+		targetIndex = state.BodyguardRedirect(gs, targetIndex)
+	}
+
+	if targetIndex >= 0 {
 		// allow negative HP but clamp to math.MinInt; wrap-around check avoids overflow in the guard itself
 		newHP := gs.Cards[targetIndex].HP - damage
 		if damage > 0 && newHP >= gs.Cards[targetIndex].HP {
@@ -94,7 +101,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				Damage:               damage,
 			})
 			*UpdateID += 1
-			return
+			return false
 		}
 
 		gs.Cards[targetIndex].HP = newHP
@@ -113,6 +120,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 		if gs.Cards[targetIndex].HP <= 0 {
 			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 		}
+		return false
 	} else {
 		// no unit target, so the attack lands on a random living enemy structure
 		var living []int
@@ -122,7 +130,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			}
 		}
 		if len(living) == 0 {
-			return
+			return false
 		}
 		structureIndex := living[rand.Intn(len(living))]
 
@@ -150,5 +158,6 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				gs.Winner = teamIndex
 			}
 		}
+		return true
 	}
 }

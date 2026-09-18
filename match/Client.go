@@ -44,6 +44,12 @@ type readyMessage struct {
 	Type string `json:"type"`
 }
 
+type bidMessage struct {
+	Type   string `json:"type"`
+	Amount int    `json:"Amount"`
+	Choice int    `json:"Choice"`
+}
+
 // spawns per websocket connection
 type Client struct {
 	ID   string
@@ -200,6 +206,14 @@ func (c *Client) Read() {
 				continue
 			}
 			ScheduleInputEvent(receiveTime, c.MatchObj, "structureDraw", c.ID, -1, -1, -1, msg.StructureIndex)
+
+		case "bid":
+			var msg bidMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			// reuses cardIndex/targetCardIndex positionally to carry Amount/Choice; see handleBid
+			ScheduleInputEvent(receiveTime, c.MatchObj, "bid", c.ID, msg.Amount, msg.Choice, -1, -1)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now

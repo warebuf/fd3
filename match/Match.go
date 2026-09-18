@@ -41,24 +41,26 @@ type Match struct {
 
 }
 
-// TODO: needs to be censored per client
+// TODO: hand/deck contents still aren't censored per client, only the Standoff bid fields are
 func (match *Match) BroadcastPublishedState() {
 
-	// serialize game state
-	wrapper := struct {
-		Type string      `json:"type"`
-		Data interface{} `json:"data"`
-	}{
-		Type: "fullState",
-		Data: match.PublishedState,
-	}
-	gameStateJSON, err := json.Marshal(wrapper)
-	if err != nil {
-		return
-	}
-
-	// send to all clients
+	// send a separately censored copy to each client, since what's hidden depends on their team
 	for key, client := range match.ByUser {
+		team, ok := match.Whitelist[key]
+		if !ok {
+			continue
+		}
+		wrapper := struct {
+			Type string      `json:"type"`
+			Data interface{} `json:"data"`
+		}{
+			Type: "fullState",
+			Data: state.CensorForTeam(match.PublishedState, int(team)),
+		}
+		gameStateJSON, err := json.Marshal(wrapper)
+		if err != nil {
+			continue
+		}
 		select {
 		case client.LowPrio <- gameStateJSON:
 		default:
@@ -67,16 +69,21 @@ func (match *Match) BroadcastPublishedState() {
 	}
 }
 
-// TODO: needs to be censored per client
+// TODO: hand/deck contents still aren't censored per client, only the Standoff bid fields are
 func (match *Match) SendPublishedState(ClientID string) {
 
-	// serialize current game state
+	team, ok := match.Whitelist[ClientID]
+	if !ok {
+		return
+	}
+
+	// serialize current game state, censored for the requesting client's team
 	wrapper := struct {
 		Type string      `json:"type"`
 		Data interface{} `json:"data"`
 	}{
 		Type: "fullState",
-		Data: match.PublishedState,
+		Data: state.CensorForTeam(match.PublishedState, int(team)),
 	}
 	gameStateJSON, err := json.Marshal(wrapper)
 	if err != nil {

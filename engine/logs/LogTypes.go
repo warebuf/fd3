@@ -43,6 +43,9 @@ const (
 	SkipChain
 	UnskipChain
 	GiveControl
+	StandoffOpen
+	StandoffBid
+	StandoffResolution
 )
 
 type PhaseLog struct {
@@ -386,4 +389,34 @@ type GiveControlLog struct {
 	CardIndex     int
 	FromTeamIndex int
 	ToTeamIndex   int
+}
+
+// a Standoff-style trap opened a blind mana auction; the card leaves its trap zone to await both bids
+type StandoffOpenLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int // the team that opened it
+	CardIndex     int
+}
+
+// one team sealed their bid. Deliberately carries no Amount or Choice - those stay secret until
+// StandoffResolutionLog reveals them, since this log is broadcast to both clients unfiltered
+type StandoffBidLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+}
+
+// both bids are in; reveals everything at once now that it's safe to
+type StandoffResolutionLog struct {
+	WallTimestamp     int64
+	UpdateID          int
+	Type              LogType
+	CardIndex         int
+	Bids              [2]int
+	Choices           [2]int
+	WinnerTeam        int
+	ChosenEffectIndex int
 }

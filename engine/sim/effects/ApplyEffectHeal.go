@@ -18,7 +18,7 @@ func ApplyEffectHeal(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 		return
 	}
 
-	targetIndex := friendlyField[rand.Intn(len(friendlyField))]
+	targetIndex := state.BodyguardRedirect(gs, friendlyField[rand.Intn(len(friendlyField))])
 
 	if amount > math.MaxInt-gs.Cards[targetIndex].HP {
 		gs.Cards[targetIndex].HP = math.MaxInt

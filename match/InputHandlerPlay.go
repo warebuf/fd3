@@ -35,7 +35,7 @@ func (match *Match) handleInstantPlay(ie *eventpq.InputEvent) {
 	}
 
 	if card.Type == state.CardTypeEquip {
-		gs.Cards[cardIndex].EquipHostIndex = ie.TargetCardIndex
+		gs.Cards[cardIndex].EquipHostIndex = state.BodyguardRedirect(gs, ie.TargetCardIndex)
 	}
 
 	if !defs.CardDefs[card.DefNo].ChainEntry.CanEnter(gs) {

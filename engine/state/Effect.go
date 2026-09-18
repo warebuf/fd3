@@ -19,6 +19,13 @@ const (
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
 	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no EffectAttack in any ability slot gains this much HP
 	EffectExtort            // only used in OnTrigger[TriggerEnemyPaidMana]; A: the team that just paid mana (auto-filled), B: toll amount taken from them if they can afford it, granted to the source card's controller either way
+	EffectRepossess         // A: card index (from Card.Actives[abilityIndex].Target); takes control of that opponent field unit (must be OwnerTeam == the activating team) and forces its own Active[0] ability to resolve for free
+	EffectDamageAllAllies   // only used in OnTrigger[TriggerSelfDestroyed]; B: damage dealt to every unit remaining on the source's own team's field. Applied directly by destruction.HandleUnitDestruction, not through the generic effect dispatcher
+	EffectDrainMana         // A: the draining team (auto-filled), B: amount requested; takes at most what the opponent currently has and grants that (possibly smaller) amount to A
+	EffectHealSelf          // B: amount; heals the source card itself, unlike EffectHeal which picks a random ally on the field
+	EffectLiquidate         // A: card index (from Card.Actives[abilityIndex].Target); destroys that friendly field unit and converts its HP, Charges, and attached equips' Cost into mana for its controller
+	EffectMutualDestruction // A: the activator's own chosen unit (from Card.Actives[abilityIndex].Target), B: damage each swapped unit deals in its forced attack. Swaps control of that unit with a random unit off the opponent's field (no bilateral-choice mechanic exists yet, so the opponent's side is picked for them), then both immediately attack their new opponent
+	EffectGraveyardBarrage  // B: damage per hit; fires one random-target attack for every card currently in the source's own team's graveyard
 )
 
 type Effect struct {
@@ -45,32 +52,50 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		return templ
 	case EffectSacrifice:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
 		}
 		return templ
 	case EffectConsume:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].OnPlay[abilityIndex].Target
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].OnPlay[abilityIndex].Target)
 		}
 		return templ
 	case EffectConvertToTokens:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
 		}
 		return templ
 	case EffectChargeTarget:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
 		}
 		templ.C = gs.Cards[cardIndex].DefNo
 		return templ
 	case EffectGiveControl:
 		if abilityIndex >= 0 {
-			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
 		}
 		return templ
 	case EffectExtort:
 		templ.A = teamIndex
+		return templ
+	case EffectRepossess:
+		if abilityIndex >= 0 {
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
+		}
+		return templ
+	case EffectDrainMana:
+		templ.A = teamIndex
+		return templ
+	case EffectLiquidate:
+		if abilityIndex >= 0 {
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
+		}
+		return templ
+	case EffectMutualDestruction:
+		if abilityIndex >= 0 {
+			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
+		}
 		return templ
 	}
 	return templ

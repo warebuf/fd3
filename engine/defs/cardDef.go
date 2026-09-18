@@ -49,9 +49,11 @@ type CardDef struct {
 
 	Archetype int
 	Taunt     bool
+	Bodyguard bool
 
 	ChainEntry state.ChainEntry
 	IsToken    bool // if set true, does not go to grave
+	IsAuction  bool // if set true, this trap's Active[0] opens a Standoff-style blind mana auction instead of resolving normally; see match.handleBid
 
 	OnPlay    [3]Ability
 	OnTick    [3]Ability
@@ -386,6 +388,120 @@ var CardDefs = []CardDef{
 			TriggerZones: TriggerZoneField,
 			ChainEntry:   state.ChainDual,
 			Effects:      [3]state.Effect{{Type: state.EffectExtort, B: 10}},
+		}},
+	},
+	22: {
+		Type:        state.CardTypeTrap,
+		Name:        "Repossession",
+		Description: "Take control of a unit you originally owned. It immediately activates one of its abilities for free.",
+		Cost:        60,
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
+			TargetFlags: TargetOppField,
+			Cons:        [3]state.ConditionType{state.ConditionTargetOwnedBySelf},
+			Effects:     [3]state.Effect{{Type: state.EffectRepossess}},
+		}},
+	},
+	23: {
+		Type:        state.CardTypeUnit,
+		Name:        "Volatile Core",
+		Description: "When this unit is destroyed, deal 5 damage to all allied units.",
+		BaseHP:      3,
+		Cost:        70,
+		ChainEntry:  state.ChainAction,
+		OnTrigger: [3]Ability{{
+			Trigger:      state.TriggerSelfDestroyed,
+			TriggerZones: TriggerZoneGraveyard,
+			Effects:      [3]state.Effect{{Type: state.EffectDamageAllAllies, B: 5}},
+		}},
+	},
+	24: {
+		Type:        state.CardTypeUnit,
+		Name:        "Mana Leech",
+		Description: "Drains 50 mana from the opponent and gains 1 HP every 25 ticks.",
+		BaseHP:      2,
+		Cost:        80,
+		ChainEntry:  state.ChainAction,
+		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
+			Milliseconds: 25000,
+			Effects: [3]state.Effect{
+				{Type: state.EffectDrainMana, B: 50},
+				{Type: state.EffectHealSelf, B: 1},
+			},
+		}},
+	},
+	25: {
+		Type:        state.CardTypeTrap,
+		Name:        "Liquidator",
+		Description: "Destroy one of your units. Convert its health, charges, and attachments into mana.",
+		Cost:        0,
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
+			TargetFlags: TargetOwnField,
+			Effects:     [3]state.Effect{{Type: state.EffectLiquidate}},
+		}},
+	},
+	26: {
+		Type:        state.CardTypeTrap,
+		Name:        "Mutual Destruction",
+		Description: "Each player chooses one of their own units. Exchange them, then both immediately attack.",
+		Cost:        40,
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
+			TargetFlags: TargetOwnField,
+			Effects:     [3]state.Effect{{Type: state.EffectMutualDestruction, B: 3}},
+		}},
+	},
+	27: {
+		Type:        state.CardTypeUnit,
+		Name:        "Bodyguard",
+		Description: "When any effect selects a target, this may become its target instead.",
+		BaseHP:      4,
+		Cost:        60,
+		ChainEntry:  state.ChainAction,
+		Bodyguard:   true,
+	},
+	28: {
+		Type:        state.CardTypeTrap,
+		Name:        "Standoff",
+		Description: "Both players secretly bid mana. The higher bidder chooses which of two effects happens: gain 40 mana, or deal 8 damage to a random enemy structure. Both bids are spent either way; ties favor whoever set this trap.",
+		Cost:        20,
+		IsAuction:   true,
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
+		}},
+	},
+	29: {
+		Type:        state.CardTypeUnit,
+		Name:        "Gravedigger",
+		Description: "Use: For each card in your graveyard, deal 1 damage to a random enemy. Hits that land on a structure also drain that much mana.",
+		BaseHP:      2,
+		Cost:        70,
+		ChainEntry:  state.ChainAction,
+		Active: [3]Ability{{
+			Unlimited:   true,
+			Cost:        30,
+			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
+			Effects:     [3]state.Effect{{Type: state.EffectGraveyardBarrage, B: 1}},
+		}},
+	},
+	30: {
+		Type:        state.CardTypeUnit,
+		Name:        "Leech",
+		Description: "Use: Steal 40 mana from the opponent.",
+		BaseHP:      2,
+		Cost:        70,
+		ChainEntry:  state.ChainAction,
+		Active: [3]Ability{{
+			Unlimited:   true,
+			Cost:        30,
+			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
+			Effects:     [3]state.Effect{{Type: state.EffectDrainMana, B: 40}},
 		}},
 	},
 }

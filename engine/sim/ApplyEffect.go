@@ -55,6 +55,24 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectExtort:
 		effects.ApplyEffectExtort(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectRepossess:
+		effects.ApplyEffectRepossess(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectDrainMana:
+		effects.ApplyEffectDrainMana(gs, logList, UpdateID, eff, executeAtWallTime)
+
+	case state.EffectHealSelf:
+		effects.ApplyEffectHealSelf(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectLiquidate:
+		effects.ApplyEffectLiquidate(gs, pq, logList, UpdateID, eff, executeAtWallTime)
+
+	case state.EffectMutualDestruction:
+		effects.ApplyEffectMutualDestruction(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectGraveyardBarrage:
+		effects.ApplyEffectGraveyardBarrage(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

@@ -50,6 +50,12 @@ type GameState struct {
 	Ready      []bool // per team, whether the player has readied up
 	SkipChain  []bool // per team, waived reacting to the current chain top; cleared whenever the chain changes
 
+	// Standoff-style blind mana auction; see match.handleBid. -1/[-1,-1] when no auction is open.
+	// CensorForTeam hides an opponent's still-sealed bid before this ever reaches their client.
+	StandoffCardIndex int
+	PendingBidAmount  []int // per team; -1 means not yet sealed for the current auction
+	PendingBidChoice  []int // per team; which of the two effects they'd pick if they win, -1 if not yet sealed
+
 	Winner int // -1: no winner yet, 0+: winning team index, -2: tie
 }
 
@@ -67,6 +73,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		TeamPaused:           prevState.TeamPaused,
 		Winner:               prevState.Winner,
 		Structures:           prevState.Structures, // a fixed-size array of values, so this copy is already deep
+		StandoffCardIndex:    prevState.StandoffCardIndex,
 	}
 
 	// Cards
@@ -137,6 +144,12 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	// TimeBank
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
+
+	// PendingBidAmount / PendingBidChoice
+	newState.PendingBidAmount = make([]int, len(prevState.PendingBidAmount))
+	copy(newState.PendingBidAmount, prevState.PendingBidAmount)
+	newState.PendingBidChoice = make([]int, len(prevState.PendingBidChoice))
+	copy(newState.PendingBidChoice, prevState.PendingBidChoice)
 
 	// Chain
 	newState.Chain = make([]ChainItem, len(prevState.Chain))
