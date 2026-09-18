@@ -7,9 +7,9 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// caller is responsible for checking the team can afford the structure's DrawCost before calling
-func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, executeAtWallTime int64) {
-	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
+// caller is responsible for checking the structure is alive and the team can afford its DrawCost before calling
+func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamIndex int, structureIndex int, executeAtWallTime int64) {
+	structDef := defs.StructureDefs[gs.Structures[teamIndex][structureIndex].DefNo]
 
 	gs.Mana[teamIndex] -= structDef.DrawCost
 	*logList = append(*logList, logs.SpendManaLog{
@@ -31,6 +31,7 @@ func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		CardIndex:           -1,
 		ActiveIndex:         -1,
 		TeamIndex:           teamIndex,
+		StructureIndex:      structureIndex,
 		Type:                state.ChainStructureAbility,
 		Effects:             []state.Effect{eff},
 	}
@@ -46,6 +47,7 @@ func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++

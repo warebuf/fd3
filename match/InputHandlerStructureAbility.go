@@ -24,7 +24,17 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 		return
 	}
 
-	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
+	structureIndex := ie.StructureIndex
+	if structureIndex < 0 || structureIndex >= len(gs.Structures[teamIndex]) {
+		return
+	}
+
+	structure := gs.Structures[teamIndex][structureIndex]
+	if structure.HP <= 0 {
+		return
+	}
+
+	structDef := defs.StructureDefs[structure.DefNo]
 	if gs.Mana[teamIndex] < structDef.DrawCost {
 		return
 	}
@@ -32,7 +42,7 @@ func (match *Match) handleStructureDraw(ie *eventpq.InputEvent) {
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, executeAtWallTime)
+	chain.PushStructureDrawOnChain(gs, &match.EventLog, &match.NextUpdateID, teamIndex, structureIndex, executeAtWallTime)
 
 	match.clearChainSkips(executeAtWallTime)
 	match.TransitionPauseState(state.PausePhaseSimPause, executeAtWallTime, -1)

@@ -1,5 +1,7 @@
 package state
 
+import "github.com/warebuf/fd3/engine/constants"
+
 const (
 	PhasePreMatch = 0
 	PhaseDraw     = 1
@@ -43,10 +45,10 @@ type GameState struct {
 	Chain []ChainItem // LIFO, sim paused while non-empty
 
 	// other states
-	Mana       []int       // per team
-	Structures []Structure // per team
-	Ready      []bool      // per team, whether the player has readied up
-	SkipChain  []bool      // per team, waived reacting to the current chain top; cleared whenever the chain changes
+	Mana       []int // per team
+	Structures [constants.NUM_TEAMS][constants.STRUCTURES_PER_TEAM]Structure
+	Ready      []bool // per team, whether the player has readied up
+	SkipChain  []bool // per team, waived reacting to the current chain top; cleared whenever the chain changes
 
 	Winner int // -1: no winner yet, 0+: winning team index, -2: tie
 }
@@ -64,6 +66,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 		SimPauseOffset:       prevState.SimPauseOffset,
 		TeamPaused:           prevState.TeamPaused,
 		Winner:               prevState.Winner,
+		Structures:           prevState.Structures, // a fixed-size array of values, so this copy is already deep
 	}
 
 	// Cards
@@ -123,10 +126,6 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.Mana = make([]int, len(prevState.Mana))
 	copy(newState.Mana, prevState.Mana)
 
-	// Structures
-	newState.Structures = make([]Structure, len(prevState.Structures))
-	copy(newState.Structures, prevState.Structures)
-
 	// Ready
 	newState.Ready = make([]bool, len(prevState.Ready))
 	copy(newState.Ready, prevState.Ready)
@@ -147,6 +146,7 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 			CardIndex:           item.CardIndex,
 			ActiveIndex:         item.ActiveIndex,
 			TeamIndex:           item.TeamIndex,
+			StructureIndex:      item.StructureIndex,
 			StartAtActiveTime:   item.StartAtActiveTime,
 			PopAtActiveTime:     item.PopAtActiveTime,
 			ExecuteAtActiveTime: item.ExecuteAtActiveTime,

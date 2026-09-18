@@ -35,6 +35,11 @@ type abilityMessage struct {
 	AbilityIndex int    `json:"AbilityIndex"`
 }
 
+type structureMessage struct {
+	Type           string `json:"Type"`
+	StructureIndex int    `json:"StructureIndex"`
+}
+
 type readyMessage struct {
 	Type string `json:"type"`
 }
@@ -109,58 +114,58 @@ func (c *Client) Read() {
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "autosummon", c.ID, msg.CardIndex, -1, -1, -1)
 
 		case "unautosummon":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unautosummon", c.ID, msg.CardIndex, -1, -1, -1)
 
 		case "active":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "active", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "active", c.ID, msg.CardIndex, -1, -1, -1)
 
 		case "ready":
 			var msg readyMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, -1, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "ready", c.ID, -1, -1, -1, -1)
 
 		case "unready":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, -1, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unready", c.ID, -1, -1, -1, -1)
 
 		case "skipChain":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "skipChain", c.ID, -1, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "skipChain", c.ID, -1, -1, -1, -1)
 
 		case "unskipChain":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unskipChain", c.ID, -1, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unskipChain", c.ID, -1, -1, -1, -1)
 
 		case "instant":
 			msg := instantMessage{TargetCardIndex: -1}
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex, msg.TargetCardIndex, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "instant", c.ID, msg.CardIndex, msg.TargetCardIndex, -1, -1)
 
 		case "unitAbility":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "unitAbility", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "unitAbility", c.ID, msg.CardIndex, -1, -1, -1)
 
 		case "trapAbility":
 			var msg abilityMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "trapAbility", c.ID, msg.CardIndex, -1, msg.AbilityIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "trapAbility", c.ID, msg.CardIndex, -1, msg.AbilityIndex, -1)
 
 		case "preselect":
 			msg := preselectMessage{AbilityIndex: -1}
@@ -170,23 +175,31 @@ func (c *Client) Read() {
 			if msg.AbilityIndex == -1 {
 				msg.AbilityIndex = 0
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "preselect", c.ID, msg.CardIndex, msg.TargetCardIndex, msg.AbilityIndex)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "preselect", c.ID, msg.CardIndex, msg.TargetCardIndex, msg.AbilityIndex, -1)
 
 		case "toggleAutoAbility":
 			var msg handMessage
 			if err := strictUnmarshal(data, &msg); err != nil {
 				continue
 			}
-			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleAutoAbility", c.ID, msg.CardIndex, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleAutoAbility", c.ID, msg.CardIndex, -1, -1, -1)
 
 		case "toggleStructureAutoAbility":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleStructureAutoAbility", c.ID, -1, -1, -1)
+			var msg structureMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "toggleStructureAutoAbility", c.ID, -1, -1, -1, msg.StructureIndex)
 
 		case "fullPause":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, -1, -1, -1)
+			ScheduleInputEvent(receiveTime, c.MatchObj, "fullPause", c.ID, -1, -1, -1, -1)
 
 		case "structureDraw":
-			ScheduleInputEvent(receiveTime, c.MatchObj, "structureDraw", c.ID, -1, -1, -1)
+			var msg structureMessage
+			if err := strictUnmarshal(data, &msg); err != nil {
+				continue
+			}
+			ScheduleInputEvent(receiveTime, c.MatchObj, "structureDraw", c.ID, -1, -1, -1, msg.StructureIndex)
 
 		case "fullState": // send all game states and events occurring within the next 200 ms
 			// note: have to worry about race conditions, I am not handling that right now
@@ -228,7 +241,7 @@ func (c *Client) Write() {
 	}
 }
 
-func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int, targetCardIndex int, abilityIndex int) {
+func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, clientID string, cardIndex int, targetCardIndex int, abilityIndex int, structureIndex int) {
 
 	// check if client is in the whitelist
 	clientIndex, ok := match.Whitelist[clientID]
@@ -245,6 +258,7 @@ func ScheduleInputEvent(timestamp time.Time, match *Match, eventType string, cli
 		CardIndex:       cardIndex,
 		TargetCardIndex: targetCardIndex,
 		AbilityIndex:    abilityIndex,
+		StructureIndex:  structureIndex,
 	}
 
 	match.InputEventChan <- ie

@@ -8,9 +8,14 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, teamIndex int, startAtSimTime int64) {
+func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, teamIndex int, structureIndex int, startAtSimTime int64) {
 
-	structDef := defs.StructureDefs[gs.Structures[teamIndex].DefNo]
+	structure := gs.Structures[teamIndex][structureIndex]
+	if structure.HP <= 0 {
+		return
+	}
+
+	structDef := defs.StructureDefs[structure.DefNo]
 	if structDef.ManaRegen == 0 || structDef.ManaRegenInterval == 0 {
 		return
 	}
@@ -22,6 +27,7 @@ func ScheduleStructureManaRegen(gs *state.GameState, pq *state.SimulationPQ, tea
 		AbilityIndex:     -1,
 		CardIndex:        -1,
 		TeamIndex:        teamIndex,
+		StructureIndex:   structureIndex,
 		Type:             state.SimItemStructureRegen,
 		Effects:          []state.Effect{{Type: state.EffectMana, A: teamIndex, B: structDef.ManaRegen}},
 	})

@@ -61,17 +61,23 @@ func (match *Match) handleToggleStructureAutoAbility(ie *eventpq.InputEvent) {
 		return
 	}
 
+	structureIndex := ie.StructureIndex
+	if structureIndex < 0 || structureIndex >= len(gs.Structures[teamIndex]) {
+		return
+	}
+
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	on := !gs.Structures[teamIndex].AutoAbility
-	gs.Structures[teamIndex].AutoAbility = on
+	on := !gs.Structures[teamIndex][structureIndex].AutoAbility
+	gs.Structures[teamIndex][structureIndex].AutoAbility = on
 	match.EventLog = append(match.EventLog, logs.ToggleStructureAutoAbilityLog{
-		UpdateID:      match.NextUpdateID,
-		WallTimestamp: executeAtWallTime,
-		Type:          logs.ToggleStructureAutoAbility,
-		TeamIndex:     teamIndex,
-		On:            on,
+		UpdateID:       match.NextUpdateID,
+		WallTimestamp:  executeAtWallTime,
+		Type:           logs.ToggleStructureAutoAbility,
+		TeamIndex:      teamIndex,
+		StructureIndex: structureIndex,
+		On:             on,
 	})
 	match.NextUpdateID++
 	match.publish(executeAtWallTime, oldLogsSize)

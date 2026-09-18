@@ -56,7 +56,7 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 		for i := 0; i < len(currSimItem.Effects); i++ {
 			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.Effects, currSimItem.CardIndex, -1, executeAtWallTime)
 		}
-		schedule.ScheduleStructureManaRegen(gs, pq, currSimItem.TeamIndex, currSimItem.PopAtSimTime+constants.LEAD)
+		schedule.ScheduleStructureManaRegen(gs, pq, currSimItem.TeamIndex, currSimItem.StructureIndex, currSimItem.PopAtSimTime+constants.LEAD)
 
 	case state.SimItemSystemDraw:
 		for i := 0; i < len(currSimItem.Effects); i++ {

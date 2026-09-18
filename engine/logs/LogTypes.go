@@ -103,6 +103,7 @@ type AddChainLog struct {
 	CardIndex           int
 	ActiveIndex         int // which Actives[] slot this item's activation came from, -1 if not an Active ability
 	TeamIndex           int
+	StructureIndex      int // which structure activated, -1 if this item didn't come from a structure
 	Effects             []state.Effect
 }
 
@@ -142,13 +143,14 @@ type SpendManaLog struct {
 }
 
 type AttackLog struct {
-	WallTimestamp   int64
-	UpdateID        int
-	Type            LogType
-	AttackerIndex   int
-	TargetTeamIndex int
-	TargetCardIndex int // -1 if targeting a structure, meaning a unit was not the target
-	Damage          int
+	WallTimestamp        int64
+	UpdateID             int
+	Type                 LogType
+	AttackerIndex        int
+	TargetTeamIndex      int
+	TargetCardIndex      int // -1 if targeting a structure, meaning a unit was not the target
+	TargetStructureIndex int // which structure was hit, -1 if a unit was the target
+	Damage               int
 }
 
 type HealLog struct {
@@ -324,11 +326,12 @@ type ToggleAutoAbilityLog struct {
 }
 
 type ToggleStructureAutoAbilityLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	On            bool
+	WallTimestamp  int64
+	UpdateID       int
+	Type           LogType
+	TeamIndex      int
+	StructureIndex int
+	On             bool
 }
 
 type ConsumeLog struct {

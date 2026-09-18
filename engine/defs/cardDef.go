@@ -7,15 +7,16 @@ import (
 )
 
 const (
-	TargetSelf     = 1 << iota // the card itself
-	TargetOwnField             // friendly field cards (excluding self)
-	TargetOppField             // opponent field cards
-	TargetOwnHand              // friendly hand cards
-	TargetOppHand              // opponent hand cards
-	TargetOwnCont              // friendly continuous zone
-	TargetOppCont              // opponent continuous zone
-	TargetOwnTrap              // friendly set traps
-	TargetOppTrap              // opponent set traps
+	TargetSelf         = 1 << iota // the card itself
+	TargetOwnField                 // friendly field cards (excluding self)
+	TargetOppField                 // opponent field cards
+	TargetOwnHand                  // friendly hand cards
+	TargetOppHand                  // opponent hand cards
+	TargetOwnCont                  // friendly continuous zone
+	TargetOppCont                  // opponent continuous zone
+	TargetOwnTrap                  // friendly set traps
+	TargetOppTrap                  // opponent set traps
+	TargetOppStructure             // opponent structures, targeted by slot rather than by card index
 )
 
 // which zone(s) the owning card must be in for OnTrigger

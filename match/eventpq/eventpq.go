@@ -16,6 +16,7 @@ type InputEvent struct {
 	CardIndex       int
 	TargetCardIndex int
 	AbilityIndex    int // which Active slot a "preselect" targets; -1 if not applicable to this event Type
+	StructureIndex  int // which of the team's structures this event acts on; -1 if not applicable to this event Type
 }
 
 func (e *InputEvent) GetWallTime() time.Time { return e.WallTime }

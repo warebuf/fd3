@@ -91,6 +91,7 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
 		TeamIndex:           teamIndex,
+		StructureIndex:      -1,
 		Type:                state.ChainTrap,
 		Effects:             effs,
 	}
@@ -107,6 +108,7 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++

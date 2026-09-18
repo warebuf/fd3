@@ -89,8 +89,10 @@ func (match *Match) handleEnterPlayPhase(newPhase *eventpq.NewPhaseEvent) {
 
 	// begin mana regen for structures
 	startSimTime := phaseChangeWallTime - match.GameState.SimPauseOffset
-	for i := range match.GameState.Structures {
-		schedule.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, i, startSimTime)
+	for team := range match.GameState.Structures {
+		for i := range match.GameState.Structures[team] {
+			schedule.ScheduleStructureManaRegen(match.GameState, &match.SimulationPQ, team, i, startSimTime)
+		}
 	}
 
 	// apply any available auto plays
@@ -110,8 +112,8 @@ func (match *Match) handleEnterGameOverPhase(newPhase *eventpq.NewPhaseEvent) {
 	match.GameState.PhaseEndInActiveTime = 0
 
 	deadCount := 0
-	for _, s := range match.GameState.Structures {
-		if s.HP <= 0 {
+	for team := range match.GameState.Structures {
+		if match.GameState.AllStructuresDead(team) {
 			deadCount++
 		}
 	}

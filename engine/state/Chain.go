@@ -36,6 +36,7 @@ type ChainItem struct {
 	CardIndex           int
 	ActiveIndex         int // which Actives[] slot this activation came from, -1 if not an Active ability
 	TeamIndex           int
+	StructureIndex      int // which structure activated, -1 if this item didn't come from a structure
 	StartAtActiveTime   int64
 	PopAtActiveTime     int64
 	ExecuteAtActiveTime int64

@@ -59,8 +59,9 @@ type OnPlayAbility struct {
 
 type ActiveAbility struct {
 	// target stuff
-	Target      int // preselected target for this ability slot, -1 if none
-	TargetFlags int // uses the target enum for bitmasking
+	Target          int // preselected target for this ability slot, -1 if none
+	TargetStructure int // preselected enemy structure slot for this ability slot, -1 if none
+	TargetFlags     int // uses the target enum for bitmasking
 
 	// condition stuff
 	Cons      [3]ConditionType // what condition(s) must be met for this ability to be activated

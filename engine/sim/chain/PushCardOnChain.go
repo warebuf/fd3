@@ -120,6 +120,7 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnPlay effects aren't Active-ability-sourced
 		TeamIndex:           teamIndex,
+		StructureIndex:      -1,
 		Type:                chainType,
 		Effects:             effs,
 	}
@@ -136,6 +137,7 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID += 1

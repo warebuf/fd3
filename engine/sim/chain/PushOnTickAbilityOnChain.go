@@ -35,6 +35,7 @@ func PushOnTickAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnTick abilities aren't Active-slot-sourced
 		TeamIndex:           teamIndex,
+		StructureIndex:      -1,
 		Type:                state.ChainUnitAbility,
 		Effects:             effs,
 	}
@@ -51,6 +52,7 @@ func PushOnTickAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++

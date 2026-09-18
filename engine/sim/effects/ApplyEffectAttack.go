@@ -84,13 +84,14 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 		if newHP <= 0 && destruction.RedirectDestructionToEquip(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime) {
 			*logList = append(*logList, logs.AttackLog{
-				UpdateID:        *UpdateID,
-				WallTimestamp:   executeAtWallTime,
-				Type:            logs.Attack,
-				AttackerIndex:   unitIndex,
-				TargetTeamIndex: enemyTeam,
-				TargetCardIndex: targetIndex,
-				Damage:          damage,
+				UpdateID:             *UpdateID,
+				WallTimestamp:        executeAtWallTime,
+				Type:                 logs.Attack,
+				AttackerIndex:        unitIndex,
+				TargetTeamIndex:      enemyTeam,
+				TargetCardIndex:      targetIndex,
+				TargetStructureIndex: -1,
+				Damage:               damage,
 			})
 			*UpdateID += 1
 			return
@@ -98,13 +99,14 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 		gs.Cards[targetIndex].HP = newHP
 		*logList = append(*logList, logs.AttackLog{
-			UpdateID:        *UpdateID,
-			WallTimestamp:   executeAtWallTime,
-			Type:            logs.Attack,
-			AttackerIndex:   unitIndex,
-			TargetTeamIndex: enemyTeam,
-			TargetCardIndex: targetIndex,
-			Damage:          damage,
+			UpdateID:             *UpdateID,
+			WallTimestamp:        executeAtWallTime,
+			Type:                 logs.Attack,
+			AttackerIndex:        unitIndex,
+			TargetTeamIndex:      enemyTeam,
+			TargetCardIndex:      targetIndex,
+			TargetStructureIndex: -1,
+			Damage:               damage,
 		})
 		*UpdateID += 1
 
@@ -112,24 +114,37 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 		}
 	} else {
-		if damage >= gs.Structures[enemyTeam].HP {
-			gs.Structures[enemyTeam].HP = 0
+		// no unit target, so the attack lands on a random living enemy structure
+		var living []int
+		for i := range gs.Structures[enemyTeam] {
+			if gs.Structures[enemyTeam][i].HP > 0 {
+				living = append(living, i)
+			}
+		}
+		if len(living) == 0 {
+			return
+		}
+		structureIndex := living[rand.Intn(len(living))]
+
+		if damage >= gs.Structures[enemyTeam][structureIndex].HP {
+			gs.Structures[enemyTeam][structureIndex].HP = 0
 		} else {
-			gs.Structures[enemyTeam].HP -= damage
+			gs.Structures[enemyTeam][structureIndex].HP -= damage
 		}
 		*logList = append(*logList, logs.AttackLog{
-			UpdateID:        *UpdateID,
-			WallTimestamp:   executeAtWallTime,
-			Type:            logs.Attack,
-			AttackerIndex:   unitIndex,
-			TargetTeamIndex: enemyTeam,
-			TargetCardIndex: -1,
-			Damage:          damage,
+			UpdateID:             *UpdateID,
+			WallTimestamp:        executeAtWallTime,
+			Type:                 logs.Attack,
+			AttackerIndex:        unitIndex,
+			TargetTeamIndex:      enemyTeam,
+			TargetCardIndex:      -1,
+			TargetStructureIndex: structureIndex,
+			Damage:               damage,
 		})
 		*UpdateID += 1
 
-		if gs.Structures[enemyTeam].HP <= 0 {
-			if gs.Structures[teamIndex].HP <= 0 {
+		if gs.AllStructuresDead(enemyTeam) {
+			if gs.AllStructuresDead(teamIndex) {
 				gs.Winner = -2 // tie
 			} else {
 				gs.Winner = teamIndex

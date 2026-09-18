@@ -23,7 +23,8 @@ func ApplyEffectMana(gs *state.GameState, logList *[]any, UpdateID *int, eff sta
 		chain.PushAbilityOnChain(gs, logList, UpdateID, cardIndexes[i], activeIndexes[i], executeAtWallTime)
 	}
 
-	if autoability.AutoAbilityStructureDrawCheck(gs, eff.A) {
-		chain.PushStructureDrawOnChain(gs, logList, UpdateID, eff.A, executeAtWallTime)
+	structureIndexes := autoability.AutoAbilityStructureDrawCheck(gs, eff.A)
+	for i := 0; i < len(structureIndexes); i++ {
+		chain.PushStructureDrawOnChain(gs, logList, UpdateID, eff.A, structureIndexes[i], executeAtWallTime)
 	}
 }

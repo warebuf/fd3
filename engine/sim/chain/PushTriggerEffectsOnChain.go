@@ -33,6 +33,7 @@ func PushTriggerEffectsOnChain(gs *state.GameState, logList *[]any, UpdateID *in
 		CardIndex:           cardIndex,
 		ActiveIndex:         -1, // OnTrigger abilities aren't Active-slot-sourced
 		TeamIndex:           teamIndex,
+		StructureIndex:      -1,
 		Type:                state.ChainUnitAbility,
 		Effects:             effs,
 	}
@@ -49,6 +50,7 @@ func PushTriggerEffectsOnChain(gs *state.GameState, logList *[]any, UpdateID *in
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++

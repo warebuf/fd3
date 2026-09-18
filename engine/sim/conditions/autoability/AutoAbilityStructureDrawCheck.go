@@ -5,17 +5,27 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// when mana is added, check if a team's structure can auto-draw
-func AutoAbilityStructureDrawCheck(gs *state.GameState, teamIndex int) bool {
+// when mana is added, collect the team's structures that can auto-draw, cheapest slot order
+// costs accumulate across slots so the caller never pushes a draw the team can't afford
+func AutoAbilityStructureDrawCheck(gs *state.GameState, teamIndex int) []int {
 	if teamIndex < 0 || teamIndex >= len(gs.Structures) {
-		return false
+		return nil
 	}
 
-	structure := gs.Structures[teamIndex]
-	if !structure.AutoAbility {
-		return false
-	}
+	var structureIndexes []int
+	remaining := gs.Mana[teamIndex]
+	for i := range gs.Structures[teamIndex] {
+		structure := gs.Structures[teamIndex][i]
+		if !structure.AutoAbility || structure.HP <= 0 {
+			continue
+		}
 
-	structDef := defs.StructureDefs[structure.DefNo]
-	return gs.Mana[teamIndex] >= structDef.DrawCost
+		drawCost := defs.StructureDefs[structure.DefNo].DrawCost
+		if remaining < drawCost {
+			continue
+		}
+		remaining -= drawCost
+		structureIndexes = append(structureIndexes, i)
+	}
+	return structureIndexes
 }

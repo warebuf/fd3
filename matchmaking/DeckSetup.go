@@ -12,10 +12,22 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 
 	// TODO: validate the structure input
 
-	// create structures
-	structures := make([]state.Structure, len(deckDefs))
-	for i, defNo := range structureDefNos {
-		structures[i] = state.Structure{DefNo: defNo, HP: defs.StructureDefs[defNo].BaseHP}
+	// create structures; each team still submits one def number, so it fills all of their slots
+	var structures [constants.NUM_TEAMS][constants.STRUCTURES_PER_TEAM]state.Structure
+	for team, defNo := range structureDefNos {
+		if team >= constants.NUM_TEAMS {
+			break
+		}
+		def := defs.StructureDefs[defNo]
+		for i := range structures[team] {
+			structures[team][i] = state.Structure{
+				DefNo:       defNo,
+				Name:        def.Name,
+				Description: def.Description,
+				DrawCost:    def.DrawCost,
+				HP:          def.BaseHP,
+			}
+		}
 	}
 
 	numTeams := len(deckDefs)

@@ -34,10 +34,11 @@ type SimulationItem struct {
 	PopAtSimTime     int64 // the time we can apply to the game state (denominated in SimTime ms)
 	ExecuteAtSimTime int64 // the time the item executes (denominated in SimTime ms)
 
-	CardIndex int
-	TeamIndex int
-	Type      SimItemType
-	Effects   []Effect
+	CardIndex      int
+	TeamIndex      int
+	StructureIndex int // which of the team's structures this item belongs to; -1 for non-structure items
+	Type           SimItemType
+	Effects        []Effect
 }
 
 type SimulationPQ struct {

@@ -69,6 +69,7 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 		CardIndex:           cardIndex,
 		ActiveIndex:         activeIndex,
 		TeamIndex:           teamIndex,
+		StructureIndex:      -1,
 		Type:                chainItemType,
 		Effects:             effs,
 	}
@@ -85,6 +86,7 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 		CardIndex:           chainItem.CardIndex,
 		ActiveIndex:         chainItem.ActiveIndex,
 		TeamIndex:           chainItem.TeamIndex,
+		StructureIndex:      chainItem.StructureIndex,
 		Effects:             chainItem.Effects,
 	})
 	*UpdateID++
