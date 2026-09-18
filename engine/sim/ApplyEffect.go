@@ -46,6 +46,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectChargeTarget:
 		effects.ApplyEffectChargeTarget(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectGiveControl:
+		effects.ApplyEffectGiveControl(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

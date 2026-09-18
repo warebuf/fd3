@@ -42,6 +42,7 @@ const (
 	TrapResolution
 	SkipChain
 	UnskipChain
+	GiveControl
 )
 
 type PhaseLog struct {
@@ -375,4 +376,14 @@ type TrapResolutionLog struct {
 	Type          LogType
 	TeamIndex     int
 	CardIndex     int
+}
+
+// a field unit changed controller; it moves between the two Field lists and its Team follows
+type GiveControlLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	CardIndex     int
+	FromTeamIndex int
+	ToTeamIndex   int
 }

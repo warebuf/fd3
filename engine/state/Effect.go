@@ -16,6 +16,7 @@ const (
 	EffectConvertToTokens   // A: card index (from Card.Actives[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
 	EffectChargeTarget      // A: card index (from Card.Actives[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 	EffectAbsorbDestruction // only used in an equip card's OnTrigger[TriggerHostWouldBeDestroyed]; destroys the source card instead of the card that would've been destroyed
+	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
 )
 
 type Effect struct {
@@ -60,6 +61,11 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
 		}
 		templ.C = gs.Cards[cardIndex].DefNo
+		return templ
+	case EffectGiveControl:
+		if abilityIndex >= 0 {
+			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
+		}
 		return templ
 	}
 	return templ
