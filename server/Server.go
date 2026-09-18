@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
 )
@@ -277,4 +278,84 @@ func (s *Server) WSHandler(w http.ResponseWriter, r *http.Request) {
 	go c.Write()
 	c.Read() // note this is not a goroutine because every request spawns a goroutine
 
+}
+
+// the fields a deck-builder UI needs to browse and pick cards; intentionally leaves out ability
+// internals (Cons, TargetFlags, Effects) since Description already covers the mechanics in prose
+type cardDefResponse struct {
+	DefNo       int    `json:"DefNo"`
+	Type        int    `json:"Type"`
+	Name        string `json:"Name"`
+	Description string `json:"Description"`
+	Archetype   int    `json:"Archetype"`
+	Taunt       bool   `json:"Taunt"`
+	Bodyguard   bool   `json:"Bodyguard"`
+	IsToken     bool   `json:"IsToken"`
+	MaxCharges  int    `json:"MaxCharges"`
+	BaseHP      int    `json:"BaseHP"`
+	Cost        int    `json:"Cost"`
+}
+
+// public, read-only card catalog - no guest session required
+func (s *Server) CardDefsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "non-GET method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	resp := make([]cardDefResponse, 0, len(defs.CardDefs))
+	for defNo, def := range defs.CardDefs {
+		if defNo == 0 { // placeholder so DefNo lines up with index
+			continue
+		}
+		resp = append(resp, cardDefResponse{
+			DefNo:       defNo,
+			Type:        def.Type,
+			Name:        def.Name,
+			Description: def.Description,
+			Archetype:   def.Archetype,
+			Taunt:       def.Taunt,
+			Bodyguard:   def.Bodyguard,
+			IsToken:     def.IsToken,
+			MaxCharges:  def.MaxCharges,
+			BaseHP:      def.BaseHP,
+			Cost:        def.Cost,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+type structureDefResponse struct {
+	DefNo       int    `json:"DefNo"`
+	Name        string `json:"Name"`
+	Description string `json:"Description"`
+	BaseHP      int    `json:"BaseHP"`
+	DrawCost    int    `json:"DrawCost"`
+}
+
+// public, read-only structure catalog - no guest session required
+func (s *Server) StructureDefsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "non-GET method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	resp := make([]structureDefResponse, 0, len(defs.StructureDefs))
+	for defNo, def := range defs.StructureDefs {
+		if defNo == 0 {
+			continue
+		}
+		resp = append(resp, structureDefResponse{
+			DefNo:       defNo,
+			Name:        def.Name,
+			Description: def.Description,
+			BaseHP:      def.BaseHP,
+			DrawCost:    def.DrawCost,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

@@ -4,15 +4,55 @@ import (
 	"math"
 	"math/rand"
 
+	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
 )
 
+// sums, across any equips attached to unitIndex, AttackBonusPerSummon * how many units unitIndex's
+// own controller has ever summoned (still on the field, or already in the graveyard). Equips are
+// searched across both teams' Equip lists since an equip can be aimed at the opponent's field, in
+// which case it's filed under its caster's team, not its host's.
+func equipAttackBonus(gs *state.GameState, unitIndex int) int {
+	bonus := 0
+	for team := 0; team < len(gs.Equip); team++ {
+		for _, ci := range gs.Equip[team] {
+			if gs.Cards[ci].EquipHostIndex != unitIndex {
+				continue
+			}
+			perSummon := defs.CardDefs[gs.Cards[ci].DefNo].AttackBonusPerSummon
+			if perSummon <= 0 {
+				continue
+			}
+			bonus += perSummon * countUnitsSummoned(gs, gs.Cards[unitIndex].Team)
+		}
+	}
+	return bonus
+}
+
+// units teamIndex has ever summoned: still alive on the field, plus ones already in the graveyard
+func countUnitsSummoned(gs *state.GameState, teamIndex int) int {
+	count := 0
+	for _, ci := range gs.Field[teamIndex] {
+		if gs.Cards[ci].Type == state.CardTypeUnit {
+			count++
+		}
+	}
+	for _, ci := range gs.Grave[teamIndex] {
+		if gs.Cards[ci].Type == state.CardTypeUnit {
+			count++
+		}
+	}
+	return count
+}
+
 // hitStructure reports whether this attack actually landed on an enemy structure (as opposed to a
 // unit, or fizzling with nothing to hit at all), so callers like ApplyEffectGraveyardBarrage can
-// react to siege damage specifically.
-func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) (hitStructure bool) {
+// react to siege damage specifically. overkill reports how much damage exceeded a killed unit's HP
+// (0 if the target survived, wasn't a unit, or the destruction was redirected to an equip), so
+// callers like ApplyEffectScalingSpillover can carry the excess onto a second target.
+func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) (hitStructure bool, overkill int) {
 	unitIndex := sourceCardIndex
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
@@ -20,6 +60,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	if activeIndex >= 0 {
 		damage += gs.Cards[unitIndex].Actives[activeIndex].Bonus
 	}
+	damage += equipAttackBonus(gs, unitIndex)
 
 	targetIndex := -1
 
@@ -83,9 +124,11 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 	}
 
 	if targetIndex >= 0 {
+		originalHP := gs.Cards[targetIndex].HP
+
 		// allow negative HP but clamp to math.MinInt; wrap-around check avoids overflow in the guard itself
-		newHP := gs.Cards[targetIndex].HP - damage
-		if damage > 0 && newHP >= gs.Cards[targetIndex].HP {
+		newHP := originalHP - damage
+		if damage > 0 && newHP >= originalHP {
 			newHP = math.MinInt
 		}
 
@@ -101,7 +144,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				Damage:               damage,
 			})
 			*UpdateID += 1
-			return false
+			return false, 0 // the equip absorbed it, no excess to speak of
 		}
 
 		gs.Cards[targetIndex].HP = newHP
@@ -119,8 +162,13 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 
 		if gs.Cards[targetIndex].HP <= 0 {
 			destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
+			excess := damage - originalHP
+			if excess < 0 {
+				excess = 0
+			}
+			return false, excess
 		}
-		return false
+		return false, 0 // target survived, nothing excess to spill
 	} else {
 		// no unit target, so the attack lands on a random living enemy structure
 		var living []int
@@ -130,7 +178,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			}
 		}
 		if len(living) == 0 {
-			return false
+			return false, 0
 		}
 		structureIndex := living[rand.Intn(len(living))]
 
@@ -158,6 +206,6 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				gs.Winner = teamIndex
 			}
 		}
-		return true
+		return true, 0 // structure hits don't cascade further
 	}
 }

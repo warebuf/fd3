@@ -26,6 +26,8 @@ const (
 	EffectLiquidate         // A: card index (from Card.Actives[abilityIndex].Target); destroys that friendly field unit and converts its HP, Charges, and attached equips' Cost into mana for its controller
 	EffectMutualDestruction // A: the activator's own chosen unit (from Card.Actives[abilityIndex].Target), B: damage each swapped unit deals in its forced attack. Swaps control of that unit with a random unit off the opponent's field (no bilateral-choice mechanic exists yet, so the opponent's side is picked for them), then both immediately attack their new opponent
 	EffectGraveyardBarrage  // B: damage per hit; fires one random-target attack for every card currently in the source's own team's graveyard
+	EffectScalingSpillover  // B: damage per enemy unit; deals B * (enemy field size) to a random enemy, then carries any leftover (from overkilling that target) onto a second random enemy unit or structure
+	EffectSpawnTokens       // B: DefNo of the token CardDef to spawn, C: how many
 )
 
 type Effect struct {

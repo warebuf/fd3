@@ -73,6 +73,12 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectGraveyardBarrage:
 		effects.ApplyEffectGraveyardBarrage(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectScalingSpillover:
+		effects.ApplyEffectScalingSpillover(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
+	case state.EffectSpawnTokens:
+		effects.ApplyEffectSpawnTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

@@ -60,7 +60,8 @@ type CardDef struct {
 	Active    [3]Ability
 	OnTrigger [3]Ability
 
-	EquipTargetFlags int // for equipment cards, bitmask of Target flags
+	EquipTargetFlags     int // for equipment cards, bitmask of Target flags
+	AttackBonusPerSummon int // for equipment cards: added to the host's attack damage per unit its own controller has ever summoned (still on the field, or already in the graveyard)
 
 	Charges    int // starting charges; shared pool any ability slot on this card may gain or spend from
 	MaxCharges int
@@ -491,7 +492,7 @@ var CardDefs = []CardDef{
 	30: {
 		Type:        state.CardTypeUnit,
 		Name:        "Leech",
-		Description: "Use: Steal 40 mana from the opponent.",
+		Description: "Use: Steal 40 mana from the opponent and deal 3 damage to a random enemy.",
 		BaseHP:      2,
 		Cost:        70,
 		ChainEntry:  state.ChainAction,
@@ -501,8 +502,46 @@ var CardDefs = []CardDef{
 			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
 			CanAutoFire: true,
 			ChainEntry:  state.ChainDual,
-			Effects:     [3]state.Effect{{Type: state.EffectDrainMana, B: 40}},
+			Effects: [3]state.Effect{
+				{Type: state.EffectDrainMana, B: 40},
+				{Type: state.EffectAttack, A: 0, B: 3},
+			},
 		}},
+	},
+	31: {
+		Type:        state.CardTypeUnit,
+		Name:        "Overwhelm",
+		Description: "Use: Deal 3 damage to a random enemy for each unit the opponent has. Any excess from overkilling spills onto another enemy unit or structure.",
+		BaseHP:      2,
+		Cost:        70,
+		ChainEntry:  state.ChainAction,
+		Active: [3]Ability{{
+			Unlimited:   true,
+			Cost:        30,
+			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			CanAutoFire: true,
+			ChainEntry:  state.ChainDual,
+			Effects:     [3]state.Effect{{Type: state.EffectScalingSpillover, B: 3}},
+		}},
+	},
+	32: {
+		Type:        state.CardTypeTrap,
+		Name:        "Reinforcements",
+		Description: "Summon two 1 HP tokens. They last 10 ticks.",
+		Cost:        30,
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
+			Effects:    [3]state.Effect{{Type: state.EffectSpawnTokens, B: 14, C: 2}}, // B: 14, Charge Token's DefNo
+		}},
+	},
+	33: {
+		Type:                 state.CardTypeEquip,
+		Name:                 "Veteran's Standard",
+		Description:          "Equipped unit deals 1 extra damage for each unit its controller has summoned.",
+		Cost:                 40,
+		ChainEntry:           state.ChainDual,
+		EquipTargetFlags:     TargetOwnField | TargetOppField,
+		AttackBonusPerSummon: 1,
 	},
 }
 
