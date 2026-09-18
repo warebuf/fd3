@@ -20,6 +20,7 @@ func PushStructureDrawOnChain(gs *state.GameState, logList *[]any, UpdateID *int
 		Amount:        structDef.DrawCost,
 	})
 	*UpdateID++
+	fireOpponentTrigger(gs, logList, UpdateID, teamIndex, state.TriggerEnemyPaidMana, executeAtWallTime)
 
 	eff := state.FulfillEffectTemplate(gs, state.Effect{Type: state.EffectDraw, B: 1}, teamIndex, -1, -1)
 

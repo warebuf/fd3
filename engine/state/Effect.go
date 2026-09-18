@@ -17,6 +17,8 @@ const (
 	EffectChargeTarget      // A: card index (from Card.Actives[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 	EffectAbsorbDestruction // only used in an equip card's OnTrigger[TriggerHostWouldBeDestroyed]; destroys the source card instead of the card that would've been destroyed
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
+	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no EffectAttack in any ability slot gains this much HP
+	EffectExtort            // only used in OnTrigger[TriggerEnemyPaidMana]; A: the team that just paid mana (auto-filled), B: toll amount taken from them if they can afford it, granted to the source card's controller either way
 )
 
 type Effect struct {
@@ -66,6 +68,9 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		if abilityIndex >= 0 {
 			templ.A = gs.Cards[cardIndex].Actives[abilityIndex].Target
 		}
+		return templ
+	case EffectExtort:
+		templ.A = teamIndex
 		return templ
 	}
 	return templ

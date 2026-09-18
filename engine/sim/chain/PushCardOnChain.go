@@ -84,6 +84,7 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 		Amount:        cost,
 	})
 	*UpdateID += 1
+	fireOpponentTrigger(gs, logList, UpdateID, teamIndex, state.TriggerEnemyPaidMana, wallTimeAtPop+constants.LEAD)
 
 	*logList = append(*logList, logs.DeclareCardLog{
 		UpdateID:      *UpdateID,

@@ -353,4 +353,54 @@ var CardDefs = []CardDef{
 			Effects: [3]state.Effect{{Type: state.EffectAbsorbDestruction}},
 		}},
 	},
+	19: {
+		Type:        state.CardTypeTrap,
+		Name:        "Donation",
+		Description: "Give a friendly unit you choose to the opponent.",
+		Cost:        0,
+		Active: [3]Ability{{
+			ChainEntry:  state.ChainDual,
+			TargetFlags: TargetOwnField,
+			Effects:     [3]state.Effect{{Type: state.EffectGiveControl}},
+		}},
+	},
+	20: {
+		Type:        state.CardTypeTrap,
+		Name:        "Sanctuary",
+		Description: "Give 3 HP to every unit on the field that has no damaging ability.",
+		Cost:        50,
+		Active: [3]Ability{{
+			ChainEntry: state.ChainDual,
+			Effects:    [3]state.Effect{{Type: state.EffectHealNonDamaging, B: 3}},
+		}},
+	},
+	21: {
+		Type:        state.CardTypeUnit,
+		Name:        "Extortionist",
+		Description: "While on the field, whenever the opponent activates a card, ability, trap, or structure draw, they pay you 10 mana if they can; otherwise you gain 10 mana anyway.",
+		BaseHP:      2,
+		Cost:        80,
+		ChainEntry:  state.ChainAction,
+		OnTrigger: [3]Ability{{
+			Trigger:      state.TriggerEnemyPaidMana,
+			TriggerZones: TriggerZoneField,
+			ChainEntry:   state.ChainDual,
+			Effects:      [3]state.Effect{{Type: state.EffectExtort, B: 10}},
+		}},
+	},
+}
+
+// IsDamaging reports whether this CardDef has an EffectAttack in any of its ability slots
+func IsDamaging(defNo int) bool {
+	def := CardDefs[defNo]
+	for _, slots := range [][3]Ability{def.OnPlay, def.OnTick, def.Active, def.OnTrigger} {
+		for _, ability := range slots {
+			for _, eff := range ability.Effects {
+				if eff.Type == state.EffectAttack {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

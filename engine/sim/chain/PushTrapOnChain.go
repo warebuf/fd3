@@ -69,6 +69,7 @@ func PushTrapOnChain(gs *state.GameState, logList *[]any, UpdateID *int, cardInd
 		Amount:        cost,
 	})
 	*UpdateID++
+	fireOpponentTrigger(gs, logList, UpdateID, teamIndex, state.TriggerEnemyPaidMana, executeAtWallTime)
 
 	*logList = append(*logList, logs.DeclareCardLog{
 		UpdateID:      *UpdateID,

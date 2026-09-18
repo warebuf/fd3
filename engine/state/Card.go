@@ -43,6 +43,7 @@ type TriggerType int
 const (
 	TriggerAllyTrapResolve TriggerType = iota + 1 // fires when this card's owner has a trap resolve
 	TriggerHostWouldBeDestroyed
+	TriggerEnemyPaidMana // fires when this card's owner's opponent pays mana to activate a card, ability, trap or structure draw
 )
 
 type TickAbility struct {
