@@ -17,7 +17,7 @@ const (
 	EffectChargeTarget      // A: card index (from Card.Actives[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 	EffectAbsorbDestruction // only used in an equip card's OnTrigger[TriggerHostWouldBeDestroyed]; destroys the source card instead of the card that would've been destroyed
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
-	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no EffectAttack in any ability slot gains this much HP
+	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no damaging effect in any ability slot gains this much HP
 	EffectExtort            // only used in OnTrigger[TriggerEnemyPaidMana]; A: the team that just paid mana (auto-filled), B: toll amount taken from them if they can afford it, granted to the source card's controller either way
 	EffectRepossess         // A: card index (from Card.Actives[abilityIndex].Target); takes control of that opponent field unit (must be OwnerTeam == the activating team) and forces its own Active[0] ability to resolve for free
 	EffectDamageAllAllies   // only used in OnTrigger[TriggerSelfDestroyed]; B: damage dealt to every unit remaining on the source's own team's field. Applied directly by destruction.HandleUnitDestruction, not through the generic effect dispatcher
@@ -28,6 +28,7 @@ const (
 	EffectGraveyardBarrage  // B: damage per hit; fires one random-target attack for every card currently in the source's own team's graveyard
 	EffectScalingSpillover  // B: damage per enemy unit; deals B * (enemy field size) to a random enemy, then carries any leftover (from overkilling that target) onto a second random enemy unit or structure
 	EffectSpawnTokens       // B: DefNo of the token CardDef to spawn, C: how many
+	EffectLifeLeech         // B: damage dealt to a random enemy; only if that hit lands, C mana is drained from the opponent and the source heals by the HP the hit actually removed
 )
 
 type Effect struct {

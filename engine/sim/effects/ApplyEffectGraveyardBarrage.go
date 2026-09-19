@@ -20,7 +20,7 @@ func ApplyEffectGraveyardBarrage(gs *state.GameState, pq *state.SimulationPQ, lo
 
 	attackEff := state.Effect{Type: state.EffectAttack, A: 0, B: eff.B}
 	for i := 0; i < hits; i++ {
-		if hitStructure, _ := ApplyEffectAttack(gs, pq, logList, UpdateID, attackEff, sourceCardIndex, -1, executeAtWallTime); hitStructure {
+		if result := ApplyEffectAttack(gs, pq, logList, UpdateID, attackEff, sourceCardIndex, -1, executeAtWallTime); result.HitStructure {
 			gs.Mana[teamIndex] += eff.B
 			*logList = append(*logList, logs.GainManaLog{
 				UpdateID:      *UpdateID,

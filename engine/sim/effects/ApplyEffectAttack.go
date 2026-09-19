@@ -47,12 +47,14 @@ func countUnitsSummoned(gs *state.GameState, teamIndex int) int {
 	return count
 }
 
-// hitStructure reports whether this attack actually landed on an enemy structure (as opposed to a
-// unit, or fizzling with nothing to hit at all), so callers like ApplyEffectGraveyardBarrage can
-// react to siege damage specifically. overkill reports how much damage exceeded a killed unit's HP
-// (0 if the target survived, wasn't a unit, or the destruction was redirected to an equip), so
-// callers like ApplyEffectScalingSpillover can carry the excess onto a second target.
-func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) (hitStructure bool, overkill int) {
+type AttackResult struct {
+	HitStructure bool // landed on an enemy structure rather than a unit
+	Overkill     int  // damage beyond a killed unit's HP, for callers that spill it onto a second target
+	Landed       bool // something was actually hit, as opposed to fizzling with no target at all
+	Dealt        int  // HP actually removed from the target, so overkill and equip-absorbed blows don't count
+}
+
+func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, activeIndex int, executeAtWallTime int64) AttackResult {
 	unitIndex := sourceCardIndex
 	teamIndex := gs.Cards[unitIndex].Team
 	enemyTeam := 1 - teamIndex
@@ -144,7 +146,7 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				Damage:               damage,
 			})
 			*UpdateID += 1
-			return false, 0 // the equip absorbed it, no excess to speak of
+			return AttackResult{Landed: true} // the equip absorbed it, so no HP came off and no excess to speak of
 		}
 
 		gs.Cards[targetIndex].HP = newHP
@@ -166,9 +168,13 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			if excess < 0 {
 				excess = 0
 			}
-			return false, excess
+			dealt := originalHP
+			if dealt < 0 {
+				dealt = 0
+			}
+			return AttackResult{Overkill: excess, Landed: true, Dealt: dealt}
 		}
-		return false, 0 // target survived, nothing excess to spill
+		return AttackResult{Landed: true, Dealt: damage} // target survived, nothing excess to spill
 	} else {
 		// no unit target, so the attack lands on a random living enemy structure
 		var living []int
@@ -178,11 +184,13 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 			}
 		}
 		if len(living) == 0 {
-			return false, 0
+			return AttackResult{}
 		}
 		structureIndex := living[rand.Intn(len(living))]
 
+		dealt := damage
 		if damage >= gs.Structures[enemyTeam][structureIndex].HP {
+			dealt = gs.Structures[enemyTeam][structureIndex].HP
 			gs.Structures[enemyTeam][structureIndex].HP = 0
 		} else {
 			gs.Structures[enemyTeam][structureIndex].HP -= damage
@@ -206,6 +214,6 @@ func ApplyEffectAttack(gs *state.GameState, pq *state.SimulationPQ, logList *[]a
 				gs.Winner = teamIndex
 			}
 		}
-		return true, 0 // structure hits don't cascade further
+		return AttackResult{HitStructure: true, Landed: true, Dealt: dealt} // structure hits don't cascade further
 	}
 }

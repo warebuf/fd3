@@ -16,10 +16,10 @@ func ApplyEffectScalingSpillover(gs *state.GameState, pq *state.SimulationPQ, lo
 	}
 
 	primaryEff := state.Effect{Type: state.EffectAttack, A: 0, B: damage}
-	_, overkill := ApplyEffectAttack(gs, pq, logList, UpdateID, primaryEff, sourceCardIndex, -1, executeAtWallTime)
+	result := ApplyEffectAttack(gs, pq, logList, UpdateID, primaryEff, sourceCardIndex, -1, executeAtWallTime)
 
-	if overkill > 0 {
-		spilloverEff := state.Effect{Type: state.EffectAttack, A: 0, B: overkill}
+	if result.Overkill > 0 {
+		spilloverEff := state.Effect{Type: state.EffectAttack, A: 0, B: result.Overkill}
 		ApplyEffectAttack(gs, pq, logList, UpdateID, spilloverEff, sourceCardIndex, -1, executeAtWallTime)
 	}
 }

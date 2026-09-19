@@ -305,7 +305,7 @@ func (s *Server) CardDefsHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := make([]cardDefResponse, 0, len(defs.CardDefs))
 	for defNo, def := range defs.CardDefs {
-		if defNo == 0 { // placeholder so DefNo lines up with index
+		if defNo == 0 || defs.IsRetired(defNo) { // placeholder so DefNo lines up with index, or a removed card
 			continue
 		}
 		resp = append(resp, cardDefResponse{

@@ -79,6 +79,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectSpawnTokens:
 		effects.ApplyEffectSpawnTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectLifeLeech:
+		effects.ApplyEffectLifeLeech(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
 	}

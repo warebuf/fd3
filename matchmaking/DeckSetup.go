@@ -171,8 +171,8 @@ func IsValidSubmission(deck []int, startingHand []int, structNo int) bool {
 			return false
 		}
 
-		// tokens are spawned at runtime, not deck-buildable
-		if defs.CardDefs[cardNo].IsToken {
+		// tokens are spawned at runtime, not deck-buildable; retired DefNos are gaps in CardDefs
+		if defs.CardDefs[cardNo].IsToken || defs.IsRetired(cardNo) {
 			return false
 		}
 

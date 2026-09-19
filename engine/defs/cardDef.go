@@ -72,25 +72,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	1: {
-		Type:        state.CardTypeUnit,
-		Name:        "Fallen Soldier",
-		Description: "Deal 1 random damage every 30 ticks to an enemy",
-		BaseHP:      2,
-		Cost:        60,
-		ChainEntry:  state.ChainAction,
-		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
-			Milliseconds: 30000,
-			Effects: [3]state.Effect{
-				{
-					Type: state.EffectAttack,
-					A:    0, // targetType, 0: random, 1: user-targetted, 2: prioritize archetype
-					B:    1, // amount
-				},
-			},
-		}},
-	},
+	// gaps (1, 4, 5, 7, 17) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -125,41 +107,6 @@ var CardDefs = []CardDef{
 			},
 		}},
 	},
-	4: {
-		Type:        state.CardTypeTrap,
-		Name:        "Downforce",
-		Description: "Gain 30 mana",
-		Cost:        0,
-		Active: [3]Ability{{
-			ChainEntry: state.ChainDual,
-			Effects: [3]state.Effect{
-				{
-					Type: state.EffectMana, // fill A, which is team
-					B:    30,               // amount
-				},
-			},
-		}},
-	},
-	5: {
-		Type:        state.CardTypeUnit,
-		Name:        "Barkbreaker",
-		Description: "Prioritizes and double-damages 'Tree' archetype. Deal 1 damage every 20 ticks to a random",
-		BaseHP:      2,
-		Cost:        100,
-		ChainEntry:  state.ChainAction,
-		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
-			Milliseconds: 20000,
-			Effects: [3]state.Effect{
-				{
-					Type: state.EffectAttack,
-					A:    2,                   // targetType, 0: random, 1: user-targetted, 2: prioritize archetype
-					B:    1,                   // base damage
-					C:    state.ArchetypeTree, // priority archetype
-				},
-			},
-		}},
-	},
 	6: {
 		Type:        state.CardTypeUnit,
 		Name:        "Metal Heart",
@@ -168,24 +115,6 @@ var CardDefs = []CardDef{
 		Cost:        80,
 		ChainEntry:  state.ChainAction,
 		Taunt:       true,
-	},
-	7: {
-		Type:        state.CardTypeUnit,
-		Name:        "Tomoe",
-		Description: "Heal 1 HP every 30 ticks to a random friendly unit",
-		BaseHP:      2,
-		Cost:        60,
-		ChainEntry:  state.ChainAction,
-		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
-			Milliseconds: 30000,
-			Effects: [3]state.Effect{
-				{
-					Type: state.EffectHeal,
-					B:    1, // amount
-				},
-			},
-		}},
 	},
 	8: {
 		Type:        state.CardTypeTrap,
@@ -334,16 +263,6 @@ var CardDefs = []CardDef{
 			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
 		}},
 	},
-	17: {
-		Type:        state.CardTypeTrap,
-		Name:        "Rummage",
-		Description: "Draw a card.",
-		Cost:        40,
-		Active: [3]Ability{{
-			ChainEntry: state.ChainDual,
-			Effects:    [3]state.Effect{{Type: state.EffectDraw, B: 1}},
-		}},
-	},
 	18: {
 		Type:             state.CardTypeEquip,
 		Name:             "Deathless",
@@ -419,7 +338,7 @@ var CardDefs = []CardDef{
 	24: {
 		Type:        state.CardTypeUnit,
 		Name:        "Mana Leech",
-		Description: "Drains 50 mana from the opponent and gains 1 HP every 25 ticks.",
+		Description: "Deal 2 damage every 25 ticks to a random enemy. If the attack lands, drain 50 mana from the opponent and gain HP equal to the HP it removed.",
 		BaseHP:      2,
 		Cost:        80,
 		ChainEntry:  state.ChainAction,
@@ -427,8 +346,7 @@ var CardDefs = []CardDef{
 			ChainEntry:   state.ChainAction,
 			Milliseconds: 25000,
 			Effects: [3]state.Effect{
-				{Type: state.EffectDrainMana, B: 50},
-				{Type: state.EffectHealSelf, B: 1},
+				{Type: state.EffectLifeLeech, B: 2, C: 50},
 			},
 		}},
 	},
@@ -527,11 +445,11 @@ var CardDefs = []CardDef{
 	32: {
 		Type:        state.CardTypeTrap,
 		Name:        "Reinforcements",
-		Description: "Summon two 1 HP tokens. They last 10 ticks.",
+		Description: "Summon two 1 HP tokens.",
 		Cost:        30,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
-			Effects:    [3]state.Effect{{Type: state.EffectSpawnTokens, B: 14, C: 2}}, // B: 14, Charge Token's DefNo
+			Effects:    [3]state.Effect{{Type: state.EffectSpawnTokens, B: 34, C: 2}}, // B: 34, Reinforcement Token's DefNo
 		}},
 	},
 	33: {
@@ -543,15 +461,28 @@ var CardDefs = []CardDef{
 		EquipTargetFlags:     TargetOwnField | TargetOppField,
 		AttackBonusPerSummon: 1,
 	},
+	34: {
+		Type:        state.CardTypeUnit,
+		Name:        "Reinforcement Token",
+		Description: "Does not expire.",
+		BaseHP:      1,
+		IsToken:     true,
+		ChainEntry:  state.ChainAction,
+	},
 }
 
-// IsDamaging reports whether this CardDef has an EffectAttack in any of its ability slots
+// IsRetired reports whether this DefNo is a gap left by a removed card
+func IsRetired(defNo int) bool {
+	return CardDefs[defNo].Name == ""
+}
+
+// IsDamaging reports whether this CardDef has a damaging effect in any of its ability slots
 func IsDamaging(defNo int) bool {
 	def := CardDefs[defNo]
 	for _, slots := range [][3]Ability{def.OnPlay, def.OnTick, def.Active, def.OnTrigger} {
 		for _, ability := range slots {
 			for _, eff := range ability.Effects {
-				if eff.Type == state.EffectAttack {
+				if eff.Type == state.EffectAttack || eff.Type == state.EffectLifeLeech {
 					return true
 				}
 			}
