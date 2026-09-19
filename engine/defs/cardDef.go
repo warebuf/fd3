@@ -394,14 +394,14 @@ var CardDefs = []CardDef{
 	29: {
 		Type:        state.CardTypeUnit,
 		Name:        "Gravedigger",
-		Description: "Use: For each card in your graveyard, deal 1 damage to a random enemy. Hits that land on a structure also drain that much mana.",
+		Description: "Maximum Charges: 1. Starts charged and does not recharge on its own. Spend a charge: for each card in your graveyard, deal 1 damage to a random enemy. Hits that land on a structure also drain that much mana.",
 		BaseHP:      2,
 		Cost:        70,
 		ChainEntry:  state.ChainAction,
+		Charges:     1,
+		MaxCharges:  1,
 		Active: [3]Ability{{
-			Unlimited:   true,
-			Cost:        30,
-			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
 			ChainEntry:  state.ChainDual,
 			Effects:     [3]state.Effect{{Type: state.EffectGraveyardBarrage, B: 1}},
