@@ -7,7 +7,7 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// heals the source card itself, unlike EffectHeal which picks a random ally on the field
+// heals the source card itself
 func ApplyEffectHealSelf(gs *state.GameState, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
 	amount := eff.B
 	if amount <= 0 {

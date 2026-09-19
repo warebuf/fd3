@@ -35,7 +35,7 @@ func (match *Match) handleChainResolution() {
 	// apply effects
 	if chainSourceStillValid(gs, chainTop) {
 		for _, eff := range chainTop.Effects {
-			sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.Effects, chainTop.CardIndex, chainTop.ActiveIndex, wallTime)
+			sim.ApplyEffect(gs, &match.SimulationPQ, &match.EventLog, &match.NextUpdateID, eff, chainTop.CardIndex, chainTop.ActiveIndex, wallTime)
 		}
 	}
 

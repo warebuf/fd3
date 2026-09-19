@@ -96,56 +96,53 @@ func (match *Match) handleBid(ie *eventpq.InputEvent) {
 	match.publish(executeAtWallTime, oldLogsSize)
 }
 
-// both bids are in: spend them both, decide the winner, and force the loser to discard
+// both bids are in: the higher bidder pays their bid, and if that's the activator, the opponent discards
 func (match *Match) resolveStandoff(executeAtWallTime int64) {
 	gs := match.GameState
 	cardIndex := gs.StandoffCardIndex
 	card := &gs.Cards[cardIndex]
 	activatorTeam := card.Team
+	opponent := 1 - activatorTeam
 
 	bids := [2]int{gs.PendingBidAmount[0], gs.PendingBidAmount[1]}
 
-	// both bids are spent regardless of who wins
-	for team := 0; team < len(gs.Mana); team++ {
-		if bids[team] <= 0 {
-			continue
-		}
-		gs.Mana[team] -= bids[team]
+	// higher bid wins; a tie favors whoever set this trap
+	winner := activatorTeam
+	if bids[opponent] > bids[activatorTeam] {
+		winner = opponent
+	}
+
+	// only the winning bid is spent; the lower bidder keeps their mana
+	if bids[winner] > 0 {
+		gs.Mana[winner] -= bids[winner]
 		match.EventLog = append(match.EventLog, logs.SpendManaLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: executeAtWallTime,
 			Type:          logs.SpendMana,
-			TeamIndex:     team,
-			Amount:        bids[team],
+			TeamIndex:     winner,
+			Amount:        bids[winner],
 		})
 		match.NextUpdateID++
 	}
 
-	// higher bid wins; a tie favors whoever set this trap
-	winner := activatorTeam
-	loser := 1 - activatorTeam
-	if bids[loser] > bids[winner] {
-		winner, loser = loser, winner
-	}
-
-	loserHand := gs.Hand[loser]
-	if len(loserHand) > 0 {
-		discardIndex := loserHand[rand.Intn(len(loserHand))]
-		for i, ci := range gs.Hand[loser] {
+	// only the opponent ever discards: outbidding the activator just saves their hand
+	if winner == activatorTeam && len(gs.Hand[opponent]) > 0 {
+		discardIndex := gs.Hand[opponent][rand.Intn(len(gs.Hand[opponent]))]
+		for i, ci := range gs.Hand[opponent] {
 			if ci == discardIndex {
-				gs.Hand[loser] = append(gs.Hand[loser][:i], gs.Hand[loser][i+1:]...)
+				gs.Hand[opponent] = append(gs.Hand[opponent][:i], gs.Hand[opponent][i+1:]...)
 				break
 			}
 		}
 		gs.Cards[discardIndex].Zone = state.ZoneGraveyard
 		if !gs.Cards[discardIndex].IsToken {
-			gs.Grave[loser] = append(gs.Grave[loser], discardIndex)
+			gs.Grave[opponent] = append(gs.Grave[opponent], discardIndex)
 		}
 		match.EventLog = append(match.EventLog, logs.DiscardLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: executeAtWallTime,
 			Type:          logs.Discard,
-			TeamIndex:     loser,
+			TeamIndex:     opponent,
 			CardIndex:     discardIndex,
 		})
 		match.NextUpdateID++

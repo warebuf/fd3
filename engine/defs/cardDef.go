@@ -72,7 +72,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 17) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 11, 17) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -170,23 +170,6 @@ var CardDefs = []CardDef{
 					A:    1, // targetType, 0: random, 1: user-targetted, 2: prioritize archetype, 3: always struct
 					B:    1, // amount
 				},
-			},
-		}},
-	},
-	11: {
-		Type:        state.CardTypeUnit,
-		Name:        "Forsaken",
-		Description: "Use: Sacrifice a friendly unit you choose. Deal damage directly to the enemy structure equal to 1/10th its mana cost.",
-		BaseHP:      3,
-		Cost:        60,
-		ChainEntry:  state.ChainAction,
-		Active: [3]Ability{{
-			Unlimited:   true,
-			TargetFlags: TargetSelf | TargetOwnField,
-			ChainEntry:  state.ChainDual,
-			Effects: [3]state.Effect{
-				{Type: state.EffectSacrifice},
-				{Type: state.EffectAttack, A: 3}, // A: 3, always hits enemy structure; B is filled in by the sacrifice at runtime
 			},
 		}},
 	},
@@ -384,7 +367,7 @@ var CardDefs = []CardDef{
 	28: {
 		Type:        state.CardTypeTrap,
 		Name:        "Standoff",
-		Description: "Both players secretly bid mana. The higher bidder forces the loser to discard a random card from their hand. Both bids are spent either way; ties favor whoever set this trap.",
+		Description: "Both players secretly bid mana. Only the higher bid is spent. If you win, the opponent discards a random card from their hand; ties favor you.",
 		Cost:        20,
 		IsAuction:   true,
 		Active: [3]Ability{{

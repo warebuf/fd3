@@ -4,13 +4,11 @@ type EffectType int
 
 const (
 	EffectAttack EffectType = iota + 1
-	EffectHeal
 	EffectDraw
 	EffectMana       // A: team, B: amount
 	EffectDestroy    // A: Destroy Type (0: All, 1: team specific, 2: card specific), B: target (if team specific, team index, if card specific, card index)
 	EffectCounter    // cancel the top chain item
 	EffectChargeSelf // +1 charge on the source card itself, capped at its MaxCharges; no fields used
-	EffectSacrifice  // A: card index
 	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
 	EffectConvertToTokens   // A: card index (from Card.Actives[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
@@ -50,13 +48,6 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		templ.A = teamIndex
 		return templ
 	case EffectAttack:
-		return templ
-	case EffectHeal:
-		return templ
-	case EffectSacrifice:
-		if abilityIndex >= 0 {
-			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
-		}
 		return templ
 	case EffectConsume:
 		if abilityIndex >= 0 {

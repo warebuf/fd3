@@ -28,22 +28,6 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 		return false // no real ability on this slot
 	}
 
-	for _, eff := range effs {
-		if eff.Type != state.EffectSacrifice {
-			continue
-		}
-		validTarget := false
-		for _, fieldCardIndex := range gs.Field[teamIndex] {
-			if fieldCardIndex == eff.A {
-				validTarget = true
-				break
-			}
-		}
-		if !validTarget {
-			return false // sacrifice target is no longer on the field
-		}
-	}
-
 	if activeDef.Cost > 0 {
 		gs.Mana[teamIndex] -= activeDef.Cost
 		*logList = append(*logList, logs.SpendManaLog{

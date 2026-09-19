@@ -54,13 +54,13 @@ func handleLatestSimulationItem(gs *state.GameState, pq *state.SimulationPQ, log
 
 	case state.SimItemStructureRegen:
 		for i := 0; i < len(currSimItem.Effects); i++ {
-			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.Effects, currSimItem.CardIndex, -1, executeAtWallTime)
+			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 		}
 		schedule.ScheduleStructureManaRegen(gs, pq, currSimItem.TeamIndex, currSimItem.StructureIndex, currSimItem.PopAtSimTime+constants.LEAD)
 
 	case state.SimItemSystemDraw:
 		for i := 0; i < len(currSimItem.Effects); i++ {
-			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.Effects, currSimItem.CardIndex, -1, executeAtWallTime)
+			ApplyEffect(gs, pq, logList, UpdateID, currSimItem.Effects[i], currSimItem.CardIndex, -1, executeAtWallTime)
 		}
 
 	case state.SimItemTrapReady:
@@ -75,7 +75,7 @@ func applyOnTickEffects(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 		if eff.Type == 0 {
 			continue
 		}
-		ApplyEffect(gs, pq, logList, UpdateID, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1), ability.Effects[:], cardIndex, -1, executeAtWallTime)
+		ApplyEffect(gs, pq, logList, UpdateID, state.FulfillEffectTemplate(gs, eff, teamIndex, cardIndex, -1), cardIndex, -1, executeAtWallTime)
 	}
 }
 

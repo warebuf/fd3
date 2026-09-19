@@ -410,8 +410,8 @@ type StandoffBidLog struct {
 	TeamIndex     int
 }
 
-// both bids are in; reveals both amounts and the winner now that it's safe to. The loser's forced
-// discard, if their hand wasn't empty, arrives as its own separate DiscardLog in the same batch
+// both bids are in; reveals both amounts and the winner now that it's safe to. The winner's SpendManaLog and,
+// if the activator won against a non-empty hand, the opponent's DiscardLog arrive separately in the same batch
 type StandoffResolutionLog struct {
 	WallTimestamp int64
 	UpdateID      int
