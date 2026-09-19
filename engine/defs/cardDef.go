@@ -466,7 +466,7 @@ var CardDefs = []CardDef{
 	28: {
 		Type:        state.CardTypeTrap,
 		Name:        "Standoff",
-		Description: "Both players secretly bid mana. The higher bidder chooses which of two effects happens: gain 40 mana, or deal 8 damage to a random enemy structure. Both bids are spent either way; ties favor whoever set this trap.",
+		Description: "Both players secretly bid mana. The higher bidder forces the loser to discard a random card from their hand. Both bids are spent either way; ties favor whoever set this trap.",
 		Cost:        20,
 		IsAuction:   true,
 		Active: [3]Ability{{

@@ -44,7 +44,6 @@ func (match *Match) openStandoffAuction(cardIndex int, teamIndex int, executeAtW
 	gs.StandoffCardIndex = cardIndex
 	for i := range gs.PendingBidAmount {
 		gs.PendingBidAmount[i] = -1
-		gs.PendingBidChoice[i] = -1
 	}
 
 	match.EventLog = append(match.EventLog, logs.StandoffOpenLog{
@@ -59,13 +58,12 @@ func (match *Match) openStandoffAuction(cardIndex int, teamIndex int, executeAtW
 	match.publish(executeAtWallTime, oldLogsSize)
 }
 
-// ie.CardIndex carries the sealed bid Amount and ie.TargetCardIndex carries the ChoiceIndex (0 or
-// 1); InputEvent has no dedicated fields for either, so a "bid" event reuses these two positionally
+// ie.CardIndex carries the sealed bid Amount; InputEvent has no dedicated field for it, so a "bid"
+// event reuses this one positionally
 func (match *Match) handleBid(ie *eventpq.InputEvent) {
 	gs := match.GameState
 	teamIndex := ie.TeamIndex
 	amount := ie.CardIndex
-	choice := ie.TargetCardIndex
 
 	if gs.StandoffCardIndex < 0 || gs.StandoffCardIndex >= len(gs.Cards) {
 		return
@@ -76,17 +74,13 @@ func (match *Match) handleBid(ie *eventpq.InputEvent) {
 	if amount < 0 || amount > gs.Mana[teamIndex] {
 		return
 	}
-	if choice != 0 && choice != 1 {
-		return
-	}
 
 	gs.PendingBidAmount[teamIndex] = amount
-	gs.PendingBidChoice[teamIndex] = choice
 
 	executeAtWallTime := ie.WallTime.UnixMilli() + constants.LEAD
 	oldLogsSize := len(match.EventLog)
 
-	// safe to broadcast right away: carries no amount or choice, so it can't leak the secret
+	// safe to broadcast right away: carries no amount, so it can't leak the secret
 	match.EventLog = append(match.EventLog, logs.StandoffBidLog{
 		UpdateID:      match.NextUpdateID,
 		WallTimestamp: executeAtWallTime,
@@ -102,7 +96,7 @@ func (match *Match) handleBid(ie *eventpq.InputEvent) {
 	match.publish(executeAtWallTime, oldLogsSize)
 }
 
-// both bids are in: spend them both, decide the winner, and apply their chosen effect
+// both bids are in: spend them both, decide the winner, and force the loser to discard
 func (match *Match) resolveStandoff(executeAtWallTime int64) {
 	gs := match.GameState
 	cardIndex := gs.StandoffCardIndex
@@ -110,7 +104,6 @@ func (match *Match) resolveStandoff(executeAtWallTime int64) {
 	activatorTeam := card.Team
 
 	bids := [2]int{gs.PendingBidAmount[0], gs.PendingBidAmount[1]}
-	choices := [2]int{gs.PendingBidChoice[0], gs.PendingBidChoice[1]}
 
 	// both bids are spent regardless of who wins
 	for team := 0; team < len(gs.Mana); team++ {
@@ -134,67 +127,37 @@ func (match *Match) resolveStandoff(executeAtWallTime int64) {
 	if bids[loser] > bids[winner] {
 		winner, loser = loser, winner
 	}
-	chosenEffectIndex := choices[winner]
 
-	switch chosenEffectIndex {
-	case 0: // gain 40 mana
-		const amount = 40
-		gs.Mana[winner] += amount
-		match.EventLog = append(match.EventLog, logs.GainManaLog{
+	loserHand := gs.Hand[loser]
+	if len(loserHand) > 0 {
+		discardIndex := loserHand[rand.Intn(len(loserHand))]
+		for i, ci := range gs.Hand[loser] {
+			if ci == discardIndex {
+				gs.Hand[loser] = append(gs.Hand[loser][:i], gs.Hand[loser][i+1:]...)
+				break
+			}
+		}
+		gs.Cards[discardIndex].Zone = state.ZoneGraveyard
+		if !gs.Cards[discardIndex].IsToken {
+			gs.Grave[loser] = append(gs.Grave[loser], discardIndex)
+		}
+		match.EventLog = append(match.EventLog, logs.DiscardLog{
 			UpdateID:      match.NextUpdateID,
 			WallTimestamp: executeAtWallTime,
-			Type:          logs.GainMana,
-			TeamIndex:     winner,
-			Amount:        amount,
+			Type:          logs.Discard,
+			TeamIndex:     loser,
+			CardIndex:     discardIndex,
 		})
 		match.NextUpdateID++
-
-	case 1: // deal 8 damage to a random enemy structure
-		const damage = 8
-		var living []int
-		for i := range gs.Structures[loser] {
-			if gs.Structures[loser][i].HP > 0 {
-				living = append(living, i)
-			}
-		}
-		if len(living) > 0 {
-			structureIndex := living[rand.Intn(len(living))]
-			if damage >= gs.Structures[loser][structureIndex].HP {
-				gs.Structures[loser][structureIndex].HP = 0
-			} else {
-				gs.Structures[loser][structureIndex].HP -= damage
-			}
-			match.EventLog = append(match.EventLog, logs.AttackLog{
-				UpdateID:             match.NextUpdateID,
-				WallTimestamp:        executeAtWallTime,
-				Type:                 logs.Attack,
-				AttackerIndex:        cardIndex,
-				TargetTeamIndex:      loser,
-				TargetCardIndex:      -1,
-				TargetStructureIndex: structureIndex,
-				Damage:               damage,
-			})
-			match.NextUpdateID++
-
-			if gs.AllStructuresDead(loser) {
-				if gs.AllStructuresDead(winner) {
-					gs.Winner = -2
-				} else {
-					gs.Winner = winner
-				}
-			}
-		}
 	}
 
 	match.EventLog = append(match.EventLog, logs.StandoffResolutionLog{
-		UpdateID:          match.NextUpdateID,
-		WallTimestamp:     executeAtWallTime,
-		Type:              logs.StandoffResolution,
-		CardIndex:         cardIndex,
-		Bids:              bids,
-		Choices:           choices,
-		WinnerTeam:        winner,
-		ChosenEffectIndex: chosenEffectIndex,
+		UpdateID:      match.NextUpdateID,
+		WallTimestamp: executeAtWallTime,
+		Type:          logs.StandoffResolution,
+		CardIndex:     cardIndex,
+		Bids:          bids,
+		WinnerTeam:    winner,
 	})
 	match.NextUpdateID++
 
@@ -206,6 +169,5 @@ func (match *Match) resolveStandoff(executeAtWallTime int64) {
 	gs.StandoffCardIndex = -1
 	for i := range gs.PendingBidAmount {
 		gs.PendingBidAmount[i] = -1
-		gs.PendingBidChoice[i] = -1
 	}
 }

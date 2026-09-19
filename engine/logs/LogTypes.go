@@ -46,6 +46,7 @@ const (
 	StandoffOpen
 	StandoffBid
 	StandoffResolution
+	Discard
 )
 
 type PhaseLog struct {
@@ -400,8 +401,8 @@ type StandoffOpenLog struct {
 	CardIndex     int
 }
 
-// one team sealed their bid. Deliberately carries no Amount or Choice - those stay secret until
-// StandoffResolutionLog reveals them, since this log is broadcast to both clients unfiltered
+// one team sealed their bid. Deliberately carries no Amount - that stays secret until
+// StandoffResolutionLog reveals it, since this log is broadcast to both clients unfiltered
 type StandoffBidLog struct {
 	WallTimestamp int64
 	UpdateID      int
@@ -409,14 +410,23 @@ type StandoffBidLog struct {
 	TeamIndex     int
 }
 
-// both bids are in; reveals everything at once now that it's safe to
+// both bids are in; reveals both amounts and the winner now that it's safe to. The loser's forced
+// discard, if their hand wasn't empty, arrives as its own separate DiscardLog in the same batch
 type StandoffResolutionLog struct {
-	WallTimestamp     int64
-	UpdateID          int
-	Type              LogType
-	CardIndex         int
-	Bids              [2]int
-	Choices           [2]int
-	WinnerTeam        int
-	ChosenEffectIndex int
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	CardIndex     int
+	Bids          [2]int
+	WinnerTeam    int
+}
+
+// a card was forced out of a hand and into the graveyard without being played, e.g. by losing a
+// Standoff
+type DiscardLog struct {
+	WallTimestamp int64
+	UpdateID      int
+	Type          LogType
+	TeamIndex     int
+	CardIndex     int
 }

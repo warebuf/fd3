@@ -54,7 +54,6 @@ type GameState struct {
 	// CensorForTeam hides an opponent's still-sealed bid before this ever reaches their client.
 	StandoffCardIndex int
 	PendingBidAmount  []int // per team; -1 means not yet sealed for the current auction
-	PendingBidChoice  []int // per team; which of the two effects they'd pick if they win, -1 if not yet sealed
 
 	Winner int // -1: no winner yet, 0+: winning team index, -2: tie
 }
@@ -145,11 +144,9 @@ func DeepCopyGameState(prevState *GameState) *GameState {
 	newState.TimeBank = make([]int64, len(prevState.TimeBank))
 	copy(newState.TimeBank, prevState.TimeBank)
 
-	// PendingBidAmount / PendingBidChoice
+	// PendingBidAmount
 	newState.PendingBidAmount = make([]int, len(prevState.PendingBidAmount))
 	copy(newState.PendingBidAmount, prevState.PendingBidAmount)
-	newState.PendingBidChoice = make([]int, len(prevState.PendingBidChoice))
-	copy(newState.PendingBidChoice, prevState.PendingBidChoice)
 
 	// Chain
 	newState.Chain = make([]ChainItem, len(prevState.Chain))

@@ -75,13 +75,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 			}
 			return b
 		}(),
-		PendingBidChoice: func() []int {
-			b := make([]int, numTeams)
-			for i := range b {
-				b[i] = -1
-			}
-			return b
-		}(),
 	}
 	nextCardIndex := 0
 	for team := 0; team < len(deckDefs); team++ {
