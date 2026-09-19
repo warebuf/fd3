@@ -299,7 +299,7 @@ var CardDefs = []CardDef{
 	21: {
 		Type:        state.CardTypeUnit,
 		Name:        "Extortionist",
-		Description: "While on the field, whenever the opponent activates a card, ability, trap, or structure draw, they pay you 10 mana if they can; otherwise you gain 10 mana anyway.",
+		Description: "While on the field, whenever the opponent activates a card, ability, trap, or structure draw, they pay you 40 mana if they can; otherwise you gain 40 mana anyway.",
 		BaseHP:      2,
 		Cost:        80,
 		ChainEntry:  state.ChainAction,
@@ -307,7 +307,7 @@ var CardDefs = []CardDef{
 			Trigger:      state.TriggerEnemyPaidMana,
 			TriggerZones: TriggerZoneField,
 			ChainEntry:   state.ChainDual,
-			Effects:      [3]state.Effect{{Type: state.EffectExtort, B: 10}},
+			Effects:      [3]state.Effect{{Type: state.EffectExtort, B: 40}},
 		}},
 	},
 	22: {
@@ -410,14 +410,18 @@ var CardDefs = []CardDef{
 	30: {
 		Type:        state.CardTypeUnit,
 		Name:        "Leech",
-		Description: "Use: Steal 40 mana from the opponent and deal 3 damage to a random enemy.",
+		Description: "Maximum Charges: 1. Gain 1 charge every 40 ticks. Spend a charge to steal 40 mana from the opponent and deal 3 damage to a random enemy.",
 		BaseHP:      2,
 		Cost:        70,
 		ChainEntry:  state.ChainAction,
+		MaxCharges:  1,
+		OnTick: [3]Ability{{
+			SkipChain:    true,
+			Milliseconds: 40000,
+			Effects:      [3]state.Effect{{Type: state.EffectChargeSelf}},
+		}},
 		Active: [3]Ability{{
-			Unlimited:   true,
-			Cost:        30,
-			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
+			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
 			ChainEntry:  state.ChainDual,
 			Effects: [3]state.Effect{
