@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
+	"github.com/warebuf/fd3/decks"
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/match"
 	"github.com/warebuf/fd3/matchmaking"
@@ -19,6 +20,7 @@ type Server struct {
 	MatchMap   map[string]*match.Match
 	GuestMap   *matchmaking.GuestStore
 	Matchmaker *matchmaking.Matchmaker
+	SavedDecks *decks.Store
 }
 
 func New() *Server {
@@ -40,8 +42,9 @@ func New() *Server {
 				return false
 			},
 		},
-		MatchMap: make(map[string]*match.Match),
-		GuestMap: matchmaking.NewGuestStore(),
+		MatchMap:   make(map[string]*match.Match),
+		GuestMap:   matchmaking.NewGuestStore(),
+		SavedDecks: decks.NewStore("data/savedDecks.json"),
 	}
 
 	// create matchmaking goroutine
@@ -358,4 +361,44 @@ func (s *Server) StructureDefsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+type saveDeckBody struct {
+	Name     string `json:"name"`
+	Deck     []int  `json:"deck"`
+	StructNo int    `json:"structNo"`
+}
+
+// SavedDecksHandler serves a shared, public list of named decks: GET lists them, POST adds one.
+// Anyone can read or add; nothing here is scoped to a guest session.
+func (s *Server) SavedDecksHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(s.SavedDecks.List())
+
+	case http.MethodPost:
+		var reqBody saveDeckBody
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if !matchmaking.IsValidSubmission(reqBody.Deck, nil, reqBody.StructNo) {
+			http.Error(w, "invalid deck", http.StatusBadRequest)
+			return
+		}
+
+		entry, err := s.SavedDecks.Add(reqBody.Name, reqBody.Deck, reqBody.StructNo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(entry)
+
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
 }

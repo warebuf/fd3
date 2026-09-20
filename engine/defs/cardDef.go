@@ -72,7 +72,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 11, 17, 22) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 11, 12, 13, 17, 22) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -173,44 +173,6 @@ var CardDefs = []CardDef{
 			},
 		}},
 	},
-	12: {
-		Type:        state.CardTypeContinuous,
-		Name:        "Charge Reservoir",
-		Description: "Gain 1 charge whenever one of your traps resolves.",
-		Cost:        60,
-		ChainEntry:  state.ChainDual,
-		MaxCharges:  math.MaxInt,
-		OnTrigger: [3]Ability{{
-			Trigger:      state.TriggerAllyTrapResolve,
-			TriggerZones: TriggerZoneContinuous,
-			ChainEntry:   state.ChainDual,
-			Effects:      [3]state.Effect{{Type: state.EffectChargeSelf}},
-		}},
-	},
-	13: {
-		Type:        state.CardTypeUnit,
-		Name:        "Charge Consumer",
-		Description: "Summon: Destroy a friendly card you choose; gain its charges as HP. Use: Deal 1 damage to an enemy, plus those charges, then this unit is destroyed.",
-		BaseHP:      1,
-		Cost:        60,
-		ChainEntry:  state.ChainAction,
-		Charges:     1,
-		MaxCharges:  1,
-		OnPlay: [3]Ability{{
-			TargetFlags: TargetOwnField | TargetOwnCont,
-			Effects:     [3]state.Effect{{Type: state.EffectConsume, C: 0}}, // C: 0, feeds Active slot 0's Bonus
-		}},
-		Active: [3]Ability{{
-			TargetFlags: TargetOppField,
-			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
-			CanAutoFire: true,
-			ChainEntry:  state.ChainDual,
-			Effects: [3]state.Effect{
-				{Type: state.EffectAttack, A: 1, B: 1}, // A: 1, user-targeted; base 1 damage, plus Bonus
-				{Type: state.EffectSelfDestruct},
-			},
-		}},
-	},
 	14: {
 		Type:        state.CardTypeUnit,
 		Name:        "Charge Token",
@@ -227,7 +189,7 @@ var CardDefs = []CardDef{
 	15: {
 		Type:        state.CardTypeTrap,
 		Name:        "Temp Tokens",
-		Description: "Destroy a friendly Charge Reservoir you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
+		Description: "Destroy a friendly card you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
 		Cost:        60,
 		Active: [3]Ability{{
 			ChainEntry:  state.ChainDual,

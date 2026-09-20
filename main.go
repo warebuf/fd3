@@ -19,6 +19,9 @@ func main() {
 	http.HandleFunc("/cardDefs", srv.CardDefsHandler)
 	http.HandleFunc("/structureDefs", srv.StructureDefsHandler)
 
+	// shared deck list, readable and writable by anyone
+	http.HandleFunc("/savedDecks", srv.SavedDecksHandler)
+
 	// websocket routes
 	http.HandleFunc("/ws/check", srv.WSPreflight)
 	http.HandleFunc("/ws", srv.WSHandler)
