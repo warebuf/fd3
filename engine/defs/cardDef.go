@@ -72,7 +72,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 11, 12, 13, 17, 22) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 11, 12, 13, 17, 22, 24) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -268,21 +268,6 @@ var CardDefs = []CardDef{
 			Effects:      [3]state.Effect{{Type: state.EffectDamageAllAllies, B: 5}},
 		}},
 	},
-	24: {
-		Type:        state.CardTypeUnit,
-		Name:        "Mana Leech",
-		Description: "Deal 2 damage every 25 ticks to a random enemy. If the attack lands, drain 50 mana from the opponent and gain HP equal to the HP it removed.",
-		BaseHP:      2,
-		Cost:        80,
-		ChainEntry:  state.ChainAction,
-		OnTick: [3]Ability{{
-			ChainEntry:   state.ChainAction,
-			Milliseconds: 25000,
-			Effects: [3]state.Effect{
-				{Type: state.EffectLifeLeech, B: 2, C: 50},
-			},
-		}},
-	},
 	25: {
 		Type:        state.CardTypeTrap,
 		Name:        "Liquidator",
@@ -343,7 +328,7 @@ var CardDefs = []CardDef{
 	30: {
 		Type:        state.CardTypeUnit,
 		Name:        "Leech",
-		Description: "Maximum Charges: 1. Gain 1 charge every 40 ticks. Spend a charge to steal 40 mana from the opponent and deal 3 damage to a random enemy.",
+		Description: "Maximum Charges: 1. Gain 1 charge every 40 ticks. Spend a charge to deal 3 damage to a random enemy. If the attack lands, steal 40 mana from the opponent.",
 		BaseHP:      2,
 		Cost:        70,
 		ChainEntry:  state.ChainAction,
@@ -357,10 +342,7 @@ var CardDefs = []CardDef{
 			Cons:        [3]state.ConditionType{state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
 			ChainEntry:  state.ChainDual,
-			Effects: [3]state.Effect{
-				{Type: state.EffectDrainMana, B: 40},
-				{Type: state.EffectAttack, A: 0, B: 3},
-			},
+			Effects:     [3]state.Effect{{Type: state.EffectLeech, B: 3, C: 40}},
 		}},
 	},
 	31: {
@@ -420,7 +402,7 @@ func IsDamaging(defNo int) bool {
 	for _, slots := range [][3]Ability{def.OnPlay, def.OnTick, def.Active, def.OnTrigger} {
 		for _, ability := range slots {
 			for _, eff := range ability.Effects {
-				if eff.Type == state.EffectAttack || eff.Type == state.EffectLifeLeech {
+				if eff.Type == state.EffectAttack || eff.Type == state.EffectLeech {
 					return true
 				}
 			}

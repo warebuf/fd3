@@ -52,9 +52,6 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectDrainMana:
 		effects.ApplyEffectDrainMana(gs, logList, UpdateID, eff, executeAtWallTime)
 
-	case state.EffectHealSelf:
-		effects.ApplyEffectHealSelf(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
-
 	case state.EffectLiquidate:
 		effects.ApplyEffectLiquidate(gs, pq, logList, UpdateID, eff, executeAtWallTime)
 
@@ -70,8 +67,8 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectSpawnTokens:
 		effects.ApplyEffectSpawnTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
-	case state.EffectLifeLeech:
-		effects.ApplyEffectLifeLeech(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+	case state.EffectLeech:
+		effects.ApplyEffectLeech(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
 	default:
 		fmt.Println("unhandled effect type:", eff.Type)
