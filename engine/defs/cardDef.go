@@ -1,10 +1,6 @@
 package defs
 
-import (
-	"math"
-
-	"github.com/warebuf/fd3/engine/state"
-)
+import "github.com/warebuf/fd3/engine/state"
 
 const (
 	TargetSelf         = 1 << iota // the card itself
@@ -12,8 +8,6 @@ const (
 	TargetOppField                 // opponent field cards
 	TargetOwnHand                  // friendly hand cards
 	TargetOppHand                  // opponent hand cards
-	TargetOwnCont                  // friendly continuous zone
-	TargetOppCont                  // opponent continuous zone
 	TargetOwnTrap                  // friendly set traps
 	TargetOppTrap                  // opponent set traps
 	TargetOppStructure             // opponent structures, targeted by slot rather than by card index
@@ -22,7 +16,6 @@ const (
 // which zone(s) the owning card must be in for OnTrigger
 const (
 	TriggerZoneField = 1 << iota
-	TriggerZoneContinuous
 	TriggerZoneGraveyard
 	TriggerZoneHand
 )
@@ -31,7 +24,6 @@ type Ability struct {
 	Effects      [3]state.Effect
 	Cons         [3]state.ConditionType
 	Cost         int
-	Unlimited    bool              // if true is always available, and ignores Charges/Pending
 	Milliseconds int64             // only used by OnTick
 	TargetFlags  int               // bitmask of Target flags
 	Trigger      state.TriggerType // only used by OnTrigger, condition we do a trigger check
@@ -72,7 +64,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 11, 12, 13, 17, 22, 24) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 9, 11, 12, 13, 17, 22, 24) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -128,22 +120,6 @@ var CardDefs = []CardDef{
 			},
 		}},
 	},
-	9: {
-		Type:        state.CardTypeContinuous,
-		Name:        "Rolling in the Deep",
-		Description: "Use (50): Draw a card. 3 uses.",
-		Cost:        80,
-		ChainEntry:  state.ChainDual,
-		Charges:     3,
-		MaxCharges:  math.MaxInt,
-		Active: [3]Ability{{
-			Cost:        50,
-			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast},
-			CanAutoFire: true,
-			ChainEntry:  state.ChainDual,
-			Effects:     [3]state.Effect{{Type: state.EffectDraw, B: 1}},
-		}},
-	},
 	10: {
 		Type:        state.CardTypeUnit,
 		Name:        "Archangel",
@@ -193,7 +169,7 @@ var CardDefs = []CardDef{
 		Cost:        60,
 		Active: [3]Ability{{
 			ChainEntry:  state.ChainDual,
-			TargetFlags: TargetOwnField | TargetOwnCont,
+			TargetFlags: TargetOwnField,
 			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
@@ -204,7 +180,7 @@ var CardDefs = []CardDef{
 		Cost:        50,
 		Active: [3]Ability{{
 			ChainEntry:  state.ChainDual,
-			TargetFlags: TargetOwnField | TargetOppField | TargetOwnCont | TargetOppCont,
+			TargetFlags: TargetOwnField | TargetOppField,
 			Effects:     [3]state.Effect{{Type: state.EffectChargeTarget, B: 2}},
 		}},
 	},

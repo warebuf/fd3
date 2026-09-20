@@ -25,8 +25,6 @@ func ApplyEffectConvertToTokens(gs *state.GameState, pq *state.SimulationPQ, log
 
 	if gs.Cards[targetIndex].Type == state.CardTypeUnit {
 		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
-	} else if gs.Cards[targetIndex].Type == state.CardTypeContinuous {
-		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	} else if gs.Cards[targetIndex].Type == state.CardTypeTrap {
 		destruction.HandleTrapDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	}
@@ -65,7 +63,6 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 			continue // unused ability slot, leave the rest zero-valued so the client can tell
 		}
 		card.Actives[i] = state.ActiveAbility{
-			Unlimited:   ability.Unlimited,
 			Target:      -1,
 			TargetFlags: ability.TargetFlags,
 			Cons:        ability.Cons,

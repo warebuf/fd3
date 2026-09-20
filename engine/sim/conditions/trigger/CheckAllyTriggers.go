@@ -10,8 +10,6 @@ func triggerZoneFlag(zone int) int {
 	switch zone {
 	case state.ZoneField:
 		return defs.TriggerZoneField
-	case state.ZoneContinuous:
-		return defs.TriggerZoneContinuous
 	case state.ZoneGraveyard:
 		return defs.TriggerZoneGraveyard
 	case state.ZoneHand:
@@ -27,7 +25,6 @@ func CheckAllyTriggers(gs *state.GameState, teamIndex int, trigger state.Trigger
 
 	var candidates []int
 	candidates = append(candidates, gs.Field[teamIndex]...)
-	candidates = append(candidates, gs.Continuous[teamIndex]...)
 	candidates = append(candidates, gs.Grave[teamIndex]...)
 	candidates = append(candidates, gs.Hand[teamIndex]...)
 

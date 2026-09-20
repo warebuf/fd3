@@ -8,8 +8,6 @@ import (
 func ApplyEffectSelfDestruct(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, sourceCardIndex int, executeAtWallTime int64) {
 	if gs.Cards[sourceCardIndex].Type == state.CardTypeUnit {
 		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
-	} else if gs.Cards[sourceCardIndex].Type == state.CardTypeContinuous {
-		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 	} else if gs.Cards[sourceCardIndex].Type == state.CardTypeTrap {
 		destruction.HandleTrapDestruction(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 	} else if gs.Cards[sourceCardIndex].Type == state.CardTypeEquip {

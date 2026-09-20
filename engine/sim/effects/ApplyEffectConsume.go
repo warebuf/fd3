@@ -42,8 +42,6 @@ func ApplyEffectConsume(gs *state.GameState, pq *state.SimulationPQ, logList *[]
 
 	if gs.Cards[targetIndex].Type == state.CardTypeUnit {
 		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
-	} else if gs.Cards[targetIndex].Type == state.CardTypeContinuous {
-		destruction.HandleContinuousDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	} else if gs.Cards[targetIndex].Type == state.CardTypeTrap {
 		destruction.HandleTrapDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
 	}

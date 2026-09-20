@@ -21,7 +21,7 @@ func (match *Match) handleToggleAutoAbility(ie *eventpq.InputEvent) {
 	if card.Team != teamIndex {
 		return
 	}
-	if card.Zone != state.ZoneField && card.Zone != state.ZoneContinuous {
+	if card.Zone != state.ZoneField {
 		return
 	}
 

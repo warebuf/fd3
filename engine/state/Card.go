@@ -4,7 +4,6 @@ const (
 	CardTypeStructure = iota
 	CardTypeUnit
 	CardTypeTrap
-	CardTypeContinuous
 	CardTypeEquip
 )
 
@@ -19,7 +18,6 @@ const (
 	ZoneField
 	ZoneGraveyard
 	ZonePending
-	ZoneContinuous
 	ZoneTrap
 	ZoneEquip
 )
@@ -65,9 +63,8 @@ type ActiveAbility struct {
 	TargetFlags     int // uses the target enum for bitmasking
 
 	// condition stuff
-	Cons      [3]ConditionType // what condition(s) must be met for this ability to be activated
-	Cost      int
-	Unlimited bool // this ability ignores Charges
+	Cons [3]ConditionType // what condition(s) must be met for this ability to be activated
+	Cost int
 
 	// autoability stuff
 	CanAutoFire bool // whether this ability may be toggled to auto-fire at all
@@ -90,8 +87,8 @@ type Card struct {
 	Cost      int
 	Archetype int
 	Team      int  // current controller; changes on control-changing effects like EffectGiveControl
-	Type      int  // structure, unit, trap, continuous
-	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: pending, 5: continuous, 6: trap
+	Type      int  // structure, unit, trap, equip
+	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: pending, 5: trap, 6: equip
 	IsToken   bool // tokens skip the graveyard on destruction
 
 	ChainEntry ChainEntry // how playing this card may enter the chain

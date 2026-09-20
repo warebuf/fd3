@@ -59,8 +59,6 @@ func PushCardOnChain(gs *state.GameState, logList *[]any, UpdateID *int, teamInd
 	switch gs.Cards[cardIndex].Type {
 	case state.CardTypeUnit:
 		chainType = state.ChainSummon
-	case state.CardTypeContinuous:
-		chainType = state.ChainContinuousResolution
 	case state.CardTypeEquip:
 		chainType = state.ChainEquip
 	case state.CardTypeTrap:

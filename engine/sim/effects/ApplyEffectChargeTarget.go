@@ -32,11 +32,6 @@ func ApplyEffectChargeTarget(gs *state.GameState, logList *[]any, UpdateID *int,
 				return
 			}
 		}
-		for _, ci := range gs.Continuous[teamIndex] {
-			if gs.Cards[ci].Charges >= 2 {
-				return
-			}
-		}
 	}
 
 	card := &gs.Cards[targetIndex]

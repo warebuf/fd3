@@ -6,14 +6,13 @@ import (
 	"github.com/warebuf/fd3/engine/state"
 )
 
-// when mana is added, check if any field/continuous cards can autoability
+// when mana is added, check if any field cards can autoability
 func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 	var cardIndexes []int
 	var activeIndexes []int
 
 	var candidates []int
 	candidates = append(candidates, gs.Field[teamIndex]...)
-	candidates = append(candidates, gs.Continuous[teamIndex]...)
 
 	for i := 0; i < len(candidates); i++ {
 		cardIndex := candidates[i]
@@ -28,11 +27,11 @@ func AutoAbilityManaCheck(gs *state.GameState, teamIndex int) ([]int, []int) {
 				continue
 			}
 
-			if !ability.Unlimited && card.Charges <= 0 {
+			if card.Charges <= 0 {
 				continue
 			}
 
-			if !ability.Unlimited && card.PendingCharges >= card.Charges {
+			if card.PendingCharges >= card.Charges {
 				continue
 			}
 

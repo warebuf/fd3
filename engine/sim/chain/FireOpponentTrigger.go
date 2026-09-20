@@ -11,8 +11,6 @@ func triggerZoneFlag(zone int) int {
 	switch zone {
 	case state.ZoneField:
 		return defs.TriggerZoneField
-	case state.ZoneContinuous:
-		return defs.TriggerZoneContinuous
 	case state.ZoneGraveyard:
 		return defs.TriggerZoneGraveyard
 	case state.ZoneHand:
@@ -31,7 +29,6 @@ func fireOpponentTrigger(gs *state.GameState, logList *[]any, UpdateID *int, act
 
 	var candidates []int
 	candidates = append(candidates, gs.Field[opponentTeam]...)
-	candidates = append(candidates, gs.Continuous[opponentTeam]...)
 	candidates = append(candidates, gs.Grave[opponentTeam]...)
 	candidates = append(candidates, gs.Hand[opponentTeam]...)
 

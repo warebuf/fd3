@@ -19,11 +19,11 @@ func AutoAbilityChargeCheck(gs *state.GameState, cardIndex int, activeIndex int)
 		return false
 	}
 
-	if !ability.Unlimited && card.Charges <= 0 {
+	if card.Charges <= 0 {
 		return false
 	}
 
-	if !ability.Unlimited && card.PendingCharges >= card.Charges {
+	if card.PendingCharges >= card.Charges {
 		return false
 	}
 

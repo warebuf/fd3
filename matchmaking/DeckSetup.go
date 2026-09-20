@@ -47,15 +47,14 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		Winner:          -1,
 		TimeBank:        timeBank,
 
-		Cards:      []state.Card{},
-		Deck:       make([][]int, numTeams),
-		Hand:       make([][]int, numTeams),
-		Field:      make([][]int, numTeams),
-		Grave:      make([][]int, numTeams),
-		Continuous: make([][]int, numTeams),
-		Traps:      make([][]int, numTeams),
-		Equip:      make([][]int, numTeams),
-		Chain:      []state.ChainItem{},
+		Cards: []state.Card{},
+		Deck:  make([][]int, numTeams),
+		Hand:  make([][]int, numTeams),
+		Field: make([][]int, numTeams),
+		Grave: make([][]int, numTeams),
+		Traps: make([][]int, numTeams),
+		Equip: make([][]int, numTeams),
+		Chain: []state.ChainItem{},
 		Mana: func() []int {
 			m := make([]int, numTeams)
 			for i := range m {
@@ -84,7 +83,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 		gs.Hand[team] = []int{}
 		gs.Field[team] = []int{}
 		gs.Grave[team] = []int{}
-		gs.Continuous[team] = []int{}
 		gs.Traps[team] = []int{}
 		gs.Equip[team] = []int{}
 
@@ -124,7 +122,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 					continue // unused ability slot, leave the rest zero-valued so the client can tell
 				}
 				card.Actives[i] = state.ActiveAbility{
-					Unlimited:   ability.Unlimited,
 					Target:      -1,
 					TargetFlags: ability.TargetFlags,
 					Cons:        ability.Cons,

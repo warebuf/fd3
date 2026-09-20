@@ -26,8 +26,6 @@ const (
 	GameOver
 	CounterChain
 	RefreshChain
-	PlayContinuous
-	RemoveContinuous
 	RemoveCharge
 	AddCharge
 	Preselect
@@ -269,22 +267,6 @@ type SetTrapLog struct {
 
 // a set trap finishing its setting time, so it may now be activated
 type TrapReadyLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	CardIndex     int
-}
-
-type PlayContinuousLog struct {
-	WallTimestamp int64
-	UpdateID      int
-	Type          LogType
-	TeamIndex     int
-	CardIndex     int
-}
-
-type RemoveContinuousLog struct {
 	WallTimestamp int64
 	UpdateID      int
 	Type          LogType

@@ -41,11 +41,6 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 	}
 	fireOpponentTrigger(gs, logList, UpdateID, teamIndex, state.TriggerEnemyPaidMana, executeAtWallTime)
 
-	chainItemType := state.ChainUnitAbility
-	if card.Type == state.CardTypeContinuous {
-		chainItemType = state.ChainContinuousAbility
-	}
-
 	startAtActiveTime := executeAtWallTime - gs.FullPauseOffset
 	chainItem := state.ChainItem{
 		StartAtActiveTime:   startAtActiveTime,
@@ -55,7 +50,7 @@ func PushAbilityOnChain(gs *state.GameState, logList *[]any, UpdateID *int, card
 		ActiveIndex:         activeIndex,
 		TeamIndex:           teamIndex,
 		StructureIndex:      -1,
-		Type:                chainItemType,
+		Type:                state.ChainUnitAbility,
 		Effects:             effs,
 	}
 	gs.Chain = append(gs.Chain, chainItem)
