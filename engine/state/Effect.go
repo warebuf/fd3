@@ -17,7 +17,6 @@ const (
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
 	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no damaging effect in any ability slot gains this much HP
 	EffectExtort            // only used in OnTrigger[TriggerEnemyPaidMana]; A: the team that just paid mana (auto-filled), B: toll amount taken from them if they can afford it, granted to the source card's controller either way
-	EffectRepossess         // A: card index (from Card.Actives[abilityIndex].Target); takes control of that opponent field unit (must be OwnerTeam == the activating team) and forces its own Active[0] ability to resolve for free
 	EffectDamageAllAllies   // only used in OnTrigger[TriggerSelfDestroyed]; B: damage dealt to every unit remaining on the source's own team's field. Applied directly by destruction.HandleUnitDestruction, not through the generic effect dispatcher
 	EffectDrainMana         // A: the draining team (auto-filled), B: amount requested; takes at most what the opponent currently has and grants that (possibly smaller) amount to A
 	EffectHealSelf          // B: amount; heals the source card itself, unlike EffectHeal which picks a random ally on the field
@@ -72,11 +71,6 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 		return templ
 	case EffectExtort:
 		templ.A = teamIndex
-		return templ
-	case EffectRepossess:
-		if abilityIndex >= 0 {
-			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
-		}
 		return templ
 	case EffectDrainMana:
 		templ.A = teamIndex

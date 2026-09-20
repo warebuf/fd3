@@ -45,7 +45,6 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 		Taunt:          def.Taunt,
 		Bodyguard:      def.Bodyguard,
 		Team:           teamIndex,
-		OwnerTeam:      teamIndex,
 		Type:           def.Type,
 		Zone:           state.ZoneField,
 		IsToken:        def.IsToken,

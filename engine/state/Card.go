@@ -34,9 +34,8 @@ const (
 type ConditionType int
 
 const (
-	ConditionManaAtLeast       ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
-	ConditionChargeAtLeastOne                           // checks this card's Charges >= 1
-	ConditionTargetOwnedBySelf                          // checks Cards[this Active slot's Target].OwnerTeam == this card's Team
+	ConditionManaAtLeast      ConditionType = iota + 1 // checks gs.Mana[team] >= this Ability's own Cost
+	ConditionChargeAtLeastOne                          // checks this card's Charges >= 1
 )
 
 type TriggerType int
@@ -91,8 +90,7 @@ type Card struct {
 	HP        int
 	Cost      int
 	Archetype int
-	Team      int  // current controller; changes on control-changing effects like EffectGiveControl or EffectRepossess
-	OwnerTeam int  // the team this card started under; never changes once set, regardless of who currently controls it
+	Team      int  // current controller; changes on control-changing effects like EffectGiveControl
 	Type      int  // structure, unit, trap, continuous
 	Zone      int  // 0: deck, 1: hand, 2: field, 3: graveyard, 4: pending, 5: continuous, 6: trap
 	IsToken   bool // tokens skip the graveyard on destruction

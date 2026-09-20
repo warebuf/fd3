@@ -102,7 +102,6 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				Bodyguard:   def.Bodyguard,
 
 				Team:           team,
-				OwnerTeam:      team,
 				Type:           def.Type,
 				Zone:           state.ZoneDeck,
 				IsToken:        def.IsToken,

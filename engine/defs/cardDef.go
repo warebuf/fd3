@@ -72,7 +72,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 11, 17) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 11, 17, 22) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -291,18 +291,6 @@ var CardDefs = []CardDef{
 			TriggerZones: TriggerZoneField,
 			ChainEntry:   state.ChainDual,
 			Effects:      [3]state.Effect{{Type: state.EffectExtort, B: 40}},
-		}},
-	},
-	22: {
-		Type:        state.CardTypeTrap,
-		Name:        "Repossession",
-		Description: "Take control of a unit you originally owned. It immediately activates one of its abilities for free.",
-		Cost:        60,
-		Active: [3]Ability{{
-			ChainEntry:  state.ChainDual,
-			TargetFlags: TargetOppField,
-			Cons:        [3]state.ConditionType{state.ConditionTargetOwnedBySelf},
-			Effects:     [3]state.Effect{{Type: state.EffectRepossess}},
 		}},
 	},
 	23: {
