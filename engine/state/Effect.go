@@ -11,7 +11,6 @@ const (
 	EffectChargeSelf // +1 charge on the source card itself, capped at its MaxCharges; no fields used
 	EffectConsume    // A: card index (from Card.OnPlay[abilityIndex].Target); destroys it. C: which of this card's Active slots gets its Charges as Bonus
 	EffectSelfDestruct
-	EffectConvertToTokens   // A: card index (from Card.Actives[abilityIndex].Target); destroys it and converts its Charges into tokens. B: DefNo of the token CardDef to spawn, one per 2 Charges
 	EffectChargeTarget      // A: card index (from Card.Actives[abilityIndex].Target); gains B charges, capped at its MaxCharges. C: DefNo of the source card, so the applier can switch on which card's specific fizzle condition applies
 	EffectAbsorbDestruction // only used in an equip card's OnTrigger[TriggerHostWouldBeDestroyed]; destroys the source card instead of the card that would've been destroyed
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
@@ -50,11 +49,6 @@ func FulfillEffectTemplate(gs *GameState, templ Effect, teamIndex int, cardIndex
 	case EffectConsume:
 		if abilityIndex >= 0 {
 			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].OnPlay[abilityIndex].Target)
-		}
-		return templ
-	case EffectConvertToTokens:
-		if abilityIndex >= 0 {
-			templ.A = BodyguardRedirect(gs, gs.Cards[cardIndex].Actives[abilityIndex].Target)
 		}
 		return templ
 	case EffectChargeTarget:

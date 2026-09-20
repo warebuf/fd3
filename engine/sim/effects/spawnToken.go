@@ -3,32 +3,9 @@ package effects
 import (
 	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
-	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/sim/schedule"
 	"github.com/warebuf/fd3/engine/state"
 )
-
-func ApplyEffectConvertToTokens(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, eff state.Effect, sourceCardIndex int, executeAtWallTime int64) {
-	teamIndex := gs.Cards[sourceCardIndex].Team
-
-	targetIndex := eff.A
-	if !isValidPersistentTarget(gs, teamIndex, targetIndex) {
-		return // preselected target is gone or was never set, ability fizzles
-	}
-
-	tokenCount := gs.Cards[targetIndex].Charges / 2
-	tokenDefNo := eff.B
-
-	for i := 0; i < tokenCount; i++ {
-		spawnToken(gs, pq, logList, UpdateID, tokenDefNo, teamIndex, executeAtWallTime)
-	}
-
-	if gs.Cards[targetIndex].Type == state.CardTypeUnit {
-		destruction.HandleUnitDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
-	} else if gs.Cards[targetIndex].Type == state.CardTypeTrap {
-		destruction.HandleTrapDestruction(gs, pq, logList, UpdateID, targetIndex, executeAtWallTime)
-	}
-}
 
 func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, UpdateID *int, defNo int, teamIndex int, executeAtWallTime int64) {
 	def := defs.CardDefs[defNo]

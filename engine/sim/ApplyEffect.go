@@ -34,9 +34,6 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectSelfDestruct:
 		effects.ApplyEffectSelfDestruct(gs, pq, logList, UpdateID, sourceCardIndex, executeAtWallTime)
 
-	case state.EffectConvertToTokens:
-		effects.ApplyEffectConvertToTokens(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
-
 	case state.EffectChargeTarget:
 		effects.ApplyEffectChargeTarget(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 

@@ -64,7 +64,7 @@ type CardDef struct {
 
 var CardDefs = []CardDef{
 	0: {}, // empty, so DefNo lines up with index
-	// gaps (1, 4, 5, 7, 9, 11, 12, 13, 17, 22, 24) are retired cards; IsRetired keeps them out of decks and the catalog
+	// gaps (1, 4, 5, 7, 9, 11, 12, 13, 14, 15, 17, 22, 24) are retired cards; IsRetired keeps them out of decks and the catalog
 	2: {
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
@@ -147,30 +147,6 @@ var CardDefs = []CardDef{
 					B:    1, // amount
 				},
 			},
-		}},
-	},
-	14: {
-		Type:        state.CardTypeUnit,
-		Name:        "Charge Token",
-		Description: "Destroyed after 10 ticks.",
-		BaseHP:      1,
-		IsToken:     true,
-		ChainEntry:  state.ChainAction,
-		OnTick: [3]Ability{{
-			SkipChain:    true,
-			Milliseconds: 10000,
-			Effects:      [3]state.Effect{{Type: state.EffectSelfDestruct}},
-		}},
-	},
-	15: {
-		Type:        state.CardTypeTrap,
-		Name:        "Temp Tokens",
-		Description: "Destroy a friendly card you choose; for every 2 charges it had, create a token with 1 HP that lasts 10 ticks.",
-		Cost:        60,
-		Active: [3]Ability{{
-			ChainEntry:  state.ChainDual,
-			TargetFlags: TargetOwnField,
-			Effects:     [3]state.Effect{{Type: state.EffectConvertToTokens, B: 14}}, // B: 14, Charge Token's DefNo
 		}},
 	},
 	16: {
