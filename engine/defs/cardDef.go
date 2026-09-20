@@ -69,7 +69,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Year Zero",
 		Description: "Destroy all units on the field",
-		Cost:        100,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
 			Effects: [3]state.Effect{
@@ -86,7 +86,7 @@ var CardDefs = []CardDef{
 		Name:        "Money Tree",
 		Description: "Gain 10 mana every 10 ticks",
 		BaseHP:      1,
-		Cost:        60,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
 			SkipChain:    true,
@@ -104,7 +104,7 @@ var CardDefs = []CardDef{
 		Name:        "Metal Heart",
 		Description: "Taunt",
 		BaseHP:      6,
-		Cost:        80,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		Taunt:       true,
 	},
@@ -112,7 +112,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Countertrap",
 		Description: "Negate a summon or ability and destroy the source card.",
-		Cost:        30,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainReaction,
 			Effects: [3]state.Effect{
@@ -125,7 +125,7 @@ var CardDefs = []CardDef{
 		Name:        "Archangel",
 		Description: "Maximum Charges: 3. Gain 1 charge every 30 ticks. Spend a charge to deal 1 damage to a target.",
 		BaseHP:      2,
-		Cost:        70,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		MaxCharges:  3,
 		OnTick: [3]Ability{{
@@ -153,7 +153,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Kindling",
 		Description: "If none of your cards have 2+ charges, give a card 2 charges.",
-		Cost:        50,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry:  state.ChainDual,
 			TargetFlags: TargetOwnField | TargetOppField,
@@ -164,7 +164,7 @@ var CardDefs = []CardDef{
 		Type:             state.CardTypeEquip,
 		Name:             "Deathless",
 		Description:      "If the equipped unit would be destroyed, negate the damage and destroy this instead.",
-		Cost:             40,
+		Cost:             0,
 		ChainEntry:       state.ChainDual,
 		EquipTargetFlags: TargetOwnField | TargetOppField,
 		OnTrigger: [3]Ability{{
@@ -187,7 +187,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Sanctuary",
 		Description: "Give 3 HP to every unit on the field that has no damaging ability.",
-		Cost:        50,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
 			Effects:    [3]state.Effect{{Type: state.EffectHealNonDamaging, B: 3}},
@@ -198,7 +198,7 @@ var CardDefs = []CardDef{
 		Name:        "Extortionist",
 		Description: "While on the field, whenever the opponent activates a card, ability, trap, or structure draw, they pay you 40 mana if they can; otherwise you gain 40 mana anyway.",
 		BaseHP:      2,
-		Cost:        80,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		OnTrigger: [3]Ability{{
 			Trigger:      state.TriggerEnemyPaidMana,
@@ -212,7 +212,7 @@ var CardDefs = []CardDef{
 		Name:        "Volatile Core",
 		Description: "After 20 ticks, this unit is destroyed and deals 5 damage to all allied units.",
 		BaseHP:      3,
-		Cost:        70,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		OnTick: [3]Ability{{
 			ChainEntry:   state.ChainAction,
@@ -238,7 +238,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Mutual Destruction",
 		Description: "Each player chooses one of their own units. Exchange them, then both immediately attack.",
-		Cost:        40,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry:  state.ChainDual,
 			TargetFlags: TargetOwnField,
@@ -250,7 +250,7 @@ var CardDefs = []CardDef{
 		Name:        "Bodyguard",
 		Description: "When any effect selects a target, this may become its target instead.",
 		BaseHP:      4,
-		Cost:        60,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		Bodyguard:   true,
 	},
@@ -258,7 +258,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Standoff",
 		Description: "Both players secretly bid mana. Only the higher bid is spent. If you win, the opponent discards a random card from their hand; ties favor you.",
-		Cost:        20,
+		Cost:        0,
 		IsAuction:   true,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
@@ -269,7 +269,7 @@ var CardDefs = []CardDef{
 		Name:        "Gravedigger",
 		Description: "Maximum Charges: 1. Starts charged and does not recharge on its own. Spend a charge: for each card in your graveyard, deal 1 damage to a random enemy. Hits that land on a structure also drain that much mana.",
 		BaseHP:      2,
-		Cost:        70,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		Charges:     1,
 		MaxCharges:  1,
@@ -285,7 +285,7 @@ var CardDefs = []CardDef{
 		Name:        "Leech",
 		Description: "Maximum Charges: 1. Gain 1 charge every 40 ticks. Spend a charge to deal 3 damage to a random enemy. If the attack lands, steal 40 mana from the opponent.",
 		BaseHP:      2,
-		Cost:        70,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		MaxCharges:  1,
 		OnTick: [3]Ability{{
@@ -305,12 +305,12 @@ var CardDefs = []CardDef{
 		Name:        "Overwhelm",
 		Description: "Charges: 3, does not recharge. Use (60 mana, 1 charge): Deal 3 damage to a random enemy for each unit the opponent has. Any excess from overkilling spills onto another enemy unit or structure.",
 		BaseHP:      2,
-		Cost:        70,
+		Cost:        0,
 		ChainEntry:  state.ChainAction,
 		Charges:     3,
 		MaxCharges:  3,
 		Active: [3]Ability{{
-			Cost:        60,
+			Cost:        0,
 			Cons:        [3]state.ConditionType{state.ConditionManaAtLeast, state.ConditionChargeAtLeastOne},
 			CanAutoFire: true,
 			ChainEntry:  state.ChainDual,
@@ -321,7 +321,7 @@ var CardDefs = []CardDef{
 		Type:        state.CardTypeTrap,
 		Name:        "Reinforcements",
 		Description: "Summon two 1 HP tokens.",
-		Cost:        30,
+		Cost:        0,
 		Active: [3]Ability{{
 			ChainEntry: state.ChainDual,
 			Effects:    [3]state.Effect{{Type: state.EffectSpawnTokens, B: 34, C: 2}}, // B: 34, Reinforcement Token's DefNo
@@ -331,7 +331,7 @@ var CardDefs = []CardDef{
 		Type:                 state.CardTypeEquip,
 		Name:                 "Veteran's Standard",
 		Description:          "Equipped unit deals 1 extra damage for each unit its controller has summoned.",
-		Cost:                 40,
+		Cost:                 0,
 		ChainEntry:           state.ChainDual,
 		EquipTargetFlags:     TargetOwnField | TargetOppField,
 		AttackBonusPerSummon: 1,

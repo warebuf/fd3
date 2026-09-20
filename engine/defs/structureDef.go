@@ -17,6 +17,6 @@ var StructureDefs = []StructureDef{
 		BaseHP:            8,
 		ManaRegen:         1,
 		ManaRegenInterval: 1000,
-		DrawCost:          100,
+		DrawCost:          0,
 	},
 }
