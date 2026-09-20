@@ -4,7 +4,6 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/warebuf/fd3/engine/defs"
 	"github.com/warebuf/fd3/engine/logs"
 	"github.com/warebuf/fd3/engine/sim/destruction"
 	"github.com/warebuf/fd3/engine/state"
@@ -21,7 +20,7 @@ func equipAttackBonus(gs *state.GameState, unitIndex int) int {
 			if gs.Cards[ci].EquipHostIndex != unitIndex {
 				continue
 			}
-			perSummon := defs.CardDefs[gs.Cards[ci].DefNo].AttackBonusPerSummon
+			perSummon := gs.Cards[ci].AttackBonusPerSummon
 			if perSummon <= 0 {
 				continue
 			}

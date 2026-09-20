@@ -109,6 +109,8 @@ func DeckSetup(deckDefs [][]int, structureDefNos []int) *state.GameState {
 				PendingCharges: 0,
 				AutoSummon:     0,
 				EquipHostIndex: -1,
+
+				AttackBonusPerSummon: def.AttackBonusPerSummon,
 			}
 			for i, ability := range def.OnPlay {
 				card.OnPlay[i] = state.OnPlayAbility{

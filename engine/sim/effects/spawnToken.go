@@ -27,6 +27,8 @@ func spawnToken(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Upd
 		Charges:        def.Charges,
 		MaxCharges:     def.MaxCharges,
 		EquipHostIndex: -1,
+
+		AttackBonusPerSummon: def.AttackBonusPerSummon,
 	}
 	for i, ability := range def.OnPlay {
 		card.OnPlay[i] = state.OnPlayAbility{

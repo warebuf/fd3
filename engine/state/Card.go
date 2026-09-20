@@ -115,5 +115,6 @@ type Card struct {
 	// on-play targeting related
 	OnPlay [3]OnPlayAbility // mirrors CardDef.OnPlay's TargetFlags; Target is preselected before the card is played
 
-	EquipHostIndex int // -1 is no host
+	EquipHostIndex       int // -1 is no host
+	AttackBonusPerSummon int // copied from the CardDef for equips, so the client can show the host's current bonus
 }
