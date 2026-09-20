@@ -17,7 +17,7 @@ const (
 	EffectGiveControl       // A: card index (from Card.Actives[abilityIndex].Target); hands that friendly field unit to the other team
 	EffectHealNonDamaging   // B: amount; every unit on the field (both sides) whose CardDef has no damaging effect in any ability slot gains this much HP
 	EffectExtort            // only used in OnTrigger[TriggerEnemyPaidMana]; A: the team that just paid mana (auto-filled), B: toll amount taken from them if they can afford it, granted to the source card's controller either way
-	EffectDamageAllAllies   // only used in OnTrigger[TriggerSelfDestroyed]; B: damage dealt to every unit remaining on the source's own team's field. Applied directly by destruction.HandleUnitDestruction, not through the generic effect dispatcher
+	EffectDamageAllAllies   // B: damage dealt to every unit on the source's own team's field (excluding the source if it's already left the field)
 	EffectDrainMana         // A: the draining team (auto-filled), B: amount requested; takes at most what the opponent currently has and grants that (possibly smaller) amount to A
 	EffectLiquidate         // A: card index (from Card.Actives[abilityIndex].Target); destroys that friendly field unit and converts its HP, Charges, and attached equips' Cost into mana for its controller
 	EffectMutualDestruction // A: the activator's own chosen unit (from Card.Actives[abilityIndex].Target), B: damage each swapped unit deals in its forced attack. Swaps control of that unit with a random unit off the opponent's field (no bilateral-choice mechanic exists yet, so the opponent's side is picked for them), then both immediately attack their new opponent

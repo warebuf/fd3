@@ -49,6 +49,9 @@ func ApplyEffect(gs *state.GameState, pq *state.SimulationPQ, logList *[]any, Up
 	case state.EffectExtort:
 		effects.ApplyEffectExtort(gs, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
 
+	case state.EffectDamageAllAllies:
+		effects.ApplyEffectDamageAllAllies(gs, pq, logList, UpdateID, eff, sourceCardIndex, executeAtWallTime)
+
 	case state.EffectDrainMana:
 		effects.ApplyEffectDrainMana(gs, logList, UpdateID, eff, executeAtWallTime)
 

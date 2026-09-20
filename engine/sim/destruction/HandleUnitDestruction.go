@@ -47,6 +47,4 @@ func HandleUnitDestruction(gs *state.GameState, pq *state.SimulationPQ, logList 
 		TargetCardIndex: cardIndex,
 	})
 	*UpdateID++
-
-	fireSelfDestroyedTrigger(gs, pq, logList, UpdateID, cardIndex, executeAtWallTime)
 }

@@ -258,14 +258,17 @@ var CardDefs = []CardDef{
 	23: {
 		Type:        state.CardTypeUnit,
 		Name:        "Volatile Core",
-		Description: "When this unit is destroyed, deal 5 damage to all allied units.",
+		Description: "After 20 ticks, this unit is destroyed and deals 5 damage to all allied units.",
 		BaseHP:      3,
 		Cost:        70,
 		ChainEntry:  state.ChainAction,
-		OnTrigger: [3]Ability{{
-			Trigger:      state.TriggerSelfDestroyed,
-			TriggerZones: TriggerZoneGraveyard,
-			Effects:      [3]state.Effect{{Type: state.EffectDamageAllAllies, B: 5}},
+		OnTick: [3]Ability{{
+			ChainEntry:   state.ChainAction,
+			Milliseconds: 20000,
+			Effects: [3]state.Effect{
+				{Type: state.EffectSelfDestruct},
+				{Type: state.EffectDamageAllAllies, B: 5},
+			},
 		}},
 	},
 	25: {
